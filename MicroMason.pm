@@ -1,5 +1,5 @@
 package Text::MicroMason;
-$VERSION = 1.94_0;
+$VERSION = 1.96_0;
 
 require 5.0; # The tests use the new subref->() syntax, but the module doesn't
 use strict;
@@ -57,7 +57,6 @@ Mason syntax provides several ways to mix Perl into a text template:
     <%args>
       $name
     </%args>
-
     % if ( $name eq 'Dave' ) {
       I'm sorry <% $name %>, I'm afraid I can't do that right now.
     % } else {
@@ -67,12 +66,6 @@ Mason syntax provides several ways to mix Perl into a text template:
       </%perl>
       Good <% $daypart %>, <% $name %>!
     % }
-
-    <& "includes/standard_footer.msn" &>
-
-    <%doc>
-      Here's a private developr comment describing this template. 
-    </%doc>
 
 Create a Mason object to interpret the templates:
 
@@ -116,8 +109,8 @@ MicroMason converts a template from a block of source text with special
 embedded tags into a Perl subroutine which can accept arguments and returns
 an output string.
 
-The template syntax supported by Text::MicroMason and some useful template
-developer techniques are described in L</"TEMPLATE SYNTAX">.
+The template syntax supported by Text::MicroMason is described in 
+L</"TEMPLATE SYNTAX">.
 
 =head2 Function Exporter Interface
 
@@ -125,56 +118,58 @@ Importable functions are provided for users who prefer a procedural interface.
 
 The supported functions are listed in L<Text::MicroMason::Functions>. (For backwards compatibility, those functions can also be imported from the main Text::MicroMason package.) 
 
-=head2 Object-Oriented Interface
+=head2 Template Compiler Objects
 
 The underlying implementation of MicroMason is object-oriented, with several mixin classes which can be dynamically combined to create subclasses with the requested combination of traits. 
 
-The core functionality is provided by the abstract Base class and the Mason subclass. See L<Text::MicroMason::Base> and L<Text::MicroMason::Mason> for documentation of private methods and extension mechanisms. 
+The core functionality is provided by the abstract Base class. See L<Text::MicroMason::Base> for documentation of private methods and extension mechanisms.
 
-The following methods comprise the public interface for Text::MicroMason:
+The standard template syntax is provided by the Mason subclass. See L<Text::MicroMason::Mason> for documentation of markup options. 
+
+Other optional functionality is provided by mixin classes. For a list of available mixin classes, see L</"Mixin Options">.
+
+=head2 Public Methods
+
+The following methods comprise the primary public interface for Text::MicroMason:
 
 =over 4
 
 =item new()
 
-  $mason = Text::MicroMason->new();
+  $mason = Text::MicroMason->new( -Mixin1, -Mixin2, %attribs );
 
-Creates a new Text::MicroMason object. 
-
-  $mason = Text::MicroMason->new( -Mixin1, -Mixin2, %attributes );
-
-To obtain the functionality of one of the supported mixin classes, pass their names as arguments with leading dashes. Any other optional attributes can also be passed as key-value pairs.
-
-This is a shortcut for calling the class() and new() methods:
-
-  $mason = Text::MicroMason->class( @Mixins )->new( %attributes );
-
-=item class()
-
-  $subclass = Text::MicroMason->class( @Mixins );
-
-Generates a subclass of Text::MicroMason::Mason that combines the list of provided mixin classes. 
+Creates a new Text::MicroMason object. To obtain the functionality of one of the supported mixin classes, pass their names as arguments with leading dashes.
 
 =item compile()
 
-  $code_ref = $mason->compile( $type => $source, %options );
+  $code_ref = $mason->compile( $type => $source, %attribs );
 
-Parses the provided template and converts it into a new Perl subroutine.
+Parses the provided template and converts it into a new Perl subroutine. 
 
 =item execute()
 
-  $result = $mason->execute( $type => $source, \%options, @arguments );
+  $result = $mason->execute( $type => $source, @arguments );
+  $result = $mason->execute( $type => $source, \%attribs, @arguments );
 
 Returns the results produced by the template, given the provided arguments.
 
 =back
 
+Subclasses or mixins may define additional public methods.
+
+Some subclasses support or require values for various additional attributes. You may pass 
+
+ Any other optional attributes can also be passed as key-value pairs.
+
+ Any attributes provided here will override those in the original Mason object, but only for this execution.
 
 =head1 USAGE
 
+The compile() and execute() methods convert your template to runnable code.
+
 =head2 Interpreting Templates
 
-To compile a Mason-like template, pass it to the compile() method:
+To compile a Mason-like template, pass it to the compile() method to produce a new Perl subroutine returned as a code reference:
 
   $sub_ref = $mason->compile( text => $template );
 
@@ -188,29 +183,22 @@ To compile and evaluate in one step, call the execute() method:
 
   $result = $mason->execute( text => $template, @args );
 
-Calling execute repeatedly will be slower than compiling once and calling the template function repeatedly, unless you enable compilation caching; for details see L<Text::MicroMason::CompileCache>.
-
-Each time you execute the template all of the logic will be re-evaluated, unless you enable execution caching, which stores the output of each template for each given set of arguments; for details see L<Text::MicroMason::ExecuteCache>.
-
-
 =head2 Template Files
 
-A parallel set of functions exist to handle templates which are stored in a file:
+Change the first argument for acccess to templates which are stored in a file:
 
   $sub_ref = $mason->compile( file => $filename );
   $result = $sub_ref->( @args );
 
   $result = $mason->execute( file => $filename, @args );
 
-Template documents are just plain text files that contains the string to be parsed. The files may have any name you wish, and the .msn extension shown above is not required.
-
-The filename specifid can be absolute or relative to the current directory. If you want to specify a base path for template files, see L<Text::MicroMason::TemplateDir>.
+Template files are just plain text files that contains the string to be parsed. The files may have any name you wish, and the .msn extension shown above is not required. The filename specified can either be absolute or relative to the program's current directory.
 
 =head2 Argument Passing
 
 You can also pass a list of key-value pairs as arguments to execute, or to the compiled subroutine:
 
-  $result = execute( $mason_text, %args );
+  $result = $mason->execute( text => $template, %args );
   
   $result = $sub_ref->( %args );
 
@@ -218,13 +206,23 @@ Within the scope of your template, any arguments that were provided will be acce
 
 For example, the below calls will all return '<b>Foo</b>':
 
-  execute('<b><% shift(@_) %></b>', 'Foo');
+  $mason->execute( text=>'<b><% shift(@_) %></b>', 'Foo');
 
-  execute('<b><% $ARGS{label} %></b>', label=>'Foo');
+  $mason->execute( text=>'<b><% $ARGS{label} %></b>', label=>'Foo');
 
-  execute('<%args>$label</%args><b><% $label %></b>', label=>'Foo');
+  $mason->execute( text=>'<%args>$label</%args><b><% $label %></b>', label=>'Foo');
 
-=head2 Error Checking
+=head2 Mixin Options
+
+The following mixin classes can be layered on to your Mason object to provide additional functionality. 
+
+To add a mixin's functionality, pass it's name with a dash to the new() method:
+
+  $mason = Text::MicroMason->new( -CatchErrors, -PostProcess );
+
+=over 4
+
+=item CatchErrors
 
 Both compilation and run-time errors in your template are handled as fatal
 exceptions. To prevent a template error from ending your program, enclose it in an eval block:
@@ -238,330 +236,69 @@ exceptions. To prevent a template error from ending your program, enclose it in 
 
 To transparently add this functionality to your Mason object, see L<Text::MicroMason::CatchErrors>.
 
-=head2 Security
+=item CompileCache
+
+Calling execute repeatedly will be slower than compiling once and calling the template function repeatedly, unless you enable compilation caching; for details see L<Text::MicroMason::CompileCache>.
+
+=item ExecuteCache
+
+Each time you execute the template all of the logic will be re-evaluated, unless you enable execution caching, which stores the output of each template for each given set of arguments; for details see L<Text::MicroMason::ExecuteCache>.
+
+=item PostProcess
+
+Allows you to specify one or more functions through which all template output should be passed before it is returned; for details see L<Text::MicroMason::PostProcess>.
+
+=item Safe
 
 By default, the code embedded in a template has accss to all of the capabilities of your Perl process, and could potentially perform dangerous activities such as accessing or modifying files and starting other programs. 
 
 If you need to execute untrusted templates, use the Safe module, which can restrict the operations and data structures that template code can access.
 To add this functionality to your Mason object, see L<Text::MicroMason::Safe>.
 
+=item TemplateDir
+
+The filenames passed to the compile() or execute() methods can be looked up relative to a base directory path or  the current template file. To add this functionality to your Mason object, see L<Text::MicroMason::TemplateDir>.
+
+=back
+
 
 =head1 TEMPLATE SYNTAX
 
-Here's an example of Mason-style templating, taken from L<HTML::Mason>:
+Templates contain a mix of literal text to be output with some type of markup syntax which specifies more complex behaviors.
 
-    % my $noun = 'World';
-    Hello <% $noun %>!
-    How are ya?
+=head2 Mason Syntax
 
-Interpreting this template with Text::MicroMason produces the same output as it would in HTML::Mason:
+The default Text::MicroMason::Mason subclass provides lexer and assembler methods that handle most elements of HTML::Mason's template syntax.
 
-    Hello World!
-    How are ya?
+    <%args>
+      $name => 'Guest' 
+    </%args>
 
-Text::MicroMason::Mason supports a syntax that is mostly a subset of that used by HTML::Mason.
-
-=head2 Template Markup
-
-The following types of markup are recognized in template pages:
-
-=over 4
-
-=item *
-
-I<literal_text>
-
-Anything not specifically parsed by one of the below rules is interpreted as literal text.
-
-=item *
-
-E<lt>% I<perl_expr> %E<gt>
-
-A Perl expression to be interpolated into the result.
-
-For example, the following template text will return a scheduled
-greeting:
-
-    Good <% (localtime)[2]>11 ? 'afternoon' : 'morning' %>.
-
-The block may span multiple lines and is scoped inside a "do" block,
-so it may contain multiple Perl statements and it need not end with
-a semicolon.
-
-    Good <% my $h = (localtime)[2]; $h > 11 ? 'afternoon' 
-                                            : 'morning'  %>.
-
-=item *
-
-% I<perl_code>
-
-Lines which begin with the % character, without any leading
-whitespace, may contain arbitrary Perl code to be executed when
-encountering this portion of the template.  Their result is not
-interpolated into the result.
-
-For example, the following template text will return a scheduled
-greeting:
-
-    % my $daypart = (localtime)[2]>11 ? 'afternoon' : 'morning';
-    Good <% $daypart %>.
-
-The line may contain one or more statements.  This code is automatically
-terminated by a semicolon but it is not placed in its own block scope, so
-it can still open a spanning block scope closed by a later perl block.
-
-For example, the following template text will return one of two different messages each time it's interpreted:
-
-    % if ( int rand 2 ) {
-      Hello World!
+    % if ( $name eq 'Dave' ) {
+      I'm sorry <% $name %>, I'm afraid I can't do that right now.
     % } else {
-      Goodbye Cruel World!
+      <%perl>
+	my $hour = (localtime)[2];
+	my $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
+      </%perl>
+      Good <% $daypart %>, <% $name %>!
     % }
 
-This also allows you to quickly comment out sections of a template by prefacing each line with C<% #>.
+    <& "includes/standard_footer.msn" &>
 
-This is equivalent to a <%perl>...</%perl> block.
+    <%doc>
+      Here's a private developr comment describing this template. 
+    </%doc>
 
-=item *
+For a definition of the template syntax, see L<Text::MicroMason::Mason>.
 
-E<lt>& I<template_filename>, I<arguments> &E<gt>
+=head2 Mixin Options
 
-Includes the results of a separate file containing MicroMason code, compiling it and executing it with any arguments passed after the filename.
-
-For example, we could place the following template text into an separate 
-file:
-
-    Good <% $ARGS{hour} >11 ? 'afternoon' : 'morning' %>.
-
-Assuming this file was named "greeting.msn", its results could be embedded within the output of another script as follows:
-
-  <& "greeting.msn", hour => (localtime)[2] &>
-
-=item *
-
-E<lt>%I<name>E<gt> ... E<lt>/%I<name>E<gt>
-
-A named block contains a span of text. The name at the start and end must match, and must be one of the supported block names. 
-
-Depending on the name, performs one of the behaviors described in L</"Named Blocks">.
-
-=back
-
-=head2 Named Blocks
-
-The following types of named blocks are supported:
+The following mixin classes can be layered on to your Mason object to provide additional functionality. 
 
 =over 4
 
-=item *
-
-E<lt>%perlE<gt> I<perl_code> E<lt>/%perlE<gt>
-
-Blocks surrounded by %perl tags may contain arbitrary Perl code.
-Their result is not interpolated into the result.
-
-These blocks may span multiple lines in your template file. For
-example, the below template initializes a Perl variable inside a
-%perl block, and then interpolates the result into a message.
-
-    <%perl> 
-      my $count = join '', map "$_... ", ( 1 .. 9 ); 
-    </%perl>
-    Here are some numbers: <% $count %>
-
-The code may contain one or more statements.  This code is automatically
-terminated by a semicolon but it is not placed in its own block scope, so
-it can still open a spanning block scope closed by a later perl block.
-
-For example, when the below template text is evaluated it will
-return a sequence of digits:
-
-    Here are some numbers: 
-    <%perl> 
-      foreach my $digit ( 1 .. 9 ) { 
-    </%perl>
-	<% $digit %>... 
-    <%perl> 
-      } 
-    </%perl>
-
-If the block is immediately followed by a line break, that break is
-discarded.  These blocks are not whitespace sensitive, so the template
-could be combined into a single line if desired.
-
-=item *
-
-E<lt>%argsE<gt> I<variable> => I<default> E<lt>/%argsE<gt>
-
-Defines a collection of variables to be initialized from named arguments passed to the subroutine. Arguments are separated by one or more newlines, and may optionally be followed by a default value. If no default value is provided, the argument is required and the subroutine will croak if it is not provided. 
-
-For example, adding the following block to a template will initialize the three named variables, and will fail if no C<a =E<gt> '...'> argument pair is passed:
-
-  <%args>
-    $a
-    @b => qw( foo bar baz )
-    %c => ()
-  </%args>
-
-All the arguments are available as lexically scoped ("my") variables in the rest of the component. Default expressions are evaluated in top-to-bottom order, and one expression may reference an earlier one.
-
-Only valid Perl variable names may be used in <%args> sections. Parameters with non-valid variable names cannot be pre-declared and must be fetched manually out of the %ARGS hash. 
-
-=item *
-
-E<lt>%initE<gt> I<perl_code> E<lt>/%initE<gt>
-
-Similar to a %perl block, except that the code is moved up to the start of
-the subroutine. This allows a template's initialization code to be moved to
-the end of the file rather than requiring it to be at the top.
-
-For example, the following template text will return a scheduled
-greeting:
-
-    Good <% $daypart %>.
-    <%init> 
-      my $daypart = (localtime)[2]>11 ? 'afternoon' : 'morning';
-    </%init>
-
-=item *
-
-E<lt>%cleanupE<gt> I<perl_code> E<lt>/%cleanupE<gt>
-
-Similar to a %perl block, except that the code is moved down to the end of the subroutine. 
-
-=item *
-
-E<lt>%onceE<gt> I<perl_code> E<lt>/%onceE<gt>
-
-Similar to a %perl block, except that the code is executed once,
-when the template is first compiled. (If a caller is using execute,
-this code will be run repeatedly, but if they call compile and then
-invoke the resulting subroutine multiple times, the %once code will
-only execute during the compilation step.)
-
-This code does not have access to %ARGS and can not generate output.
-It can be used to define constants, create persistent variables,
-or otherwise prepare the environment.
-
-For example, the following template text will return a increasing
-number each time it is called:
-
-    <%once> 
-      my $counter = 1000;
-    </%once>
-    The count is <% ++ $counter %>.
-
-=item *
-
-E<lt>%docE<gt> ... E<lt>/%docE<gt>
-
-Provides space for template developer documentation or comments which are not included in the output.
-
-=back
-
-The following types of named blocks are not supported by HTML::Mason, but are supported here as a side-effect of the way the lexer and assembler are implemented.
-
-=over 4
-
-=item *
-
-E<lt>%textE<gt> ... E<lt>/%textE<gt>
-
-Produces literal text in the template output. Can be used to surround text
-that contains other markup tags that should not be interpreted.
-
-Equivalent to un-marked-up text.
-
-=item *
-
-E<lt>%outputE<gt> ... E<lt>/%outputE<gt>
-
-A Perl expression to be interpolated into the result.
-The block may span multiple lines and is scoped inside a "do" block,
-so it may contain multiple Perl statements and it need not end with
-a semicolon. 
-
-Equivalent to the C<E<lt>% ... %E<gt>> markup syntax.
-
-=item *
-
-E<lt>%includeE<gt> I<template_filename>, I<arguments> E<lt>/%includeE<gt>
-
-Includes the results of a separate file containing MicroMason code, compiling it and executing it with any arguments passed after the filename.
-
-  <%include> "greeting.msn", hour => (localtime)[2] </%include>
-
-Equivalent to the C<E<lt>& ... &E<gt>> markup syntax.
-
-=back
-
-
-=head1 TEMPLATE CODING TECHNIQUES
-
-=head2 Assembling Perl Source Code
-
-When Text::MicroMason::Base assembles your lexed template into the
-equivalent Perl subroutine, all of the literal (non-Perl) pieces are
-converted to C<$_out-E<gt>('text');> statements, and the interpolated
-expressions are converted to C<$_out-E<gt>( do { expr } );> statements.
-Code from %perl blocks and % lines are included exactly as-is.
-
-Your code is eval'd in the C<Text::MicroMason::Commands> package. 
-The C<use strict;> pragma is enabled by default to simplify debugging.
-
-=head2 Internal Sub-templates
-
-You can create sub-templates within your template text by defining
-them as anonymous subroutines and then calling them repeatedly.
-For example, the following template will concatenate the results of 
-the draw_item sub-template for each of three items:
-
-    <h1>We've Got Items!</h1>
-    
-    % my $draw_item = sub {
-      <p><b><% $_[0] %></b>:<br>
-	<a href="/more?item=<% $_[0] %>">See more about <% $_[0] %>.</p>
-    % };
-    
-    <%perl>
-      foreach my $item ( qw( Foo Bar Baz ) ) {
-	$draw_item->( $item );
-      }
-    </%perl>
-
-=head2 Returning Text from Perl Blocks
-
-To append to the result from within Perl code, call $_out->(I<text>). 
-(The $_out->() syntax is unavailable in older versions of Perl; use the
-equivalent &$_out() syntax instead.)
-
-For example, the below template text will return '123456789' when it is
-evaluated:
-
-    <%perl>
-      foreach my $digit ( 1 .. 9 ) {
-	$_out->( $digit )
-      }
-    </%perl>
-
-You can also directly manipulate the value @OUT, which contains the
-accumulating result. 
-
-For example, the below template text will return an altered version of its
-message if a true value for 'minor' is passed as an argument when the
-template is executed:
-
-    This is a funny joke.
-    % if ( $ARGS{minor} ) { foreach ( @OUT ) { tr[a-z][n-za-m] } }
-
-
-=head1 SYNTAX MIXINS
-
-This behavior can be supplemented or overridden by subclasses and mixins. (Of particular interest are the private lex(), assemble(), and eval_sub() methods.) For more information about how these mixin behaviors are implemented and selected, see L<Text::MicroMason/"Object-Oriented Interface">.
-
-The following mixin class adds an additional feature to the syntax described above.
-
-=head2 Filters
+=item Filters
 
 HTML::Mason provides an expression filtering mechanism which is typically used for applying HTML and URL escaping functions to output. 
 
@@ -575,27 +312,75 @@ Output expressions may then be followed by "|h" or "|u" escapes; for example thi
 
 For more information see L<Text::MicroMason::Filters>
 
-=head1 ALTERNATE SYNTAX
+=back
 
-The following mixin classes replace the syntax described above with one that is quite different.
+=head2 Alternate Syntaxes
 
-=head2 HTMLTemplate
+The following classes provide support for different template syntaxes. You can enable them using the same syntax for other mixin features.
 
-The TextTemplate mixin replaces the supported template syntax with one similar to that used by the HTML::Template module.
+=over 4
 
-For more information see L<Text::MicroMason::HTMLTemplate>
+=item Embperl
 
-=head2 ServerPages
+The Embperl mixin replaces the supported template syntax with one similar to that used by the HTML::Embperl module.
 
-The ServerPages mixin replaces the supported template syntax with one similar to that used by the ASP and JSP templating systems.
+    [- my $name = $ARGS{name}; -]
+    [$ if $name eq 'Dave' $]
+      I'm sorry [+ $name +], I'm afraid I can't do that right now.
+    [$ else $]
+      [- 
+	my $hour = (localtime)[2];
+	my $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
+      -]
+      Good [+ $daypart +], [+ $name +]!
+    [$ endif $]
 
-For more information see L<Text::MicroMason::ServerPages>
+For more information see L<Text::MicroMason::Embperl>.
 
-=head2 TextTemplate
+=item HTMLTemplate
+
+The HTMLTemplate mixin replaces the supported template syntax with one similar to that used by the HTML::Template module.
+
+    <TMPL_IF NAME="user_is_dave">
+      I'm sorry <TMPLVAR NAME="name">, I'm afraid I can't do that right now.
+    <TMPL_ELSE>
+      <TMPL_IF NAME="daytime_is_morning">
+	Good morning, <TMPLVAR NAME="name">!
+      <TMPL_ELSE>
+	Good afternoon, <TMPLVAR NAME="name">!
+      </TMPL_IF>
+    </TMPL_IF>
+
+For more information see L<Text::MicroMason::HTMLTemplate>.
+
+=item ServerPages
+
+The ServerPages mixin replaces the supported template syntax with one similar to that used by the Apache::ASP module.
+
+    <% my $name = $ARGS{name};
+      if ( $name eq 'Dave' ) {  %>
+      I'm sorry <% $name %>, I'm afraid I can't do that right now.
+    <% } else { 
+	my $hour = (localtime)[2];
+	my $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
+      %>
+      Good <%= $daypart %>, <%= $name %>!
+    <% } %>
+
+For more information see L<Text::MicroMason::ServerPages>.
+
+=item TextTemplate
 
 The TextTemplate mixin replaces the supported template syntax with one similar to that used by the Text::Template module.
 
-For more information see L<Text::MicroMason::TextTemplate>
+    { $hour = (localtime)[2];
+      $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
+    '' }
+    Good { $daypart }, { $name }!
+
+For more information see L<Text::MicroMason::TextTemplate>.
+
+=back
 
 
 =head1 DIAGNOSTICS

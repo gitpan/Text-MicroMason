@@ -18,13 +18,13 @@ MicroMason/Cache/Simple.pm
 MicroMason/CatchErrors.pm
 MicroMason/Changes.pod
 MicroMason/CompileCache.pm
-MicroMason/Devel.pod
 MicroMason/Embperl.pm
 MicroMason/ExecuteCache.pm
 MicroMason/Filters.pm
 MicroMason/Functions.pm
 MicroMason/HTMLTemplate.pm
 MicroMason/Mason.pm
+MicroMason/PostProcess.pm
 MicroMason/ReadMe.pod
 MicroMason/Safe.pm
 MicroMason/ServerPages.pm
@@ -49,6 +49,7 @@ t/33-filters.t
 t/34-compile_cache.t
 t/35-execute_cache.t
 t/36-template_dir.t
+t/37-post_process.t
 t/41-server_pages.t
 t/42-text_template.t
 t/43-html_template.t

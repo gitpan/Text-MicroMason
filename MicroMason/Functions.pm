@@ -169,7 +169,7 @@ A matching pair of try_*_file() wrappers are available to catch run-time errors 
 
   ($result, $error) = try_execute_file( './report_tmpl.msn', %args );
 
-For more information, see L<Text::MicroMason::ErrorCatching>.
+For more information, see L<Text::MicroMason::CatchErrors>.
 
 =head2 Safe Compartments
 

@@ -3,7 +3,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 20 }
+BEGIN { plan tests => 24 }
 
 my $loaded;
 END { ok(0) unless $loaded; }
@@ -160,3 +160,90 @@ STRICT_VARS: {
 }
 
 ######################################################################
+
+MULTILINE_STATEMENT_BLOCK: {
+  
+  my $scr_hash = <<'ENDSCRIPT';
+<%perl>
+ my %thing = (
+    name => "disturbance",
+    rank => "major",
+    serial => "2"
+ );
+</%perl>
+<table>
+% foreach my $key (sort keys %thing) {
+ <tr>
+  <th><% $key %></th>
+  <td><% $thing{$key} %></td>
+ </tr>
+% }
+</table>
+ENDSCRIPT
+
+  my $res_hash = <<'ENDSCRIPT';
+<table>
+ <tr>
+  <th>name</th>
+  <td>disturbance</td>
+ </tr>
+ <tr>
+  <th>rank</th>
+  <td>major</td>
+ </tr>
+ <tr>
+  <th>serial</th>
+  <td>2</td>
+ </tr>
+</table>
+ENDSCRIPT
+
+  ok my $test_result = execute($scr_hash);  
+  ok ($test_result, $res_hash);
+
+}
+
+######################################################################
+
+MULTILINE_STATEMENT: {
+  
+  my $scr_hash = <<'ENDSCRIPT';
+% my %thing = (
+%    name => "mills",
+%    rank => "general",
+%    serial => "1"
+% );
+<table>
+% foreach my $key (sort keys %thing) {
+ <tr>
+  <th><% $key %></th>
+  <td><% $thing{$key} %></td>
+ </tr>
+% }
+</table>
+ENDSCRIPT
+
+  my $res_hash = <<'ENDSCRIPT';
+<table>
+ <tr>
+  <th>name</th>
+  <td>mills</td>
+ </tr>
+ <tr>
+  <th>rank</th>
+  <td>general</td>
+ </tr>
+ <tr>
+  <th>serial</th>
+  <td>1</td>
+ </tr>
+</table>
+ENDSCRIPT
+
+  ok my $test_result = execute($scr_hash);  
+  ok ($test_result, $res_hash);
+
+}
+
+######################################################################
+

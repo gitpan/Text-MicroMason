@@ -64,27 +64,27 @@ sub assembler_rules {
 }
 
 %Assembler = (
-  template => [ qw( $sub_start $err_hdlr $out_start $args_start
-			      @perl !@cleanup $out_end $sub_end ) ],
+  template => [ qw( $sub_start $init_errs $init_output
+		    $init_args @perl $return_ouput $sub_end ) ],
 
   sub_start  => 'sub { ',
   sub_end  => '}',
 
-  err_hdlr => 
-    'local $SIG{__DIE__} = sub { die "MicroMason execution failed: ", @_ }',
+  init_errs => 
+    'local $SIG{__DIE__} = sub { die "MicroMason execution failed: ", @_ };',
 
   # Argument processing elements
-  args_start => 'my %ARGS = @_ if ($#_ % 2)',
+  init_args => 'my %ARGS = @_ if ($#_ % 2);',
 
   # Output generation
-  out_start => 'my @OUT; my $_out = sub { push @OUT, @_ }',
-  out_do => '  push @OUT, ',
-  out_end => 'join("", @OUT)',
+  init_output => 'my @OUT; my $_out = sub { push @OUT, @_ };',
+  add_output => '  push @OUT, ',
+  return_ouput => 'join("", @OUT)',
 
   # Mapping between token types
-  text_token => 'perl OUT( QUOTED )',
-  output_token => 'perl OUT( do{ TOKEN } )',
-  include_token => 'perl OUT( $m->execute( file => do { TOKEN } ) )',
+  text_token => 'perl OUT( QUOTED );',
+  output_token => 'perl OUT( do{ TOKEN } );',
+  include_token => 'perl OUT( $m->execute( file => do { TOKEN } ) );',
 );
 
 # $perl_code = $mason->assemble( @tokens );
@@ -95,8 +95,9 @@ sub assemble {
   my %assembler = $self->assembler_rules();
   my @assembly = @{ $assembler{ template } };
   
-  my %token_streams = ( map { $_ => [] } map { ( /^\W?\@(\w+)$/ ) } @assembly );
-  my %token_map = map { ( /^(.*?)_token$/ )[0] => $assembler{$_} } grep { /_token$/ } keys %assembler;
+  my %token_streams = map { $_ => [] } map { ( /^\W?\@(\w+)$/ ) } @assembly;
+  my %token_map = map { ( /^(.*?)_token$/ )[0] => $assembler{$_} } 
+					    grep { /_token$/ } keys %assembler;
   
   while ( scalar @tokens ) {
     my $type = shift @tokens;
@@ -111,9 +112,9 @@ sub assemble {
     }
 
     if ( my $typedef = $token_map{ $type } ) {
-      $typedef =~ s{TOKEN}{$token}g;
-      $typedef =~ s{QUOTED}{qq(\Q$token\E)}g;
-      $typedef =~ s{OUT}{$assembler{out_do}}g;
+      $typedef =~ s{\bTOKEN\b}{$token}g;
+      $typedef =~ s{\bQUOTED\b}{qq(\Q$token\E)}g;
+      $typedef =~ s{\bOUT\b}{$assembler{add_output}}g;
       ( $type, $token ) = split ' ', $typedef, 2;
     }
     
@@ -124,7 +125,7 @@ sub assemble {
   }
     
   join(' ', '#', 'line', 1, '"' . ( ( caller(2) )[1] || 'unknown' ) . ' template near"' . "\n" ) .
-  join( ";\n",  map { 
+  join( "\n",  map { 
     /^(\W+)(\w+)$/ or $self->croak_msg("Can't assemble $_");
     if ( $1 eq '$' ) {
       $assembler{ $2 }
@@ -486,9 +487,13 @@ Boolean value. Debugging flag activates warns throughout the code. Used by debug
 
 =back
 
-=head2 Extending
+=head1 EXTENDING
 
-You can add functionality to this module by creating subclasses. Key areas for subclass writers are:
+You can add functionality to this module by creating subclasses or mixin classes. 
+
+To create a subclass, just inherit from the base class or some dynamically-assembled class. To create your own mixin classes which can be combined with other mixin features, examine the operation of the class() and NEXT() methods.
+
+Key areas for subclass writers are:
 
 =over 4
 
@@ -502,9 +507,9 @@ You can support a new template source type by creating a method with a correspon
 
 For example, if a subclass defined a method named read_from_db, callers could compile templates by calling C<-E<gt>compile( from_db =E<gt> 'welcome-page' )>.
 
-=item lex
+=item lex_token
 
-Replace this to parse a new template syntax. Is passed the text to be parsed and should return a list of C<$type =E<gt> $token> pairs. 
+Replace this to parse a new template syntax. Is receives the text to be parsed in $_ and should match from the current position to return the next token type and its contents.
 
 =item assembler_rules
 

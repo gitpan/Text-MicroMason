@@ -49,7 +49,7 @@ sub output {
 sub assembler_rules {
   my $self = shift;
   $self->NEXT('assembler_rules', @_),
-    args_start => 'local $m->{params} = [ scalar(@_) ? { @_ } : (), $m->{params} ? @{$m->{params}} : () ]';
+    init_args => 'local $m->{params} = [ scalar(@_) ? { @_ } : (), $m->{params} ? @{$m->{params}} : () ];';
 }
 
 sub param {
@@ -146,7 +146,7 @@ sub assemble_tmpl_var {
   if ( $args->{escape} ) {
     $output = "\$m->filter( $output, '$args->{escape}' )"
   }
-  output => $output
+  output => "$output;"
 }
 
 sub assemble_tmpl_include {
@@ -157,7 +157,7 @@ sub assemble_tmpl_include {
 sub assemble_tmpl_loop {
   my ($self, $args) = @_;
   perl => q/foreach my $args ( $m->param( '/ . $args->{name} . q/' ) ) { 
-    local $m->{params} = [ $args, $m->{global_vars} ? @{$m->{params}} : () ]/
+    local $m->{params} = [ $args, $m->{global_vars} ? @{$m->{params}} : () ];/
 }
 
 sub assemble_tmpl_if {
@@ -216,10 +216,14 @@ Text::MicroMason::HTMLTemplate - Alternate Syntax like HTML::Template
 
 HTML::Template provides a syntax to embed values into a text template:
 
-    <TMPL_IF NAME="morning">
-      Good morning, <TMPLVAR NAME="name">
+    <TMPL_IF NAME="user_is_dave">
+      I'm sorry <TMPLVAR NAME="name">, I'm afraid I can't do that right now.
     <TMPL_ELSE>
-      Hello there!
+      <TMPL_IF NAME="daytime_is_morning">
+	Good morning, <TMPLVAR NAME="name">!
+      <TMPL_ELSE>
+	Good afternoon, <TMPLVAR NAME="name">!
+      </TMPL_IF>
     </TMPL_IF>
 
 Instead of using this class directly, pass its name to be mixed in:

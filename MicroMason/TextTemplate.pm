@@ -20,17 +20,17 @@ sub lex {
 # Text elements used for subroutine assembly
 use vars qw( %Assembler );
 
-$Assembler{template} = [ qw( $eval_start $sub_start $err_hdlr $out_start 
-			      $args_start @perl $out_end $sub_end ) ];
+$Assembler{template} = [ qw( $eval_start $sub_start $init_errs $init_output 
+			      $init_args @perl $return_ouput $sub_end ) ];
 $Assembler{ eval_start } = 'package __PACKAGE__; no strict; ';
 
-$Assembler{args_start} = 'local %__PACKAGE__:: = %__PACKAGE__::;' . "\n" .
+$Assembler{init_args} = 'local %__PACKAGE__:: = %__PACKAGE__::;' . "\n" .
 			  'my %ARGS = @_;' . "\n" .
-			  '$m->install_args_hash( "__PACKAGE__", \%ARGS )';
+			  '$m->install_args_hash( "__PACKAGE__", \%ARGS );';
 
-$Assembler{out_start} = 'my $OUT = ""; my $_out = sub {$OUT .= join "", @_}';
-$Assembler{out_do} = '  $OUT .= join "", ';
-$Assembler{out_end} = '$OUT';
+$Assembler{init_output} = 'my $OUT = ""; my $_out = sub {$OUT .= join "", @_};';
+$Assembler{add_output} = '  $OUT .= join "", ';
+$Assembler{return_ouput} = '$OUT;';
 
 sub assembler_rules {
   my $self = shift;
@@ -92,8 +92,7 @@ Text::MicroMason::TextTemplate - Alternate Syntax like Text::Template
 
 Text::Template provides a syntax to mix Perl into a text template:
 
-    { my $name = $ARGS{name}; 
-      my $hour = (localtime)[2];
+    { my $hour = (localtime)[2];
       my $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
     '' }
     Good { $daypart }, { $name }!

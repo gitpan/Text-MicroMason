@@ -15,7 +15,7 @@ use Text::MicroMason;
   use vars qw( $count_sub $sub_count $local_count );
   $sub_count = 0;
   $local_count = 0;
-  my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count </%perl><% ++ $count %>};
+  my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count; </%perl><% ++ $count; %>};
   for ( 1 .. 3 ) { 
     $count_sub = $m->compile( text => $count_scr );
     for ( 1 .. 3 ) { 
@@ -37,7 +37,7 @@ use Text::MicroMason;
   use vars qw( $count_sub $sub_count $local_count );
   $sub_count = 0;
   $local_count = 0;
-  my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count </%perl><% ++ $count %>};
+  my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count; </%perl><% ++ $count; %>};
   for ( 1 .. 3 ) { 
     $count_sub = $m->compile( text => $count_scr );
     for ( 1 .. 3 ) { 
@@ -59,7 +59,7 @@ use Text::MicroMason;
   use vars qw( $count_sub $sub_count $local_count );
   $sub_count = 0;
   $local_count = 0;
-  my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count </%perl><% ++ $count %>};
+  my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count; </%perl><% ++ $count; %>};
   for ( 1 .. 3 ) { 
     $count_sub = $m->compile( text => $count_scr );
     for ( 1 .. 3 ) { 
@@ -81,7 +81,7 @@ use Text::MicroMason;
   use vars qw( $count_sub $sub_count $local_count );
   $sub_count = 0;
   $local_count = 0;
-  my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count </%perl><% ++ $count %>};
+  my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count; </%perl><% ++ $count; %>};
   for ( 1 .. 3 ) { 
     $count_sub = $m->compile( text => $count_scr );
     for ( 1 .. 3 ) { 

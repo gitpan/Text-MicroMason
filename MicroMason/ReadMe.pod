@@ -19,7 +19,8 @@ the HTML::Mason syntax ("<%...%>" expressions, "%...\n" lines and
 and omits the features that are web specific (like autohandlers) or are
 less widely used (like "<%method>" blocks).
 
-=head2 Related Modules
+
+=head1 RELATED MODULES
 
 You may well be thinking "yet another dynamic templating module?
 Sheesh!" And you'd have a good point. There certainly are a variety
@@ -62,17 +63,18 @@ theoretically could execute faster than the run-time evaluation mechanisms
 used by the originals, although no benchmarking has been performed yet.
 
 
-
 =head1 DISTRIBUTION
 
-This is version 1.94_0 of Text::MicroMason. 
+This is version 1.96_0 of Text::MicroMason. 
 
 This is an EXPERIMENTAL version on a development track for a 2.0 release.
 
-This module has been available on CPAN for over two years, with a
-relatively stable interface and feature set. If you encounter
-any problems, please inform the author and I'll endeavor to patch
-them promptly. 
+This module has been available on CPAN for over two years. 
+
+If you encounter any problems, please inform the author and I'll endeavor 
+to patch them promptly. 
+
+=head2 CPAN Registration
 
 This module's CPAN registration should read:
 
@@ -82,6 +84,23 @@ This module's CPAN registration should read:
   ::MicroMason    Rdpfp  Simplified HTML::Mason Templating
 
 This module should be categorized under group 11, Text Processing.
+
+=head2 Tested Platforms
+
+This release has been tested succesfully on the following platforms:
+
+  5.6.1 on darwin
+
+Earlier releases have also tested OK on a wide variety of platforms.
+You may review the current test results from CPAN-Testers:
+
+=over 2
+
+=item *
+
+http://testers.cpan.org/show/Text-MicroMason.html
+
+=back
 
 
 =head1 INSTALLATION
@@ -101,23 +120,6 @@ After downloading the distribution, follow the normal procedure to unpack and in
   cd Text-MicroMason-*
   perl Makefile.PL
   make test && sudo make install
-
-=head2 Tested Platforms
-
-This release has been tested succesfully on the following platforms:
-
-  5.6.1 on darwin
-
-Earlier releases have also tested OK on a wide variety of platforms.
-You may review the current test results from CPAN-Testers:
-
-=over 2
-
-=item *
-
-http://testers.cpan.org/show/Text-MicroMason.html
-
-=back
 
 
 =head1 SUPPORT

@@ -5,6 +5,38 @@ Text::MicroMason::Changes - Change History for the MicroMason Distribution
 
 =head1 VERSION 2 HISTORY
 
+=head2 To Do
+
+Setup a benchmarking scheme to compare subclasses with other templating solutions. Take an example from http://www.chamas.com/bench/ but execute templates directly. Store the expected output in a text file for comparison.
+
+=head2 Version 1.96
+
+=over 4
+
+=item 2004-10-19
+
+Added PostProcess mixin class at the suggestion of Alan Ferrency.
+
+Renamed a few keys in the hash returned by assembler_rules(). 
+
+Moved syntax documentation to Mason subclass.
+
+=back
+
+=head2 Version 1.95
+
+=over 4
+
+=item 2004-10-19
+
+Fixed problem with extra semicolons breaking code statements broken onto multiple % code lines; thanks to Alan Ferrency for test code to isolate the problem, now added to regression tests.
+
+=item 2004-10-17
+
+Documentation updates.
+
+=back
+
 
 =head2 Version 1.94
 
@@ -15,6 +47,8 @@ Text::MicroMason::Changes - Change History for the MicroMason Distribution
 Factored subclass-specific lex_token() method out from superclass lex() method.
 
 Added Embperl mixin class with emulation for HTML::Embperl.
+
+Merged Devel.pod back in to other package documentation.
 
 =item 2004-10-16
 
