@@ -1,5 +1,5 @@
 NAME
-    Text::MicroMason::ReadMe - About the MicroMason distribution
+    Text::MicroMason::ReadMe - About the MicroMason Distribution
 
 MOTIVATION
     The HTML::Mason module provides a useful syntax for dynamic template
@@ -8,14 +8,14 @@ MOTIVATION
     interpolated into the text when the template is "executed."
 
     However, HTML::Mason also provides a full-featured web application
-    framework with mod_perl integration, a caching engine, and numerous
-    other functions, and there are times in which I'd like to use the
-    templating capability without configuring a full Mason installation.
+    framework with numerous other functions, and there are times in which
+    I'd like to use the templating capability without configuring a full
+    Mason installation.
 
     Thus, the Text::MicroMason module was born: it supports the core aspects
-    of the HTML::Mason syntax ("<%...%>" expressions, "%...\n" and
+    of the HTML::Mason syntax ("<%...%>" expressions, "%...\n" lines and
     "<%perl>...</%perl>" blocks, "<& file &>" includes, "%ARGS" and
-    "$_out->()" ), and omits the features that are web specific (like
+    "$_out->()"), and omits the features that are web specific (like
     autohandlers) or are less widely used (like "<%method>" blocks).
 
   Related Modules
@@ -35,7 +35,7 @@ MOTIVATION
     In comparison to the other modules listed, MicroMason aims to be fairly
     lightweight, using one eval per parse, converting the template to an
     cacheable unblessed subroutine ref, eschewing method calls, and
-    containing just a few hundred lines of Perl code.
+    containing less than a thousand lines of Perl code.
 
   Compatibility with HTML::Mason
 
@@ -47,21 +47,22 @@ MOTIVATION
     package. HTML::Mason's "$interp->make_component()" method allows you to
     parse a text string without saving it to disk first.
 
-    The following sets of HTML::Mason features are not supported by
-    Text::MicroMason:
+    The level of Mason compatibility is described in the
+    Text::MicroMason::Mason manpage.
 
-    *   No %attr, %shared, %method, or %def blocks.
+  Compatibility with Other Templating Systems
 
-    *   No $r request object
-
-    *   No shared files like autohandler and dhandler.
-
-    *   No mod_perl integration or configuration capability.
+    I've also recently added mixin classes that emulate the template syntax
+    used by Embperl, HTML::Template and Text::Template. Because these
+    modules share the underlying implementation of compiling a custom Perl
+    subroutine, they theoretically could execute faster than the run-time
+    evaluation mechanisms used by the originals, although no benchmarking
+    has been performed yet.
 
 DISTRIBUTION
-    This is version 1.55 of Text::MicroMason.
+    This is version 1.94_0 of Text::MicroMason.
 
-    This is an EXPERIMENTAL release on a development track for a 2.0
+    This is an EXPERIMENTAL version on a development track for a 2.0
     release.
 
     This module has been available on CPAN for over two years, with a
@@ -76,9 +77,7 @@ DISTRIBUTION
       Text::
       ::MicroMason    Rdpfp  Simplified HTML::Mason Templating
 
-    This module should be categorized under group 11, Text Processing
-    (although there's also an lesser argument for placing it 15 Web/HTML,
-    where HTML::Mason appears).
+    This module should be categorized under group 11, Text Processing.
 
 INSTALLATION
     This module should work with any version of Perl 5, without platform
@@ -142,17 +141,14 @@ SUPPORT
 
 AUTHOR
     Developed by Matthew Simon Cavalletto at Evolution Softworks. You may
-    contact the author directly at "evo@cpan.org" or
-    "simonm@cavalletto.org".
+    contact the author directly at "evo#cpan.org" or
+    "simonm#cavalletto.org", replacing "#" with "@".
 
     Custom development and technical consulting are available at
     "www.evolutionsoftworks.com". More free Perl software is available at
     "www.evoscript.org".
 
 THANKS
-    Based on the superb HTML::Mason, originally developed by Jonathan
-    Swartz.
-
     My sincere thanks to the following users for their feedback:
 
       Pascal Barbedor
@@ -162,6 +158,13 @@ THANKS
       William Kern
       Tommi Maekitalo
       Alan Ferrency
+
+INSPIRED BY
+    Based on the superb HTML::Mason developed by Jonathan Swartz.
+
+    Portions based on Text::Template developed by Mark Jason Dominus.
+
+    Portions based on HTML::Template developed by Sam Tregar.
 
 LICENSE
     Copyright 2002, 2003, 2004 Matthew Simon Cavalletto.

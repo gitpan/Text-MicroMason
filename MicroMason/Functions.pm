@@ -182,7 +182,7 @@ For more information, see L<Text::MicroMason::Safe>.
 
 =head1 SEE ALSO
 
-For the core functionality of this package see L<Text::MicroMason> and L<Text::MicroMason::Base>.
+For an overview of this templating framework, see L<Text::MicroMason>.
 
 For distribution, installation, support, copyright and license 
 information, see L<Text::MicroMason::ReadMe>.

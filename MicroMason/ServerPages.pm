@@ -16,36 +16,25 @@ my %block_types = (
 
 my $re_eol = "(?:\\r\\n|\\r|\\n|\\z)";
 
-sub lex {
-  my $self = shift;
-  local $_ = "$_[0]";
-  my @tokens;
-  until ( /\G\z/gc ) {
-    push ( @tokens, 
-      
-      # Blocks in <%word> ... <%word> tags.
-      /\G \<\%(perl|args|once|init|cleanup|doc)\> (.*?) \<\/\%\1\> $re_eol? 
-	/gcxs ? ( $1 => $2 ) :
-      
-      # Blocks in <%-- ... --%> tags.
-      /\G \<\% \-\- ( .*? ) \-\- \%\> /gcxs ? ( 'doc' => $1 ) :
-      
-      # Blocks in <% ... %> tags.
-      /\G \<\% (\=|\&)? ( .*? ) \%\> /gcxs ? ( $block_types{$1 || ''} => $2 ) :
-      
-      # Things that don't match the above -- XXX below regex should be simpler!
-      /\G ( (?: [^\<\r\n%]+ | \<(?!\%) | (?<=[^\r\n\<])% |
-	    $re_eol (?:\z|[^\r\n\%\<]|(?=\r\n|\r|\n|\%)|\<[^\%]|(?=\<[\%])) 
-	    )+ (?: $re_eol +(?:\z|(?=\%|\<\[\%])) )?
-      ) /gcxs ? ( 'text' => $1 ) :
-      
-      /\G ( .{0,20} ) /gcxs 
-	&& die "Couldn't find applicable parsing rule at '$1'\n"
-    );
-  }
-  $self->debug_msg( "Source:", length($_), $_ ); 
-  $self->debug_msg( "Tokens:", @tokens ); 
-  return @tokens;
+sub lex_token {
+  # Blocks in <%word> ... <%word> tags.
+  /\G \<\%(perl|args|once|init|cleanup|doc)\> (.*?) \<\/\%\1\> $re_eol? 
+    /gcxs ? ( $1 => $2 ) :
+  
+  # Blocks in <%-- ... --%> tags.
+  /\G \<\% \-\- ( .*? ) \-\- \%\> /gcxs ? ( 'doc' => $1 ) :
+  
+  # Blocks in <% ... %> tags.
+  /\G \<\% (\=|\&)? ( .*? ) \%\> /gcxs ? ( $block_types{$1 || ''} => $2 ) :
+  
+  # Things that don't match the above -- XXX below regex should be simpler!
+  /\G ( (?: [^\<\r\n%]+ | \<(?!\%) | (?<=[^\r\n\<])% |
+	$re_eol (?:\z|[^\r\n\%\<]|(?=\r\n|\r|\n|\%)|\<[^\%]|(?=\<[\%])) 
+	)+ (?: $re_eol +(?:\z|(?=\%|\<\[\%])) )?
+  ) /gcxs ? ( 'text' => $1 ) :
+
+  # Lexer error
+  ()
 }
 
 ######################################################################
@@ -58,7 +47,7 @@ __END__
 
 =head1 NAME
 
-Text::MicroMason::ServerPages - Alternate Template Syntax like ASP/JSP
+Text::MicroMason::ServerPages - Alternate Syntax like ASP/JSP Templates
 
 
 =head1 SYNOPSIS
@@ -136,11 +125,13 @@ Supported block names are: 'perl', 'args', 'once', 'init', 'cleanup', and 'doc'.
 
 =over 4
 
-=item lex
+=item lex_token
 
-  @tokens = $mason->lex( $template );
+  ( $type, $value ) = $mason->lex_token();
 
-Parses the provided template text and returns a list of token types and values.
+Lexer for <% ... %> tags.
+
+Attempts to parse a token from the template text stored in the global $_ and returns a token type and value. Returns an empty list if unable to parse further due to an error.
 
 =back
 
@@ -149,7 +140,9 @@ Parses the provided template text and returns a list of token types and values.
 
 =head1 SEE ALSO
 
-For the core functionality of this package see L<Text::MicroMason> and L<Text::MicroMason::Base>.
+For an overview of this templating framework, see L<Text::MicroMason>.
+
+This is a mixin class intended for use with L<Text::MicroMason::Base>.
 
 For distribution, installation, support, copyright and license 
 information, see L<Text::MicroMason::ReadMe>.

@@ -1,8 +1,68 @@
 NAME
-    Text::MicroMason::Changes - Change history for the MicroMason
-    distribution
+    Text::MicroMason::Changes - Change History for the MicroMason
+    Distribution
 
-VERSION 2
+VERSION 2 HISTORY
+  Version 1.94
+
+    2004-10-17
+        Factored subclass-specific lex_token() method out from superclass
+        lex() method.
+
+        Added Embperl mixin class with emulation for HTML::Embperl.
+
+    2004-10-16
+        Replaced assembler attribute with assembler_rules() method.
+
+        Added Mason subclass and moved some functionality to there from
+        Base.
+
+        Documentation updates.
+
+    2004-10-15
+        Added HTMLTemplate mixin class with emulation for HTML::Template.
+
+    2004-10-13
+        Added TextTemplate mixin class with emulation for Text::Template.
+
+  Version 1.93
+
+    2004-10-12
+        Instead of run-time eval of @MIXIN to fix SUPER resolution, now
+        using a new SUPER method.
+
+    2004-10-11
+        Documentation updates.
+
+  Version 1.92
+
+    2004-10-11
+        Uploaded to CPAN to fix packaging issue with 1.9_1.
+
+  Version 1.91
+
+    2004-10-10
+        Posted description of mixin mechanism to PerlMonks for discussion.
+
+        Debugged CompileCache and finished ExecuteCache. Added test scripts.
+
+        Debugged TemplateDir and added test script.
+
+        Implemented support for one-time options passed to compile that
+        override other attributes. Adjusted Safe facade to prevent this from
+        being done there, in order to avoid escapes from a Safe compartment.
+
+    2004-10-09
+        Reorganized t/ directory.
+
+  Version 1.90
+
+    2004-10-08
+        Documentation updates.
+
+    2004-10-05
+        Documentation updates.
+
   Version 1.55
 
     2004-09-23
@@ -52,8 +112,11 @@ VERSION 2
 
     2004-09-16
         Refactored to object-oriented implementation to allow subclassing.
+        Inspired by discussion with Alan Ferrency about how to extend
+        functionality.
 
-        Started CodeCache subclass based on experimental caching code 1.07.
+        Started CodeCache subclass based on experimental caching code
+        included in 1.07.
 
         Started TemplateDir subclass with base directory and relative path
         calculations based on a patch from Tommi Maekitalo.
@@ -68,7 +131,7 @@ VERSION 2
     2004-09-15
         Moved package documentation into separate ReadMe.pod.
 
-VERSION 1
+VERSION 1 HISTORY
   Version 1.07
 
     2003-09-26

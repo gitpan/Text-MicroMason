@@ -5,21 +5,19 @@ Text::MicroMason::ReadMe - About the MicroMason Distribution
 =head1 MOTIVATION
 
 The HTML::Mason module provides a useful syntax for dynamic template
-interpretation (sometimes called embedded scripting):  plain text
-(or HTML) containing occasional chunks of Perl code whose results
-are interpolated into the text when the template is "executed."
+interpretation (sometimes called embedded scripting):  plain text (or HTML)
+containing occasional chunks of Perl code whose results are interpolated
+into the text when the template is "executed."
 
-However, HTML::Mason also provides a full-featured web application
-framework with mod_perl integration, a caching engine, and numerous
-other functions, and there are times in which I'd like to use the
-templating capability without configuring a full Mason installation.
+However, HTML::Mason also provides a full-featured web application framework
+with numerous other functions, and there are times in which I'd like to use
+the templating capability without configuring a full Mason installation.
 
-Thus, the Text::MicroMason module was born: it supports the core
-aspects of the HTML::Mason syntax ("<%...%>" expressions, "%...\n"
-and "<%perl>...</%perl>" blocks, "<& file &>" includes, "%ARGS"
-and "$_out->()" ), and omits the features that are web specific
-(like autohandlers) or are less widely used (like "<%method>"
-blocks).
+Thus, the Text::MicroMason module was born: it supports the core aspects of
+the HTML::Mason syntax ("<%...%>" expressions, "%...\n" lines and
+"<%perl>...</%perl>" blocks, "<& file &>" includes, "%ARGS" and "$_out->()"),
+and omits the features that are web specific (like autohandlers) or are
+less widely used (like "<%method>" blocks).
 
 =head2 Related Modules
 
@@ -40,8 +38,7 @@ a reasonable subset of HTML::Mason syntax in a very light-weight
 fashion. In comparison to the other modules listed, MicroMason aims
 to be fairly lightweight, using one eval per parse, converting the
 template to an cacheable unblessed subroutine ref, eschewing method
-calls, and containing just a few hundred lines of Perl code in the 
-core, with optional features activated only if requested.
+calls, and containing less than a thousand lines of Perl code.
 
 =head2 Compatibility with HTML::Mason
 
@@ -53,63 +50,24 @@ into your process, you're probably better off using it rather than
 this package. HTML::Mason's C<$interp-E<gt>make_component()> method
 allows you to parse a text string without saving it to disk first.
 
+The level of Mason compatibility is described in L<Text::MicroMason::Mason>.
 
-The following sets of HTML::Mason features B<are> supported by Text::MicroMason:
+=head2 Compatibility with Other Templating Systems
 
-=over 4
-
-=item *
-
-Template interpolation with <% expr %> 
-
-=item *
-
-Literal Perl lines with leading % 
-
-=item *
-
-Named %args, %perl, %once, %init, %cleanup, and %doc blocks
-
-=item *
-
-The $m mason object, although with many fewer methods
-
-=item *
-
-Expression filtering with |h and |u (via -Filter mixin)
-
-=back
-
-
-The following sets of HTML::Mason features are B<not> supported by Text::MicroMason:
-
-=over 4
-
-=item *
-
-No %attr, %shared, %method, or %def blocks.
-
-=item *
-
-No $r request object
-
-=item *
-
-No shared files like autohandler and dhandler.
-
-=item *
-
-No mod_perl integration or configuration capability.
-
-=back
+I've also recently added mixin classes that emulate the template syntax used
+by L<Embperl|Embperl>, L<HTML::Template|HTML::Template> and
+L<Text::Template|Text::Template>.  Because these modules share the
+underlying implementation of compiling a custom Perl subroutine, they
+theoretically could execute faster than the run-time evaluation mechanisms
+used by the originals, although no benchmarking has been performed yet.
 
 
 
 =head1 DISTRIBUTION
 
-This is version 1.93_0 of Text::MicroMason. 
+This is version 1.94_0 of Text::MicroMason. 
 
-This is an EXPERIMENTAL release on a development track for a 2.0 release.
+This is an EXPERIMENTAL version on a development track for a 2.0 release.
 
 This module has been available on CPAN for over two years, with a
 relatively stable interface and feature set. If you encounter
@@ -204,8 +162,6 @@ C<www.evoscript.org>.
 
 =head1 THANKS
 
-Based on the superb HTML::Mason, originally developed by Jonathan Swartz. 
-
 My sincere thanks to the following users for their feedback:
 
   Pascal Barbedor
@@ -215,6 +171,16 @@ My sincere thanks to the following users for their feedback:
   William Kern
   Tommi Maekitalo
   Alan Ferrency
+
+
+=head1 INSPIRED BY
+
+Based on the superb HTML::Mason developed by Jonathan Swartz. 
+
+Portions based on Text::Template developed by Mark Jason Dominus.
+
+Portions based on HTML::Template developed by Sam Tregar.
+
 
 =head1 LICENSE
 

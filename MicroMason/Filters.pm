@@ -16,7 +16,7 @@ $Filters{h} = \&HTML::Entities::encode if eval { require HTML::Entities};
 $Filters{u} = \&URI::Escape::uri_escape if eval { require URI::Escape };
 
 sub defaults {
-  (shift)->SUPER('defaults'), %Text::MicroMason::Filters::Defaults
+  (shift)->NEXT('defaults'), %Text::MicroMason::Filters::Defaults
 }
 
 ######################################################################
@@ -39,7 +39,7 @@ sub assemble {
     }
   }
   
-  $self->SUPER('assemble', @tokens );
+  $self->NEXT('assemble', @tokens );
 }
 
 # @flags = $mason->parse_filters( @filter_strings );
@@ -200,7 +200,9 @@ This method goes through the lexed template tokens looking for uses of filter fl
 
 =head1 SEE ALSO
 
-For the core functionality of this package see L<Text::MicroMason> and L<Text::MicroMason::Base>.
+For an overview of this templating framework, see L<Text::MicroMason>.
+
+This is a mixin class intended for use with L<Text::MicroMason::Mason>.
 
 For distribution, installation, support, copyright and license 
 information, see L<Text::MicroMason::ReadMe>.

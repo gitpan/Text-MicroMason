@@ -12,12 +12,12 @@ $Defaults{ error_string } = 1;
 ######################################################################
 
 sub compile {
-  my $result = eval { local $SIG{__DIE__}; (shift)->SUPER('compile', @_) };
+  my $result = eval { local $SIG{__DIE__}; (shift)->NEXT('compile', @_) };
   wantarray ? ($result, $@) : $result;
 }
 
 sub execute {
-  my $result = eval { local $SIG{__DIE__}; (shift)->SUPER('execute', @_) };
+  my $result = eval { local $SIG{__DIE__}; (shift)->NEXT('execute', @_) };
   wantarray ? ($result, $@) : $result;
 }
 
@@ -98,7 +98,9 @@ Uses an eval block to provide an exception catching wrapper for the execute meth
 
 =head1 SEE ALSO
 
-For the core functionality of this package see L<Text::MicroMason> and L<Text::MicroMason::Base>.
+For an overview of this templating framework, see L<Text::MicroMason>.
+
+This is a mixin class intended for use with L<Text::MicroMason::Base>.
 
 For distribution, installation, support, copyright and license 
 information, see L<Text::MicroMason::ReadMe>.

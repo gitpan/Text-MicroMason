@@ -16,7 +16,7 @@ sub resolve {
   my ( $self, $src_type, $src_data ) = @_;
 
   if ( $src_type ne 'file' ) {
-    return $self->SUPER('resolve', $src_type, $src_data );
+    return $self->NEXT('resolve', $src_type, $src_data );
   }
   
   my $current = $self->{source_file};
@@ -36,7 +36,7 @@ sub resolve {
       or $self->croak_msg("Not in required base path '$self->{ strict_root }'");
   }
   
-  return ( 'file' => $path, source_file => $path );
+  return ( 'file' => $path );
 }
 
 ######################################################################
@@ -97,7 +97,9 @@ Intercepts uses of file templates and applies the base-path adjustment.
 
 =head1 SEE ALSO
 
-For the core functionality of this package see L<Text::MicroMason> and L<Text::MicroMason::Base>.
+For an overview of this templating framework, see L<Text::MicroMason>.
+
+This is a mixin class intended for use with L<Text::MicroMason::Base>.
 
 For distribution, installation, support, copyright and license 
 information, see L<Text::MicroMason::ReadMe>.

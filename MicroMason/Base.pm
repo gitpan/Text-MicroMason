@@ -10,6 +10,10 @@ use vars qw( %Defaults );
 # Debugging flag activates warns throughout the code
 $Defaults{ debug } = 0;
 
+sub defaults {
+  return %Defaults
+}
+
 ######################################################################
 
 # $mason = $class->new( %options );
@@ -23,112 +27,94 @@ sub new {
   }
 }
 
-sub defaults {
-  return %Defaults
-}
-
 ######################################################################
 
-my $re_eol = "(?:\\r\\n|\\r|\\n|\\z)";
-my $re_sol = "(?:\\A|(?<=\\r|\\n) )";
-
-# @tokens = $mason->lex( $template );
+# @token_pairs = $mason->lex( $template );
 sub lex {
   my $self = shift;
   local $_ = "$_[0]";
-  
   my @tokens;
+  my $lexer = $self->can('lex_token') 
+	or $self->croak_msg('No lex_token method');
+  # warn "Lexing: " . pos($_) . " of " . length($_) . "\n";
   until ( /\G\z/gc ) {
-    push ( @tokens, 
-      
-      # Blocks in <%word> ... <%word> tags.
-      /\G \<\%(perl|args|once|init|cleanup|doc)\> (.*?) \<\/\%\1\> $re_eol? 
-	/xcogs ? ( $1 => $2 ) :
-      
-      # Blocks in <% ... %> tags.
-      /\G \<\% ( .*? ) \%\> /xcogs ? ( 'output' => $1 ) :
-      
-      # Blocks in <& ... &> tags.
-      /\G \<\& ( .*? ) \&\> /xcogs ? ( 'include' => $1 ) :
-      
-      # Lines begining with %
-      /\G $re_sol \% ( [^\n\r]* ) $re_eol /xcogs ? ( 'perl' => $1 ) :
-      
-      # Things that don't match the above.
-      /\G ( (?: [^\<\r\n%]+ | \<(?!\%|\&) | (?<=[^\r\n\<])% |
-	    $re_eol (?:\z|[^\r\n\%\<]|(?=\r\n|\r|\n|\%)|\<[^\%\&]|(?=\<[\%\&])) 
-	    )+ (?: $re_eol +(?:\z|(?=\%|\<\[\%\&])) )?
-      ) /xcogs ? ( 'text' => $1 ) :
-      
-      /\G ( .{0,40} ) /xcogs 
-	&& $self->croak_msg("Couldn't find applicable parsing rule at '$1'")
-    );
+    my @parsed = &$lexer( $self ) or      
+	/\G ( .{0,20} ) /gcxs 
+	  && die "Couldn't find applicable parsing rule at '$1'\n";
+    push @tokens, @parsed;
   }
+  $self->debug_msg( "Source:", length($_), $_ ); 
+  $self->debug_msg( "Tokens:", @tokens ); 
   return @tokens;
+}
+
+# ( $type, $value ) = $mason->lex_token();
+sub lex_token {
+  die "The lex_token() method is abstract and must be provided by a subclass";
 }
 
 ######################################################################
 
 # Text elements used for subroutine assembly
 use vars qw( %Assembler );
-$Defaults{ assembler } = \%Assembler;
 
-$Assembler{template} = [ qw( @once $sub_start $err_hdlr $args_start $out_start
-			      @init @perl !@cleanup $out_end $sub_end -@doc ) ];
+sub assembler_rules {
+  my $self = shift;
+  return %Assembler,
+}
 
-$Assembler{ sub_start } = 'sub { ';
-$Assembler{ sub_end } = '}';
+%Assembler = (
+  template => [ qw( $sub_start $err_hdlr $out_start $args_start
+			      @perl !@cleanup $out_end $sub_end ) ],
 
-$Assembler{ err_hdlr } = 
-    'local $SIG{__DIE__} = sub { die "MicroMason execution failed: ", @_ }';
+  sub_start  => 'sub { ',
+  sub_end  => '}',
 
-# Argument processing elements
-$Assembler{ args_start } = 'my %ARGS = @_ if ($#_ % 2)';
-$Assembler{ args_required } = '($#_ % 2) or Carp::croak("Odd number of parameters passed to sub expecting name/value pairs")';
+  err_hdlr => 
+    'local $SIG{__DIE__} = sub { die "MicroMason execution failed: ", @_ }',
 
-# Output generation
-$Assembler{out_start} = 'my @OUT; my $_out = sub { push @OUT, @_ }';
-$Assembler{out_do} = '  push @OUT, ';
-$Assembler{out_end} = 'join("", @OUT)';
+  # Argument processing elements
+  args_start => 'my %ARGS = @_ if ($#_ % 2)',
 
-# $Assembler{out_start} = 'my $OUT = ""; my $_out = sub {$OUT .= join "", @_}';
-# $Assembler{out_do} = '  &$_out';
-# $Assembler{out_end} = '$OUT';
+  # Output generation
+  out_start => 'my @OUT; my $_out = sub { push @OUT, @_ }',
+  out_do => '  push @OUT, ',
+  out_end => 'join("", @OUT)',
 
-######################################################################
+  # Mapping between token types
+  text_token => 'perl OUT( QUOTED )',
+  output_token => 'perl OUT( do{ TOKEN } )',
+  include_token => 'perl OUT( $m->execute( file => do { TOKEN } ) )',
+);
 
 # $perl_code = $mason->assemble( @tokens );
 sub assemble {
   my $self = shift;
   my @tokens = @_;
   
-  my $assembler = $self->{ assembler }
-	or $self->croak_msg("MicroMason: missing assembler information");
-  my @assembly = @{ $self->{ assembler }{ template } };
+  my %assembler = $self->assembler_rules();
+  my @assembly = @{ $assembler{ template } };
   
   my %token_streams = ( map { $_ => [] } map { ( /^\W?\@(\w+)$/ ) } @assembly );
+  my %token_map = map { ( /^(.*?)_token$/ )[0] => $assembler{$_} } grep { /_token$/ } keys %assembler;
   
   while ( scalar @tokens ) {
     my $type = shift @tokens;
     my $token = shift @tokens;
     my @functions;
     
-    if ( $type eq 'text' ) {
-      ( $type, $token ) = ( perl => "$assembler->{out_do}( qq(\Q$token\E) )" )
-    
-    } elsif ( $type eq 'output' ) {
-      ( $type, $token ) = ( perl => "$assembler->{out_do}( do { $token } )" )
-    
-    } elsif ( $type eq 'include' ) {
-      ($type, $token) = ( perl => 
-	    "$assembler->{out_do}( \$m->execute( file => do { $token } ) )" )
-    }
-    
-    unless ( $token_streams{$type} ) {
+    unless ( $token_streams{$type} or $token_map{$type} ) {
       my $method = "assemble_$type";
       my $sub = $self->can( $method ) 
 	or $self->croak_msg( "Unexpected token type '$type': '$token'" );
       ($type, $token) = &$sub( $self, $token );
+    }
+
+    if ( my $typedef = $token_map{ $type } ) {
+      $typedef =~ s{TOKEN}{$token}g;
+      $typedef =~ s{QUOTED}{qq(\Q$token\E)}g;
+      $typedef =~ s{OUT}{$assembler{out_do}}g;
+      ( $type, $token ) = split ' ', $typedef, 2;
     }
     
     my $ary = $token_streams{$type}
@@ -141,7 +127,7 @@ sub assemble {
   join( ";\n",  map { 
     /^(\W+)(\w+)$/ or $self->croak_msg("Can't assemble $_");
     if ( $1 eq '$' ) {
-      $self->{ assembler }{ $2 }
+      $assembler{ $2 }
     } elsif ( $1 eq '@' ) {
       @{ $token_streams{ $2 } }
     } elsif ( $1 eq '!@' ) {
@@ -152,17 +138,6 @@ sub assemble {
       $self->croak_msg("Can't assemble $_");
     }
   } @assembly );
-}
-
-sub assemble_args {
-  my ( $self, $token ) = @_;
-    $token =~ s/^\s*([\$\@\%])(\w+) (?:\s* => \s* ([^\r\n]+))?/
-      "my $1$2 = exists \$ARGS{$2} ? " . 
-	      ( ($1 eq '$') ? "\$ARGS{$2}" : "$1\{ \$ARGS{$2} }" ) . 
-      " : " . ( defined($3) ? "(\$ARGS{$2} = $3)" : 
-	      qq{Carp::croak("no value sent for required parameter '$2'")} ) .
-      ";"/gexm;
-  return ( 'init' => "$self->{ assembler }{ args_required }; $token" );
 }
 
 ######################################################################
@@ -181,8 +156,6 @@ sub resolve {
   my ( $self, $src_type, $src_data ) = @_;
   if ( $src_type eq 'lines' ) {
     'text' => join "\n", @$src_data
-  } elsif ( $src_type eq 'ref' ) {
-    'text' => $$src_data
   } else {
     $src_type, $src_data 
   }
@@ -190,7 +163,7 @@ sub resolve {
 
 # $template = $mason->read_text( $template );
 sub read_text {
-  $_[1];
+  ref($_[1]) ? $$_[1] : $_[1];
 }
 
 # ( $contents, %path_info ) = $mason->read_file( $filename );
@@ -211,26 +184,18 @@ sub read_file {
 
 # $code_ref = $mason->compile( text => $template, %options );
 # $code_ref = $mason->compile( file => $filename, %options );
-
-# TO DO -- possible options: 
-#		safe_share => [ '&Text::MicroMason::execute_file' ],
-#		compile_errors => 1, 
-#		runtime_errors => 1, 
-#		file_code_cache => 1, 
-#		runtime_cache => 1
-
 sub compile {
   my ( $self, $src_type, $src_data, %options ) = @_;
-  $options{caller} ||= join(' line ', (caller)[1,2] );
   $self = $self->new( %options ) if ( scalar keys %options );
   
-  ( $src_type, $src_data ) = $self->resolve( $src_type, $src_data );
+  ( $src_type, $src_data, %options ) = $self->resolve( $src_type, $src_data );
   $self->{debug} and $self->debug_msg("MicroMason read:", $src_type, $src_data); 
+  $self = $self->new( %options ) if ( scalar keys %options );
   
   my $src_method = "read_$src_type";
-  my ( $template, %more_options ) = $self->$src_method( $src_data );
+  ( my $template, %options ) = $self->$src_method( $src_data );
   $self->{debug} and $self->debug_msg( "MicroMason source:", $template ); 
-  $self = $self->new( %more_options ) if ( scalar keys %more_options );
+  $self = $self->new( %options ) if ( scalar keys %options );
 
   my @tokens = $self->lex( $template, $options{source_file} );
   $self->{debug} and $self->debug_msg( "MicroMason tokens:", @tokens ); 
@@ -239,8 +204,7 @@ sub compile {
   $self->{debug} and $self->debug_msg( "MicroMason subdef: $code" );
   
   $self->eval_sub( $code ) 
-    or $self->croak_msg( "MicroMason compilation failed: $@\n" . 
-			 "Error at $options{caller}: $code" )
+    or $self->croak_msg( "MicroMason compilation failed:\n$code\n$@\n" )
 }
 
 ######################################################################
@@ -259,6 +223,14 @@ sub execute {
 
 ######################################################################
 
+sub debug_msg {
+  (shift)->{debug} and warn( ( ( @_ == 1 ) ? $_[0] : join( ' ', map _printable(), @_ ) ) . "\n")
+}
+
+sub croak_msg {
+  shift and Carp::croak( ( @_ == 1 ) ? $_[0] : join(' ', map _printable(), @_) )
+}
+
 my %Escape = ( 
   ( map { chr($_), unpack('H2', chr($_)) } (0..255) ),
   "\\"=>'\\', "\r"=>'r', "\n"=>'n', "\t"=>'t', "\""=>'"' 
@@ -272,19 +244,56 @@ sub _printable {
   /[^\w\d\-\:\.\'\ ]/ ? "q($_)" : $_;
 }
 
-sub debug_msg {
-  (shift)->{debug} and warn join( ' ', map _printable(), @_ ) . "\n"
-}
+######################################################################
 
-sub croak_msg {
-  shift and Carp::confess( ( @_ == 1 ) ? $_[0] : join(' ', map _printable(), @_) )
+sub class {
+  my ( $baseclass, @mixins ) = @_;
+  return $baseclass if ( ! @mixins );
+  my $basespace = ( $baseclass =~ m/^(.*\:\:)[^\:]+$/ )[0];
+    
+  my (@names, @packages);
+  foreach my $mixin ( @mixins ) {
+    push @packages, ( $mixin =~ /::/ ) ? $mixin : "$basespace$mixin";
+    
+    my $t_name = $mixin;
+    $t_name =~ s/^$basespace//;
+    $t_name =~ s/\:/_/g;
+    push @names, $t_name;
+  }
+
+  my $name = join('_', @names);
+  
+  my $new_class = $baseclass . "::" . $name;
+  
+  no strict;
+  if ( ! @{ $new_class . "::ISA" } ) {
+    foreach my $mixin ( @packages ) {
+      my $t_file = "$mixin.pm";
+      $t_file =~ s{::}{/}g;
+      unless ( $INC{ $t_file } ) {
+	# warn "require $t_file";
+	require $t_file
+      }
+    }
+    @{ $new_class . "::ISA" } = ( reverse(@packages), $baseclass );
+    # warn "-> $new_class ISA ". join(' ', @{ $new_class . "::ISA" }) ."\n";
+  }
+  
+  return $new_class;
 }
 
 ######################################################################
 
-sub SUPER {
+sub NEXT {
   my ( $self, $method, @args ) = @_;
-  my $calling_package = caller(0);
+  
+  my ( $filename, $subname );
+  my $depth = 1;
+  do { ( $filename, $subname ) = ( caller( $depth ++ ) )[1,3] }
+    while ($filename eq '(eval)' || $subname eq '(eval)');
+  $subname =~ s/.*\:\://;
+  my $package = ( caller($depth - 2) )[0];
+  warn "-> $method - $depth - $subname $package\n" if ( $method ne $subname );
   
   my @classes = ref($self) || $self;
   my @isa;
@@ -294,25 +303,26 @@ sub SUPER {
     unshift @classes, @{ $class . "::ISA" };
   }
   while ( my $class = shift @isa ) {
-    last if ( $class eq $calling_package )
+    last if ( $class eq $package )
   }
-
   while ( my $class = shift @isa ) {
     next unless my $sub = $class->can( $method );
     return &$sub( $self, @args );
   }
-  $self->croak_msg( "Can't find SUPER method" );
+  $self->croak_msg( "Can't find NEXT method" );
 }
 
 ######################################################################
 
 1;
 
+__END__
+
 ######################################################################
 
 =head1 NAME
 
-Text::MicroMason::Base - Simple Compiler for Mason Templating 
+Text::MicroMason::Base - Abstract Compiler for Simple Templating 
 
 
 =head1 SYNOPSIS
@@ -342,14 +352,15 @@ Templates stored in files can be run directly or included in others:
 The Text::MicroMason::Base class provides a parser and execution environment for a simple templating system based on HTML::Mason.
 
 
-=head2 Template Syntax
-
-The template syntax supported by Text::MicroMason and some useful template developer techniques are described in L<Text::MicroMason::Devel>.
-
-
 =head2 Public Methods
 
 =over 4
+
+=item class()
+
+  $class = Text::MicroMason::Base->class( @Mixins );
+
+Creates a subclass of this package that also inherits from the other classes named.
 
 =item new()
 
@@ -389,9 +400,17 @@ This class method is called by new() to provide key-value pairs to be included i
 
 =item lex
 
-  @tokens = $mason->lex( $template );
+  @token_pairs = $mason->lex( $template );
 
-Parses the provided template text and returns a list of token types and values.
+Parses the source text and returns a list of pairs of token types and values. Loops through repeated calls to lex_token().
+
+=item lex_token
+
+  ( $type, $value ) = $mason->lex_token();
+
+Attempts to parse a token from the template text stored in the global $_ and returns a token type and value. Returns an empty list if unable to parse further due to an error.
+
+Abstract method; must be implemented by subclasses. 
 
 =item assemble
 
@@ -399,9 +418,11 @@ Parses the provided template text and returns a list of token types and values.
 
 Assembles the parsed token series into the source code for the equivalent Perl subroutine.
 
-=item assemble_args
+=item assembler_rules()
 
-Called by assemble(), this method provides support for Mason's <%args> blocks.
+Returns a hash of text elements used for Perl subroutine assembly. Used by assemble(). 
+
+The assembly template defines the types of blocks supported and the order they appear in, as well as where other standard elements should go. Those other elements also appear in the assembler hash.
 
 =item eval_sub
 
@@ -435,6 +456,12 @@ Called to provide a debugging message for developer reference. No output is prod
 
 Called when a fatal exception has occured.
 
+=item NEXT
+
+Enhanced superclass method dispatch for use inside mixin class methods. Allows mixin classes to redispatch to other classes in the inheritance tree without themselves inheriting from anything. 
+
+(This is similar to the functionality provided by NEXT::ACTUAL, but without using AUTOLOAD; for a more generalized approach to this issue see L<NEXT>.)
+
 =back
 
 =head2 Private Functions
@@ -449,26 +476,59 @@ Converts non-printable characters to readable form using the standard backslash 
 
 =back
 
-=head2 Package Variables
+=head2 Supported Attributes
 
 =over 4
 
-=item $Defaults{ debug }
+=item debug
 
-Boolean value. Debugging flag activates warns throughout the code. Used by debug_msg(). 
-
-=item $Defaults{ assembler }
-
-Reference to a hash of text elements used for Perl subroutine assembly. Used by assemble(). 
-
-The assembly template defines the types of blocks supported and the order they appear in, as well as where other standard elements should go. Those other elements also appear in the assembler hash.
+Boolean value. Debugging flag activates warns throughout the code. Used by debug_msg(). Defaults to 0.
 
 =back
 
+=head2 Extending
+
+You can add functionality to this module by creating subclasses. Key areas for subclass writers are:
+
+=over 4
+
+=item resolve
+
+You can intercept and re-write template source arguments by implementing this method.
+
+=item read_*
+
+You can support a new template source type by creating a method with a corresponding name prefixed by "read_". It is passed the template source value and should return the raw text to be lexed.
+
+For example, if a subclass defined a method named read_from_db, callers could compile templates by calling C<-E<gt>compile( from_db =E<gt> 'welcome-page' )>.
+
+=item lex
+
+Replace this to parse a new template syntax. Is passed the text to be parsed and should return a list of C<$type =E<gt> $token> pairs. 
+
+=item assembler_rules
+
+The assembler data structure is used to construct the Perl subroutine for a parsed template.
+
+=item assemble_*
+
+You can support a new token type be creating a method with a corresponding name prefixed by "assemble_". It is passed the token value or contents, and should return a new token pair that is supported by the assembler template.
+
+For example, if a subclass defined a method named assemble_sqlquery, callers could compile templates that contained a C<E<lt>%sqlqueryE<gt> ... E<lt>/%sqlqueryE<gt>> block. The assemble_sqlquery method could return a C<perl => $statements> pair with Perl code that performed some appropriate action.
+
+=item compile
+
+You can wrap or cache the results of this method, which is the primary public interface. 
+
+=item execute
+
+You typically should not depend on overriding this method because callers can invoke the compiled subroutines directly without calling execute.
+
+=back
 
 =head1 SEE ALSO
 
-For a full-featured web application system using this template syntax, see L<HTML::Mason>.
+For an overview of this templating framework, see L<Text::MicroMason>.
 
 For distribution, installation, support, copyright and license 
 information, see L<Text::MicroMason::ReadMe>.

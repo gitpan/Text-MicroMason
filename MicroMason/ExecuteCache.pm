@@ -13,7 +13,7 @@ use vars qw( %Defaults );
 $Defaults{ execute_cache } = Text::MicroMason::Cache::Simple->new();
 
 sub defaults {
-  (shift)->SUPER('defaults'), %Text::MicroMason::ExecuteCache::Defaults
+  (shift)->NEXT('defaults'), %Text::MicroMason::ExecuteCache::Defaults
 }
 
 ######################################################################
@@ -22,7 +22,7 @@ sub defaults {
 sub compile {
   my $self = shift;
   
-  my $code_ref = $self->SUPER('compile', @_);
+  my $code_ref = $self->NEXT('compile', @_);
   
   my $cache = $self->{ 'execute_cache' }
     or return $code_ref;
@@ -105,7 +105,9 @@ interface described in L<Cache::Cache>.
 
 =head1 SEE ALSO
 
-For the core functionality of this package see L<Text::MicroMason> and L<Text::MicroMason::Base>.
+For an overview of this templating framework, see L<Text::MicroMason>.
+
+This is a mixin class intended for use with L<Text::MicroMason::Base>.
 
 For distribution, installation, support, copyright and license 
 information, see L<Text::MicroMason::ReadMe>.

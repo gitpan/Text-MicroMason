@@ -14,7 +14,7 @@ $Defaults{ compile_cache_text } = Text::MicroMason::Cache::Simple->new();
 $Defaults{ compile_cache_file } = Text::MicroMason::Cache::File->new();
 
 sub defaults {
-  (shift)->SUPER('defaults'), %Text::MicroMason::CompileCache::Defaults
+  (shift)->NEXT('defaults'), %Text::MicroMason::CompileCache::Defaults
 }
 
 ######################################################################
@@ -25,10 +25,10 @@ sub compile {
   
   my $cache_type = 'compile_cache_' . $src_type;
   my $cache = $self->{ $cache_type }
-    or return $self->SUPER('compile', $src_type, $src_data, %options);
+    or return $self->NEXT('compile', $src_type, $src_data, %options);
   
   $cache->get( $src_data ) or $cache->set( $src_data, 
-	      $self->SUPER('compile', $src_type, $src_data, %options) )
+	      $self->NEXT('compile', $src_type, $src_data, %options) )
 }
 
 ######################################################################
@@ -98,7 +98,9 @@ interface described in L<Cache::Cache>.
 
 =head1 SEE ALSO
 
-For the core functionality of this package see L<Text::MicroMason> and L<Text::MicroMason::Base>.
+For an overview of this templating framework, see L<Text::MicroMason>.
+
+This is a mixin class intended for use with L<Text::MicroMason::Base>.
 
 For distribution, installation, support, copyright and license 
 information, see L<Text::MicroMason::ReadMe>.

@@ -244,9 +244,9 @@ ENDSCRIPT
 {
   my $scr_mobj = 'You\'ve been compiled by <% ref $m %>.';
   
-  my $res_mobj = 'You\'ve been compiled by Text::MicroMason::Base.';
+  my $res_mobj = 'You\'ve been compiled by Text::MicroMason';
   
-  ok( $m->execute( text => $scr_mobj), $res_mobj );
+  ok( $m->execute( text => $scr_mobj) =~ /^\Q$res_mobj\E/ );
 }
 
 ######################################################################

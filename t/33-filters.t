@@ -3,7 +3,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 12 }
+BEGIN { plan tests => 14 }
 
 use Text::MicroMason;
 
@@ -49,6 +49,20 @@ skip ( $u ? 0 : "Skip filter flag u", $m->execute( text=> $src_u1), $res_u);
     my $src_u3 = qq(Hello <% '<"world">' | n %>!);
     my $res_u3 = 'Hello <"world">!';
     skip ( $u ? 0 : "Skip filter flag u", $m->execute( text => $src_u3), $res_nofilter);
+}
+
+
+######################################################################
+
+# Test stacking and canceling with n
+{
+  my $src_unh = qq(Hello <% '<"world">' |unh %>!);
+  my $res_unh = 'Hello &lt;&quot;world&quot;&gt;!';
+  skip ( $h ? 0 : "Skip filter flag unh", $m->execute( text => $src_unh), $res_unh);
+
+  my $res_hnu = 'Hello %3C%22world%22%3E!';  
+  my $src_hnu = qq(Hello <% '<"world">' |hnu %>!);
+  skip ( $u ? 0 : "Skip filter flag hnu", $m->execute( text => $src_hnu), $res_hnu);
 }
 
 

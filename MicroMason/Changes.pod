@@ -6,6 +6,35 @@ Text::MicroMason::Changes - Change History for the MicroMason Distribution
 =head1 VERSION 2 HISTORY
 
 
+=head2 Version 1.94
+
+=over 4
+
+=item 2004-10-17
+
+Factored subclass-specific lex_token() method out from superclass lex() method.
+
+Added Embperl mixin class with emulation for HTML::Embperl.
+
+=item 2004-10-16
+
+Replaced assembler attribute with assembler_rules() method.
+
+Added Mason subclass and moved some functionality to there from Base.
+
+Documentation updates.
+
+=item 2004-10-15
+
+Added HTMLTemplate mixin class with emulation for HTML::Template.
+
+=item 2004-10-13
+
+Added TextTemplate mixin class with emulation for Text::Template.
+
+=back
+
+
 =head2 Version 1.93
 
 =over 4
