@@ -18,6 +18,9 @@ DESCRIPTION
         Hello World!
         How are ya?
 
+    A complete discussion of the supported syntax and the way it is
+    compiled is provided in the module's inline POD.
+
 MOTIVATION
     The HTML::Mason module provides a useful syntax for dynamic template
     interpretation (sometimes called embedded scripting): plain text (or
@@ -83,15 +86,16 @@ INSTALLATION
     This module should work with any version of Perl 5, without platform
     dependencies or additional modules beyond the core distribution.
 
-    Retrieve the current distribution from CPAN, or from:
+    Retrieve the current distribution from CPAN, or from the author's site:
 
+      http://search.cpan.org/author/EVO/Text-MicroMason/
       http://www.evoscript.com/Text-MicroMason/
 
     Download and unpack the distribution, and execute the standard "perl
     Makefile.PL", "make test", "make install" sequence.
 
 VERSION
-    This is version 1.05 of Text::MicroMason.
+    This is version 1.06 of Text::MicroMason.
 
   Distribution Summary
 
@@ -100,7 +104,7 @@ VERSION
       Name            DSLIP  Description
       --------------  -----  ---------------------------------------------
       Text::
-      ::MicroMason    bdpfp  Simplified HTML::Mason Templating
+      ::MicroMason    Rdpfp  Simplified HTML::Mason Templating
 
     This module should be categorized under group 11, Text Processing
     (although there's also an argument for placing it 15 Web/HTML, where
@@ -111,70 +115,16 @@ VERSION
     Bug reports or general feedback would be welcomed by the author at
     simonm@cavalletto.org.
 
-CHANGES
-    2003-08-11
-        Adjusted regular expression based on parsing problems reported by
-        Philip King and Daniel J. Wright, related to newlines and EOF. Added
-        regression tests that fail under 1.04 but pass under 1.05 to ensure
-        these features keep working as expected.
-
-        Added non-printing-character escaping to parser failure and
-        debugging messages to better track future reports of
-        whitespace-related bugs.
-
-        Moved tests from test.pl into t/ subdirectory.
-
-    2002-06-23
-        Adjusted regular expression based on parsing problems reported by
-        Mark Hampton. Added file-include support with <& ... &> syntax.
-        Documentation tweaks. Adjusted version number to simpler 0.00
-        format. Released as Text-MicroMason-1.04.tar.gz.
-
-    2002-01-14
-        Documentation tweaks based on feedback from Pascal Barbedor. Updated
-        author's contact information.
-
-    2001-07-01
-        Documentation tweaks. Renamed from HTML::MicroMason to
-        Text::MicroMason. Released as Text-MicroMason-1.0.3.tar.gz.
-
-    2001-04-10
-        Munged interface for clarity. Added Safe support. Adjusted docs to
-        reflect feedback from mason-users. Released as
-        HTML-MicroMason-1.0.2.tar.gz.
-
-    2001-03-28
-        Parser tweakage; additional documentation. Added Exporter support.
-        Released as HTML-MicroMason-1.0.1.tar.gz.
-
-    2001-03-26
-        Added try_interpret; documented error messages.
-
-    2001-03-23
-        Extended documentation; added makefile, test script. Renamed
-        accumulator to $OUT to match Text::Template. Released as
-        HTML-MicroMason-1.0.0.tar.gz.
-
-    2001-03-22
-        Created.
-
-TO DO
-    *   Test compatibility against older versions of Perl and odder OS
-        platforms.
-
-    *   Perhaps support <%init> ... </%init>, by treating it as a %perl
-        block at the begining of the string.
-
-    *   Perhaps support <%args> $foo => default </%args>.
-
-        Perhaps warn if %args block exists but template called with odd
-        number of arguments.
+    To report bugs via the CPAN web tracking system, go to
+    "http://rt.cpan.org/NoAuth/Bugs.html?Dist=Text-MicroMason" or send mail
+    to "Dist=Text-MicroMason#rt.cpan.org", replacing "#" with "@".
 
 CREDITS AND COPYRIGHT
   Developed By
 
-      M. Simon Cavalletto, simonm@cavalletto.org
-      Evolution Softworks, www.evoscript.org
+    Developed by Matthew Simon Cavalletto at Evolution Softworks. You may
+    contact the author directly at "simonm@cavalletto.org". More free Perl
+    software is available at "www.evoscript.org".
 
   The Shoulders of Giants
 
@@ -182,12 +132,13 @@ CREDITS AND COPYRIGHT
 
   Feedback and Suggestions
 
-    Thanks to:
+    My sincere thanks to the following users who have provided feedback:
 
       Pascal Barbedor
       Mark Hampton
       Philip King
       Daniel J. Wright
+      William Kern
 
   Copyright
 
@@ -199,4 +150,3 @@ CREDITS AND COPYRIGHT
 
     You may use, modify, and distribute this software under the same terms
     as Perl.
-

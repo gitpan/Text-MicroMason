@@ -3,7 +3,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 17 }
+BEGIN { plan tests => 18 }
 
 my $loaded;
 END { ok(0) unless $loaded; }
@@ -134,6 +134,14 @@ FILE_BLOCK_AT_EOF: {
   my $res_hello = "Test greeting:\n\n" . 'Good afternoon, Dave!' . "\n";
   
   ok( execute($scr_hello), $res_hello );
+}
+
+######################################################################
+
+LOOKS_LIKE_HTML: {
+  my $scr_hello = '<TABLE border="1" width="100%"><tr><td>Hi</td></tr></table>';
+
+  ok( execute($scr_hello), $scr_hello );
 }
 
 ######################################################################

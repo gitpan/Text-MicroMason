@@ -2,6 +2,7 @@ MANIFEST
 Makefile.PL
 MicroMason.pm
 README
+CHANGES
 t/0-startup.t
 t/1-basics.t
 t/2-perlsyn.t

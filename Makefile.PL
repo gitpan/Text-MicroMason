@@ -1,5 +1,5 @@
 use ExtUtils::MakeMaker;
 WriteMakefile(
-  'NAME'	 => 'Text::MicroMason',
-  'VERSION'      => '1.05',
+  'NAME'         => 'Text::MicroMason',
+  'VERSION_FROM' => 'MicroMason.pm',
 );
