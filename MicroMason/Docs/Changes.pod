@@ -1,9 +1,23 @@
 =head1 NAME
 
-Text::MicroMason::Changes - Change History for the MicroMason Distribution
+Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 
 =head1 VERSION 2 HISTORY
+
+=head2 Version 1.98
+
+=over 4
+
+=item 2004-11-29
+
+Fixed unprotected test dependency on Text::Balanced for TextTemplate emulation.
+
+Fixed unexpected side-effect of change to parsing for single-character Filter flags.
+
+Minor adjustments to POD documentation.
+
+=back
 
 =head2 Version 1.97
 

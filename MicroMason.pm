@@ -1,5 +1,5 @@
 package Text::MicroMason;
-$VERSION = 1.97;
+$VERSION = 1.98;
 
 require 5.0; # The tests use the new subref->() syntax, but the module doesn't
 use strict;

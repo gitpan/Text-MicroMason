@@ -3,6 +3,13 @@
 use strict;
 use Test;
 
+BEGIN { 
+  eval "require Text::Balanced; 1" or do {
+    print "Skipping test (Text::Template emulator requires Text::Balanced).\n";
+    exit 0;
+  }
+}
+
 BEGIN { plan tests => 10 }
 
 my $loaded;

@@ -59,8 +59,8 @@ RELATED MODULES
     run-time evaluation mechanisms used by the originals, although no
     benchmarking has been performed yet.
 
-DISTRIBUTION
-    This is version 1.97_0 of Text::MicroMason.
+DISTRIBUTION STATUS
+    This is version 1.98 of Text::MicroMason.
 
     This is an BETA version on a development track for a 2.0 release.
 
@@ -69,18 +69,12 @@ DISTRIBUTION
     If you encounter any problems, please inform the author and I'll
     endeavor to patch them promptly.
 
-  CPAN Registration
-
     This module's CPAN registration should read:
 
       Name            DSLIP  Description
       --------------  -----  ---------------------------------------------
-      Text::
+      Text::          Grp 11 Text Processing
       ::MicroMason    Rdpfp  Simplified HTML::Mason Templating
-
-    This module should be categorized under group 11, Text Processing.
-
-  Tested Platforms
 
     This release has been tested succesfully on the following platforms:
 
@@ -89,7 +83,7 @@ DISTRIBUTION
     Earlier releases have also tested OK on a wide variety of platforms. You
     may review the current test results from CPAN-Testers:
 
-    * http://testers.cpan.org/show/Text-MicroMason.html
+      http://testers.cpan.org/show/Text-MicroMason.html
 
 INSTALLATION
     This module should work with any version of Perl 5, without platform
@@ -126,19 +120,22 @@ SUPPORT
     and suggested patches will be promptly considered for inclusion in
     future releases.
 
-    To report bugs via the CPAN web tracking system, go to
-    "http://rt.cpan.org/NoAuth/Bugs.html?Dist=Text-MicroMason" or send mail
-    to "Dist=Text-MicroMason#rt.cpan.org", replacing "#" with "@".
+    You can report bugs via the CPAN web tracking system, or send mail to
+    "Dist=Text-MicroMason#rt.cpan.org", replacing "#" with "@".
+
+      http://rt.cpan.org/NoAuth/Bugs.html?Dist=Text-MicroMason
 
     If you've found this module useful or have feedback about your
     experience with it, consider sharing your opinion with other Perl users
-    by posting your comment to CPAN's ratings system
-    ("http://cpanratings.perl.org/rate/?distribution=Text-MicroMason").
+    by posting your comment to CPAN's ratings system.
+
+      http://cpanratings.perl.org/rate/?distribution=Text-MicroMason
 
     For more general discussion, you may wish to post a message on PerlMonks
-    ("http://perlmonks.org/?node=Seekers%20of%20Perl%20Wisdom") or on the
-    comp.lang.perl.misc newsgroup
-    ("http://groups.google.com/groups?group=comp.lang.perl.misc").
+    or on the comp.lang.perl.misc newsgroup.
+
+      http://perlmonks.org/?node=Seekers%20of%20Perl%20Wisdom
+      http://groups.google.com/groups?group=comp.lang.perl.misc
 
 AUTHOR
     Developed by Matthew Simon Cavalletto at Evolution Softworks. You may
@@ -160,7 +157,7 @@ THANKS
       Tommi Maekitalo
       Alan Ferrency
 
-INSPIRED BY
+SOURCE MATERIAL
     Based on the superb HTML::Mason developed by Jonathan Swartz.
 
     Portions based on Text::Template developed by Mark Jason Dominus.

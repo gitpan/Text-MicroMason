@@ -1,12 +1,12 @@
 =head1 NAME
 
-Text::MicroMason::ToDo - Development Plans for the MicroMason Distribution
+Text::MicroMason::Docs::ToDo - Development Plans for the MicroMason Distribution
 
 =head1 TO DO
 
 This document outlines various development plans and ideas for Text::MicroMason. 
 
-The priority and schedule for these items are not well defined; if you are interested in a specific feature please contact the author as described in L<Text::MicroMason::ReadMe>.
+The priority and schedule for these items are not well defined; if you are interested in a specific feature please contact the author as described in L<Text::MicroMason::Docs::ReadMe>.
 
 =head2 Distribution
 
@@ -79,13 +79,9 @@ Extend HTMLTemplate with a hash mapping options that could be passed to HTML::Te
 =item *
 
 Improve TemplateDir and/or add related file-search mixin classes.
-
 Perhaps optionally accept a search path listing multiple directories to search for templates?
-
 Perhaps optionally chdir() during the execution of each template?
-
 Perhaps refuse to access any file that isn't under the template directory?
-
 Perhaps add methods to search for all files matching a given regex to facilitate tree searches and cache pre-fetching?  
 
 =item *
@@ -107,10 +103,11 @@ Add an OutputHandle mixin that accepts a handle as an attribute, then prints out
 =item *
 
 Add a BlessSub mixin that blesses the compiled subroutine. This would let us add support for template-specific behaviors and attributes. 
-
 Override eval_sub() to bless sub before returning. Attribute bless_sub controls initializer arguments passed to BlessedSub class. BlessedSub class is base class for blessed template objects. Provides execute() method.
 
-May need its own mixin factory for BlessedSub classes... To avoid having to define separate mixins for both packages, perhaps the methods should be delegated from the coderef to the Mason instance? (This becomes particularly attractive if each sub is automatically getting its own cloned mason instance anyway.)
+=item *
+
+BlessedSub classes may need their own mixin factory... To avoid having to define separate mixins for both packages, perhaps the methods should be delegated from the coderef to the Mason instance? (This becomes particularly attractive if each sub is automatically getting its own cloned mason instance anyway.)
 
 =item *
 
@@ -139,6 +136,6 @@ Review integration with Inline::Mason. Facilitate use of mixins so this can also
 =head1 SEE ALSO
 
 For distribution, installation, support, copyright and license 
-information, see L<Text::MicroMason::ReadMe>.
+information, see L<Text::MicroMason::Docs::ReadMe>.
 
 =cut

@@ -1,5 +1,5 @@
 NAME
-    Text::MicroMason::ToDo - Development Plans for the MicroMason
+    Text::MicroMason::Docs::ToDo - Development Plans for the MicroMason
     Distribution
 
 TO DO
@@ -8,7 +8,7 @@ TO DO
 
     The priority and schedule for these items are not well defined; if you
     are interested in a specific feature please contact the author as
-    described in the Text::MicroMason::ReadMe manpage.
+    described in the Text::MicroMason::Docs::ReadMe manpage.
 
   Distribution
 
@@ -54,17 +54,12 @@ TO DO
   Mixins
 
     *   Improve TemplateDir and/or add related file-search mixin classes.
-
         Perhaps optionally accept a search path listing multiple directories
-        to search for templates?
-
-        Perhaps optionally chdir() during the execution of each template?
-
-        Perhaps refuse to access any file that isn't under the template
-        directory?
-
-        Perhaps add methods to search for all files matching a given regex
-        to facilitate tree searches and cache pre-fetching?
+        to search for templates? Perhaps optionally chdir() during the
+        execution of each template? Perhaps refuse to access any file that
+        isn't under the template directory? Perhaps add methods to search
+        for all files matching a given regex to facilitate tree searches and
+        cache pre-fetching?
 
     *   Add a DHandlers mixin that supports default files. On file requests,
         if file not found, look for default file. (Attribute dhandler_name
@@ -86,14 +81,12 @@ TO DO
 
     *   Add a BlessSub mixin that blesses the compiled subroutine. This
         would let us add support for template-specific behaviors and
-        attributes.
+        attributes. Override eval_sub() to bless sub before returning.
+        Attribute bless_sub controls initializer arguments passed to
+        BlessedSub class. BlessedSub class is base class for blessed
+        template objects. Provides execute() method.
 
-        Override eval_sub() to bless sub before returning. Attribute
-        bless_sub controls initializer arguments passed to BlessedSub class.
-        BlessedSub class is base class for blessed template objects.
-        Provides execute() method.
-
-        May need its own mixin factory for BlessedSub classes... To avoid
+    *   BlessedSub classes may need their own mixin factory... To avoid
         having to define separate mixins for both packages, perhaps the
         methods should be delegated from the coderef to the Mason instance?
         (This becomes particularly attractive if each sub is automatically
@@ -118,5 +111,5 @@ TO DO
 
 SEE ALSO
     For distribution, installation, support, copyright and license
-    information, see the Text::MicroMason::ReadMe manpage.
+    information, see the Text::MicroMason::Docs::ReadMe manpage.
 

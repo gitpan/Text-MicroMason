@@ -14,8 +14,8 @@ $Defaults{default_filters} = '';
 $Defaults{filters} = \%Filters;
 
 $Filters{p} = \&Text::MicroMason::Base::_printable;
-$Filters{h} = \&HTML::Entities::encode if eval { require HTML::Entities};
-$Filters{u} = \&URI::Escape::uri_escape if eval { require URI::Escape };
+$Filters{h} = eval { require HTML::Entities; \&HTML::Entities::encode;  };
+$Filters{u} = eval { require URI::Escape;    \&URI::Escape::uri_escape };
 
 sub defaults {
   (shift)->NEXT('defaults'), %Text::MicroMason::Filters::Defaults
