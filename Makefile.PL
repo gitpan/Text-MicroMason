@@ -31,12 +31,15 @@ cleanmanifest: realclean FORCE
 cover: FORCE
 	cover -delete; HARNESS_PERL_SWITCHES=-MDevel::Cover make test; cover
 
-docs : README CHANGES
+docs : README CHANGES TODO
 
-README: MicroMason/ReadMe.pod
-	pod2text MicroMason/ReadMe.pod > README
+README: MicroMason/Docs/ReadMe.pod
+	pod2text MicroMason/Docs/ReadMe.pod > README
 
-CHANGES: MicroMason/Changes.pod
-	pod2text MicroMason/Changes.pod > CHANGES
+CHANGES: MicroMason/Docs/Changes.pod
+	pod2text MicroMason/Docs/Changes.pod > CHANGES
+
+TODO: MicroMason/Docs/ToDo.pod
+	pod2text MicroMason/Docs/ToDo.pod > TODO
 
 }; }

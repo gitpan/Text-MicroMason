@@ -8,7 +8,7 @@ use Carp;
 sub assembler_rules {
   my $self = shift;
   my %rules = $self->NEXT('assembler_rules', @_);
-  $rules{return_ouput} = "\$m->post_process( $rules{return_ouput} )";
+  $rules{return_output} = "\$m->post_process( $rules{return_output} )";
   %rules;
 }
 
@@ -118,10 +118,22 @@ Called with one or more function-ref arguments, appends to the list:
 
 Stores a reference to a function or an array of functions to be used:
 
-    $mason->{post_process} = $function;
-    $mason->{post_process} = [ $function1, $function2 ];
+  $mason->{post_process} = $function;
+  $mason->{post_process} = [ $function1, $function2 ];
 
 You can set this attribute when you create your mason object, or in calls to the compile and execute methods. 
+
+=back
+
+=head2 Private Methods
+
+=over 4
+
+=item post_process()
+
+  $mason->post_process( $output ) : $filtered_output
+
+Applies the post-processing filter.
 
 =back
 
@@ -133,6 +145,6 @@ For an overview of this templating framework, see L<Text::MicroMason>.
 This is a mixin class intended for use with L<Text::MicroMason::Base>.
 
 For distribution, installation, support, copyright and license 
-information, see L<Text::MicroMason::ReadMe>.
+information, see L<Text::MicroMason::Docs::ReadMe>.
 
 =cut

@@ -62,14 +62,6 @@ Templates stored in files can be run directly or included in others:
     print $mason->execute( file=>"./greeting.msn", 'name'=>'Charles');
 
 
-=head1 TO DO
-
-This module is not finished. 
-
-Should it optionally chdir() during the execution of each template?
-
-
-
 =head1 DESCRIPTION
 
 This module changes the resolution of files passed to compile() and execute() to be relative to a base directory path or to the currently executing template.
@@ -102,7 +94,7 @@ For an overview of this templating framework, see L<Text::MicroMason>.
 This is a mixin class intended for use with L<Text::MicroMason::Base>.
 
 For distribution, installation, support, copyright and license 
-information, see L<Text::MicroMason::ReadMe>.
+information, see L<Text::MicroMason::Docs::ReadMe>.
 
 =cut
 

@@ -146,12 +146,12 @@ sub assemble_tmpl_var {
   if ( $args->{escape} ) {
     $output = "\$m->filter( $output, '$args->{escape}' )"
   }
-  output => "$output;"
+  expr => "$output;"
 }
 
 sub assemble_tmpl_include {
   my ($self, $args) = @_;
-  include => $args->{name}
+  file => $args->{name}
 }
 
 sub assemble_tmpl_loop {
@@ -433,7 +433,7 @@ For an overview of this templating framework, see L<Text::MicroMason>.
 This is a mixin class intended for use with L<Text::MicroMason::Base>.
 
 For distribution, installation, support, copyright and license 
-information, see L<Text::MicroMason::ReadMe>.
+information, see L<Text::MicroMason::Docs::ReadMe>.
 
 =cut
 

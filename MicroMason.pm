@@ -1,5 +1,5 @@
 package Text::MicroMason;
-$VERSION = 1.96_0;
+$VERSION = 1.97;
 
 require 5.0; # The tests use the new subref->() syntax, but the module doesn't
 use strict;
@@ -126,7 +126,7 @@ The core functionality is provided by the abstract Base class. See L<Text::Micro
 
 The standard template syntax is provided by the Mason subclass. See L<Text::MicroMason::Mason> for documentation of markup options. 
 
-Other optional functionality is provided by mixin classes. For a list of available mixin classes, see L</"Mixin Options">.
+Other optional functionality is provided by mixin classes. For a list of available mixin classes, see L</"Usage Mixins"> and L</"Syntax Mixins">.
 
 =head2 Public Methods
 
@@ -134,11 +134,21 @@ The following methods comprise the primary public interface for Text::MicroMason
 
 =over 4
 
+=item class()
+
+  $mason_class = Text::MicroMason->class( @Mixins );
+
+Creates a Mason subclass that also inherits from the other classes named.
+
 =item new()
+
+  $mason = $mason_class->new( %attribs );
 
   $mason = Text::MicroMason->new( -Mixin1, -Mixin2, %attribs );
 
-Creates a new Text::MicroMason object. To obtain the functionality of one of the supported mixin classes, pass their names as arguments with leading dashes.
+Creates a new Text::MicroMason object. 
+
+To obtain the functionality of one of the supported mixin classes, you can either use the class() method to generate the mixed class before calling new(), or you can pass their names as arguments with leading dashes.
 
 =item compile()
 
@@ -157,11 +167,13 @@ Returns the results produced by the template, given the provided arguments.
 
 Subclasses or mixins may define additional public methods.
 
-Some subclasses support or require values for various additional attributes. You may pass 
+=head2 Attributes
 
- Any other optional attributes can also be passed as key-value pairs.
+Some subclasses support or require values for various additional attributes.
+You may pass attributes as key-value pairs to the new() method for persistant
+use, or to the compile() or execute() methods to temporarily override the
+persistant attributes for that template only.
 
- Any attributes provided here will override those in the original Mason object, but only for this execution.
 
 =head1 USAGE
 
@@ -212,7 +224,7 @@ For example, the below calls will all return '<b>Foo</b>':
 
   $mason->execute( text=>'<%args>$label</%args><b><% $label %></b>', label=>'Foo');
 
-=head2 Mixin Options
+=head2 Usage Mixins
 
 The following mixin classes can be layered on to your Mason object to provide additional functionality. 
 
@@ -292,7 +304,7 @@ The default Text::MicroMason::Mason subclass provides lexer and assembler method
 
 For a definition of the template syntax, see L<Text::MicroMason::Mason>.
 
-=head2 Mixin Options
+=head2 Syntax Mixin
 
 The following mixin classes can be layered on to your Mason object to provide additional functionality. 
 
@@ -322,7 +334,7 @@ The following classes provide support for different template syntaxes. You can e
 
 =item Embperl
 
-The Embperl mixin replaces the supported template syntax with one similar to that used by the HTML::Embperl module.
+The Embperl mixin replaces the Mason template syntax with one similar to that used by the HTML::Embperl module.
 
     [- my $name = $ARGS{name}; -]
     [$ if $name eq 'Dave' $]
@@ -339,7 +351,7 @@ For more information see L<Text::MicroMason::Embperl>.
 
 =item HTMLTemplate
 
-The HTMLTemplate mixin replaces the supported template syntax with one similar to that used by the HTML::Template module.
+The HTMLTemplate mixin replaces the Mason template syntax with one similar to that used by the HTML::Template module.
 
     <TMPL_IF NAME="user_is_dave">
       I'm sorry <TMPLVAR NAME="name">, I'm afraid I can't do that right now.
@@ -355,11 +367,11 @@ For more information see L<Text::MicroMason::HTMLTemplate>.
 
 =item ServerPages
 
-The ServerPages mixin replaces the supported template syntax with one similar to that used by the Apache::ASP module.
+The ServerPages mixin replaces the Mason template syntax with one similar to that used by the Apache::ASP module.
 
     <% my $name = $ARGS{name};
       if ( $name eq 'Dave' ) {  %>
-      I'm sorry <% $name %>, I'm afraid I can't do that right now.
+      I'm sorry <%= $name %>, I'm afraid I can't do that right now.
     <% } else { 
 	my $hour = (localtime)[2];
 	my $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
@@ -371,7 +383,7 @@ For more information see L<Text::MicroMason::ServerPages>.
 
 =item TextTemplate
 
-The TextTemplate mixin replaces the supported template syntax with one similar to that used by the Text::Template module.
+The TextTemplate mixin replaces the Mason template syntax with one similar to that used by the Text::Template module.
 
     { $hour = (localtime)[2];
       $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
@@ -438,9 +450,7 @@ One of the compile_file or execute_file functions was called but we were unable 
 
 =head1 SEE ALSO
 
-For a full-featured web application system using this template syntax, see L<HTML::Mason>.
-
 For distribution, installation, support, copyright and license 
-information, see L<Text::MicroMason::ReadMe>.
+information, see L<Text::MicroMason::Docs::ReadMe>.
 
 =cut

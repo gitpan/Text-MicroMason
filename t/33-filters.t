@@ -14,20 +14,20 @@ my $res_nofilter = 'Hello <"world">!';
 ######################################################################
 # Test default h encoding flag if we have HTML::Entities
 my $h = HTML::Entities->can('encode');
-my $src_h = qq(Hello <% '<"world">' |h %>!);
+my $src_h = q(Hello <% '<"world">' |h %>!);
 my $res_h = 'Hello &lt;&quot;world&quot;&gt;!';
 
-skip ( $h ? 0 : "Skip filter flag h", $m->execute( text=> $src_h), $res_h);
+skip ( $h ? 0 : "Test uses HTML::Entities", sub { $m->execute( text=> $src_h) }, $res_h);
 
 # Test h as a default filter
 {
     local $m->{default_filters} = 'h';
-    my $src_h2 = qq(Hello <% '<"world">' %>!);
-    skip ( $h ? 0 : "Skip filter flag h", $m->execute( text => $src_h2), $res_h);
+    my $src_h2 = q(Hello <% '<"world">' %>!);
+    skip ( $h ? 0 : "Test uses HTML::Entities", sub { $m->execute( text => $src_h2) }, $res_h);
 
 # Explicitly disable the default filters
-    my $src_h3 = qq(Hello <% '<"world">' | n %>!);
-    skip ( $h ? 0 : "Skip filter flag u", $m->execute( text => $src_h3), $res_nofilter);
+    my $src_h3 = q(Hello <% '<"world">' | n %>!);
+    skip ( $h ? 0 : "Test uses HTML::Entities", sub { $m->execute( text => $src_h3) }, $res_nofilter);
 }
 
 ######################################################################
@@ -37,18 +37,18 @@ my $u = URI::Escape->can('uri_escape');
 my $res_u = 'Hello %3C%22world%22%3E!';
 
 my $src_u1 = qq(Hello <% '<"world">' |u %>!);
-skip ( $u ? 0 : "Skip filter flag u", $m->execute( text=> $src_u1), $res_u);
+skip ( $u ? 0 : "Test uses URI::Escape", sub { $m->execute( text=> $src_u1) }, $res_u);
 
 # Test u as a default filter
 {
     local $m->{default_filters} = 'u';
     my $src_u2 = qq(Hello <% '<"world">' %>!);
-    skip ( $u ? 0 : "Skip filter flag u", $m->execute( text => $src_u2), $res_u);
+    skip ( $u ? 0 : "Test uses URI::Escape", sub { $m->execute( text => $src_u2) }, $res_u);
 
 # Explicitly disable the default filters
     my $src_u3 = qq(Hello <% '<"world">' | n %>!);
     my $res_u3 = 'Hello <"world">!';
-    skip ( $u ? 0 : "Skip filter flag u", $m->execute( text => $src_u3), $res_nofilter);
+    skip ( $u ? 0 : "Test uses URI::Escape", sub { $m->execute( text => $src_u3) }, $res_nofilter);
 }
 
 
@@ -58,11 +58,11 @@ skip ( $u ? 0 : "Skip filter flag u", $m->execute( text=> $src_u1), $res_u);
 {
   my $src_unh = qq(Hello <% '<"world">' |unh %>!);
   my $res_unh = 'Hello &lt;&quot;world&quot;&gt;!';
-  skip ( $h ? 0 : "Skip filter flag unh", $m->execute( text => $src_unh), $res_unh);
+  skip ( $h ? 0 : "Test uses HTML::Entities", sub { $m->execute( text => $src_unh) }, $res_unh);
 
   my $res_hnu = 'Hello %3C%22world%22%3E!';  
   my $src_hnu = qq(Hello <% '<"world">' |hnu %>!);
-  skip ( $u ? 0 : "Skip filter flag hnu", $m->execute( text => $src_hnu), $res_hnu);
+  skip ( $u ? 0 : "Test uses URI::Escape", sub { $m->execute( text => $src_hnu) }, $res_hnu);
 }
 
 

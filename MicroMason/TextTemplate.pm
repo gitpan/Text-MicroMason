@@ -11,7 +11,7 @@ my $lexer_rule = [ { TTBlock => sub { extract_codeblock($_[0],'{}','') } } ];
 # @tokens = $mason->lex( $template );
 sub lex {
   my $self = shift;
-  map { ( ! ref) ? ( text => $_ ) : ( output => substr($$_, 1, -1) ) } 	
+  map { ( ! ref) ? ( text => $_ ) : ( expr => substr($$_, 1, -1) ) } 	
 				extract_multiple( shift(), $lexer_rule );
 }
 
@@ -21,7 +21,7 @@ sub lex {
 use vars qw( %Assembler );
 
 $Assembler{template} = [ qw( $eval_start $sub_start $init_errs $init_output 
-			      $init_args @perl $return_ouput $sub_end ) ];
+			      $init_args @perl $return_output $sub_end ) ];
 $Assembler{ eval_start } = 'package __PACKAGE__; no strict; ';
 
 $Assembler{init_args} = 'local %__PACKAGE__:: = %__PACKAGE__::;' . "\n" .
@@ -30,7 +30,7 @@ $Assembler{init_args} = 'local %__PACKAGE__:: = %__PACKAGE__::;' . "\n" .
 
 $Assembler{init_output} = 'my $OUT = ""; my $_out = sub {$OUT .= join "", @_};';
 $Assembler{add_output} = '  $OUT .= join "", ';
-$Assembler{return_ouput} = '$OUT;';
+$Assembler{return_output} = '$OUT;';
 
 sub assembler_rules {
   my $self = shift;
@@ -92,24 +92,24 @@ Text::MicroMason::TextTemplate - Alternate Syntax like Text::Template
 
 Text::Template provides a syntax to mix Perl into a text template:
 
-    { my $hour = (localtime)[2];
-      my $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
-    '' }
-    Good { $daypart }, { $name }!
+  { my $hour = (localtime)[2];
+    my $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
+  '' }
+  Good { $daypart }, { $name }!
 
 Instead of using this class directly, pass its name to be mixed in:
 
-    use Text::MicroMason;
-    my $mason = Text::MicroMason->new( -TextTemplate );
+  use Text::MicroMason;
+  my $mason = Text::MicroMason->new( -TextTemplate );
 
 Use the execute method to parse and evalute a template:
 
-    print $mason->execute( text=>$template, %arguments );
+  print $mason->execute( text=>$template, %arguments );
 
 Or compile it into a subroutine, and evaluate repeatedly:
 
-    $coderef = $mason->compile( text=>$template );
-    print $coderef->(%arguments);
+  $coderef = $mason->compile( text=>$template );
+  print $coderef->(%arguments);
 
 
 =head1 DESCRIPTION
@@ -195,7 +195,7 @@ If a package has not been specified, this method generates a new package namespa
 
 =item lex()
 
-Lexer for matched braces - produces only text and output tokens. Uses Text::Balanced.
+Lexer for matched braces - produces only text and expr tokens. Uses Text::Balanced.
 
 =item assemble()
 
@@ -217,7 +217,7 @@ For an overview of this templating framework, see L<Text::MicroMason>.
 This is a mixin class intended for use with L<Text::MicroMason::Base>.
 
 For distribution, installation, support, copyright and license 
-information, see L<Text::MicroMason::ReadMe>.
+information, see L<Text::MicroMason::Docs::ReadMe>.
 
 =cut
 

@@ -9,19 +9,18 @@ use strict;
 
 my $re_eol = "(?:\\r\\n|\\r|\\n|\\z)";
 my $re_sol = "(?:\\A|(?<=\\r|\\n) )";
-my $re_tag = "perl|args|once|init|cleanup|doc";
+my $re_tag = "perl|args|once|init|cleanup|doc|text|expr|file";
 
 # ( $type, $value ) = $mason->lex_token();
 sub lex_token {
   # Blocks in <%word> ... <%word> tags.
-  /\G \<\%($re_tag)\> (.*?) \<\/\%\1\> $re_eol? 
-    /xcogs ? ( $1 => $2 ) :
+  /\G \<\%($re_tag)\> (.*?) \<\/\%\1\> $re_eol? /xcogs ? ( $1 => $2 ) :
   
   # Blocks in <% ... %> tags.
-  /\G \<\% ( .*? ) \%\> /xcogs ? ( 'output' => $1 ) :
+  /\G \<\% ( .*? ) \%\> /xcogs ? ( 'expr' => $1 ) :
   
   # Blocks in <& ... &> tags.
-  /\G \<\& ( .*? ) \&\> /xcogs ? ( 'include' => $1 ) :
+  /\G \<\& ( .*? ) \&\> /xcogs ? ( 'file' => $1 ) :
   
   # Lines begining with %
   /\G $re_sol \% ( [^\n\r]* ) $re_eol /xcogs ? ( 'perl' => $1 ) :
@@ -43,7 +42,7 @@ sub assembler_rules {
   my $self = shift;
   $self->NEXT('assembler_rules', @_), 
     template => [ qw( @once $sub_start $init_errs $init_output $init_args
-		    @init @perl !@cleanup $return_ouput $sub_end -@doc ) ]
+		    @init @perl !@cleanup $return_output $sub_end -@doc ) ]
 }
 
 sub assemble_args {
@@ -148,11 +147,7 @@ The following sets of HTML::Mason features are B<not> supported by Text::MicroMa
 
 =item *
 
-No %attr, %shared, %method, or %def blocks.
-
-=item *
-
-No $r request object.
+No %attr, %flag, %shared, %method, or %def blocks.
 
 =item *
 
@@ -160,7 +155,7 @@ No shared files like autohandler and dhandler.
 
 =item *
 
-No mod_perl integration or configuration capability.
+No $r request object. No mod_perl integration or configuration capability.
 
 =back
 
@@ -425,7 +420,7 @@ The following types of named blocks are not supported by HTML::Mason, but are su
 
 =item *
 
-E<lt>%outputE<gt> ... E<lt>/%outputE<gt>
+E<lt>%exprE<gt> ... E<lt>/%exprE<gt>
 
 A Perl expression to be interpolated into the result.
 The block may span multiple lines and is scoped inside a "do" block,
@@ -436,11 +431,11 @@ Equivalent to the C<E<lt>% ... %E<gt>> markup syntax.
 
 =item *
 
-E<lt>%includeE<gt> I<template_filename>, I<arguments> E<lt>/%includeE<gt>
+E<lt>%fileE<gt> I<template_filename>, I<arguments> E<lt>/%fileE<gt>
 
 Includes the results of a separate file containing MicroMason code, compiling it and executing it with any arguments passed after the filename.
 
-  <%include> "greeting.msn", hour => (localtime)[2] </%include>
+  <%file> "greeting.msn", hour => (localtime)[2] </%file>
 
 Equivalent to the C<E<lt>& ... &E<gt>> markup syntax.
 
@@ -515,7 +510,7 @@ For an overview of this distribution, see L<Text::MicroMason>.
 This is a subclass intended for use with L<Text::MicroMason::Base>.
 
 For distribution, installation, support, copyright and license 
-information, see L<Text::MicroMason::ReadMe>.
+information, see L<Text::MicroMason::Docs::ReadMe>.
 
 =cut
 

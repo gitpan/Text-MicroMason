@@ -9,29 +9,26 @@ use Safe;
 
 my %block_types = ( 
   ''   => 'perl',	# <% perl statements %>
-  '='  => 'output',	# <%= perl expression %>
+  '='  => 'expr',	# <%= perl expression %>
   '--' => 'doc',	# <%-- this text will not appear in the output --%>
-  '&'  => 'include',	# <%& filename argument %>
+  '&'  => 'file',	# <%& filename argument %>
 );
 
 my $re_eol = "(?:\\r\\n|\\r|\\n|\\z)";
+my $re_tag = "perl|args|once|init|cleanup|doc|text|expr|file";
 
 sub lex_token {
   # Blocks in <%word> ... <%word> tags.
-  /\G \<\%(perl|args|once|init|cleanup|doc)\> (.*?) \<\/\%\1\> $re_eol? 
-    /gcxs ? ( $1 => $2 ) :
-  
-  # Blocks in <%-- ... --%> tags.
-  /\G \<\% \-\- ( .*? ) \-\- \%\> /gcxs ? ( 'doc' => $1 ) :
+  /\G \<\%($re_tag)\> (.*?) \<\/\%\1\> $re_eol? /xcogs ? ( $1 => $2 ) :
   
   # Blocks in <% ... %> tags.
   /\G \<\% (\=|\&)? ( .*? ) \%\> /gcxs ? ( $block_types{$1 || ''} => $2 ) :
   
-  # Things that don't match the above -- XXX below regex should be simpler!
-  /\G ( (?: [^\<\r\n%]+ | \<(?!\%) | (?<=[^\r\n\<])% |
-	$re_eol (?:\z|[^\r\n\%\<]|(?=\r\n|\r|\n|\%)|\<[^\%]|(?=\<[\%])) 
-	)+ (?: $re_eol +(?:\z|(?=\%|\<\[\%])) )?
-  ) /gcxs ? ( 'text' => $1 ) :
+  # Blocks in <%-- ... --%> tags.
+  /\G \<\% \-\- ( .*? ) \-\- \%\> /gcxs ? ( 'doc' => $1 ) :
+  
+  # Things that don't match the above
+  /\G ( (?: [^\<]+ | \<(?!\%) )? ) /gcxs ? ( 'text' => $1 ) :
 
   # Lexer error
   ()
@@ -56,7 +53,7 @@ Server Pages syntax provides another way to mix Perl into a text template:
 
     <% my $name = $ARGS{name};
       if ( $name eq 'Dave' ) {  %>
-      I'm sorry <% $name %>, I'm afraid I can't do that right now.
+      I'm sorry <%= $name %>, I'm afraid I can't do that right now.
     <% } else { 
 	my $hour = (localtime)[2];
 	my $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
@@ -145,6 +142,6 @@ For an overview of this templating framework, see L<Text::MicroMason>.
 This is a mixin class intended for use with L<Text::MicroMason::Base>.
 
 For distribution, installation, support, copyright and license 
-information, see L<Text::MicroMason::ReadMe>.
+information, see L<Text::MicroMason::Docs::ReadMe>.
 
 =cut

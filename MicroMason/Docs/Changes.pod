@@ -5,9 +5,32 @@ Text::MicroMason::Changes - Change History for the MicroMason Distribution
 
 =head1 VERSION 2 HISTORY
 
-=head2 To Do
+=head2 Version 1.97
 
-Setup a benchmarking scheme to compare subclasses with other templating solutions. Take an example from http://www.chamas.com/bench/ but execute templates directly. Store the expected output in a text file for comparison.
+=over 4
+
+=item 2004-11-28
+
+Moved to do list into new pod file. Moved extra pod files into Docs namespace.
+
+Added _printable to default set of functions in Filters. Tweaked parse_filters  and get_filter_functions methods.
+
+Changed internal names for ouput and include token types to expr and file. Corrected typo in one of the assembler token names.
+
+Adjusted $Carp::CarpLevel in Base croak_msg().
+
+Fixed test failure in t/33-filters.t reported by William Kern.
+
+=item 2004-10-24
+
+Fixed typo in ServerPages example; thanks to William Kern for pointing it out.
+
+=item 2004-10-20
+
+Adjustments to documentation in top-level package.  
+
+=back
+
 
 =head2 Version 1.96
 
@@ -359,3 +382,11 @@ Released as HTML-MicroMason-1.0.0.tar.gz.
 Created.
 
 =back
+
+
+=head1 SEE ALSO
+
+For distribution, installation, support, copyright and license 
+information, see L<Text::MicroMason::Docs::ReadMe>.
+
+=cut

@@ -106,18 +106,18 @@ Text::MicroMason::Safe - Compile all Templates in a Safe Compartment
 
 Instead of using this class directly, pass its name to be mixed in:
 
-    use Text::MicroMason;
-    my $mason = Text::MicroMason->new( -Safe );
+  use Text::MicroMason;
+  my $mason = Text::MicroMason->new( -Safe );
 
 Use the execute method to parse and evalute a template:
 
-    print $mason->execute( text=>$template, 'name'=>'Dave' );
+  print $mason->execute( text=>$template, 'name'=>'Dave' );
 
 Safe usage restricts templates from accessing your files or data:
 
-    print $mason->execute( text=>"<% qx! cat /etc/passwd ! %>" ); # dies
+  print $mason->execute( text=>"<% qx! cat /etc/passwd ! %>" ); # dies
 
-    print $mason->execute( text=>"The time is <% time() %>." ); # dies
+  print $mason->execute( text=>"The time is <% time() %>." ); # dies
 
 
 =head1 DESCRIPTION
@@ -232,6 +232,6 @@ For an overview of this templating framework, see L<Text::MicroMason>.
 This is a mixin class intended for use with L<Text::MicroMason::Base>.
 
 For distribution, installation, support, copyright and license 
-information, see L<Text::MicroMason::ReadMe>.
+information, see L<Text::MicroMason::Docs::ReadMe>.
 
 =cut

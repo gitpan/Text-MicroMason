@@ -9,8 +9,8 @@ use Safe;
 
 my %block_types = ( 
   '-'  => 'perl',	# [- perl statements -]
-  '+'  => 'output',	# [+ perl expression +]
-  '!'  => 'once',	# [! initialization perl statements !]
+  '+'  => 'expr',	# [+ perl expression +]
+  '!'  => 'once',	# [! perl statements !]
   '$'  => 'ep_meta',	# [$ command args $]
 );
 
@@ -181,6 +181,6 @@ For an overview of this templating framework, see L<Text::MicroMason>.
 This is a mixin class intended for use with L<Text::MicroMason::Base>.
 
 For distribution, installation, support, copyright and license 
-information, see L<Text::MicroMason::ReadMe>.
+information, see L<Text::MicroMason::Docs::ReadMe>.
 
 =cut

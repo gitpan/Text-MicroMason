@@ -65,7 +65,7 @@ sub assembler_rules {
 
 %Assembler = (
   template => [ qw( $sub_start $init_errs $init_output
-		    $init_args @perl $return_ouput $sub_end ) ],
+		    $init_args @perl $return_output $sub_end ) ],
 
   sub_start  => 'sub { ',
   sub_end  => '}',
@@ -79,12 +79,12 @@ sub assembler_rules {
   # Output generation
   init_output => 'my @OUT; my $_out = sub { push @OUT, @_ };',
   add_output => '  push @OUT, ',
-  return_ouput => 'join("", @OUT)',
+  return_output => 'join("", @OUT)',
 
   # Mapping between token types
   text_token => 'perl OUT( QUOTED );',
-  output_token => 'perl OUT( do{ TOKEN } );',
-  include_token => 'perl OUT( $m->execute( file => do { TOKEN } ) );',
+  expr_token => 'perl OUT( do{ TOKEN } );',
+  file_token => 'perl OUT( $m->execute( file => do { TOKEN } ) );',
 );
 
 # $perl_code = $mason->assemble( @tokens );
@@ -229,6 +229,7 @@ sub debug_msg {
 }
 
 sub croak_msg {
+  local $Carp::CarpLevel = 2;
   shift and Carp::croak( ( @_ == 1 ) ? $_[0] : join(' ', map _printable(), @_) )
 }
 
@@ -536,6 +537,6 @@ You typically should not depend on overriding this method because callers can in
 For an overview of this templating framework, see L<Text::MicroMason>.
 
 For distribution, installation, support, copyright and license 
-information, see L<Text::MicroMason::ReadMe>.
+information, see L<Text::MicroMason::Docs::ReadMe>.
 
 =cut

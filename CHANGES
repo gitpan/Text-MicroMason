@@ -3,6 +3,48 @@ NAME
     Distribution
 
 VERSION 2 HISTORY
+  Version 1.97
+
+    2004-11-28
+        Moved to do list into new pod file. Moved extra pod files into Docs
+        namespace.
+
+        Added _printable to default set of functions in Filters. Tweaked
+        parse_filters and get_filter_functions methods.
+
+        Changed internal names for ouput and include token types to expr and
+        file. Corrected typo in one of the assembler token names.
+
+        Adjusted $Carp::CarpLevel in Base croak_msg().
+
+        Fixed test failure in t/33-filters.t reported by William Kern.
+
+    2004-10-24
+        Fixed typo in ServerPages example; thanks to William Kern for
+        pointing it out.
+
+    2004-10-20
+        Adjustments to documentation in top-level package.
+
+  Version 1.96
+
+    2004-10-19
+        Added PostProcess mixin class at the suggestion of Alan Ferrency.
+
+        Renamed a few keys in the hash returned by assembler_rules().
+
+        Moved syntax documentation to Mason subclass.
+
+  Version 1.95
+
+    2004-10-19
+        Fixed problem with extra semicolons breaking code statements broken
+        onto multiple % code lines; thanks to Alan Ferrency for test code to
+        isolate the problem, now added to regression tests.
+
+    2004-10-17
+        Documentation updates.
+
   Version 1.94
 
     2004-10-17
@@ -10,6 +52,8 @@ VERSION 2 HISTORY
         lex() method.
 
         Added Embperl mixin class with emulation for HTML::Embperl.
+
+        Merged Devel.pod back in to other package documentation.
 
     2004-10-16
         Replaced assembler attribute with assembler_rules() method.
@@ -236,4 +280,8 @@ VERSION 1 HISTORY
 
     2001-03-22
         Created.
+
+SEE ALSO
+    For distribution, installation, support, copyright and license
+    information, see the Text::MicroMason::Docs::ReadMe manpage.
 

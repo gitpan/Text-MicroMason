@@ -1,6 +1,6 @@
 =head1 NAME
 
-Text::MicroMason::ReadMe - About the MicroMason Distribution
+Text::MicroMason::Docs::ReadMe - About the MicroMason Distribution
 
 =head1 MOTIVATION
 
@@ -56,18 +56,20 @@ The level of Mason compatibility is described in L<Text::MicroMason::Mason>.
 =head2 Compatibility with Other Templating Systems
 
 I've also recently added mixin classes that emulate the template syntax used
-by L<Embperl|Embperl>, L<HTML::Template|HTML::Template> and
-L<Text::Template|Text::Template>.  Because these modules share the
-underlying implementation of compiling a custom Perl subroutine, they
-theoretically could execute faster than the run-time evaluation mechanisms
-used by the originals, although no benchmarking has been performed yet.
+by L<Apache::ASP|Apache::ASP>, L<Embperl|Embperl>,
+L<HTML::Template|HTML::Template> and L<Text::Template|Text::Template>.
+
+Because these mixins share the underlying implementation of compiling a
+custom Perl subroutine, they theoretically could execute faster than the
+run-time evaluation mechanisms used by the originals, although no
+benchmarking has been performed yet.
 
 
 =head1 DISTRIBUTION
 
-This is version 1.96_0 of Text::MicroMason. 
+This is version 1.97_0 of Text::MicroMason. 
 
-This is an EXPERIMENTAL version on a development track for a 2.0 release.
+This is an BETA version on a development track for a 2.0 release.
 
 This module has been available on CPAN for over two years. 
 
@@ -182,6 +184,8 @@ Based on the superb HTML::Mason developed by Jonathan Swartz.
 Portions based on Text::Template developed by Mark Jason Dominus.
 
 Portions based on HTML::Template developed by Sam Tregar.
+
+Portions based on Embperl developed by Gerald Richter.
 
 
 =head1 LICENSE

@@ -8,17 +8,19 @@ BEGIN { plan tests => 21 }
 my $loaded;
 END { ok(0) unless $loaded; }
 
-use Text::MicroMason qw( compile execute );
+use Text::MicroMason;
+
+my $m = Text::MicroMason->new();
 
 ok( $loaded = 1 );
 
 ######################################################################
 
 MINIMAL_CASES: {
-  ok( execute(''), '' );
-  ok( execute(' '), ' ' );
-  ok( execute("0"), "0" );
-  ok( execute("\n"), "\n" );
+  ok( $m->execute( text => ''), '' );
+  ok( $m->execute( text => ' '), ' ' );
+  ok( $m->execute( text => "0"), "0" );
+  ok( $m->execute( text => "\n"), "\n" );
 }
 
 ######################################################################
@@ -26,7 +28,7 @@ MINIMAL_CASES: {
 EMPTY_PERL_LINE: {
   my $scr_re = "x\n%\nx";
   my $res_re = "x\nx";
-  ok( execute($scr_re), $res_re );
+  ok( $m->execute( text => $scr_re), $res_re );
 }
 
 ######################################################################
@@ -34,35 +36,35 @@ EMPTY_PERL_LINE: {
 SINGLE_PERL_LINE: {
   my $scr_re = '% $_out->("Potato"); ';
   my $res_re = "Potato";
-  ok( execute($scr_re), $res_re );
+  ok( $m->execute( text => $scr_re), $res_re );
 }
 
 ######################################################################
 
 EMPTY_PERL_BLOCK: {
   my $scr_re = '<%perl></%perl>';
-  ok( execute($scr_re), '' );
+  ok( $m->execute( text => $scr_re), '' );
 }
 
 ######################################################################
 
 SINGLE_PERL_BLOCK: {
   my $scr_re = '<%perl> my $x = time(); </%perl>';
-  ok( execute($scr_re), '' );
+  ok( $m->execute( text => $scr_re), '' );
 }
 
 ######################################################################
 
 MULTISTATEMENT_EXPR_BLOCK: {
   my $scr_re = '<% my $x = time(); $x %>';
-  ok( execute($scr_re), time() );
+  ok( $m->execute( text => $scr_re), time() );
 }
 
 ######################################################################
 
 MULTIPLE_PERL_BLOCKS: {
   my $scr_re = '<%perl> my $x = time(); if (0) { </%perl> <%perl> } </%perl>';
-  ok( execute($scr_re), '' );
+  ok( $m->execute( text => $scr_re), '' );
 }
 
 ######################################################################
@@ -70,7 +72,7 @@ MULTIPLE_PERL_BLOCKS: {
 SINGLE_PERL_LINE_NEWLINES: {
   my $scr_re = "\n" . '% $_out->("Potato"); ' . "\n\n";
   my $res_re = "\nPotato\n";
-  ok( execute($scr_re), $res_re );
+  ok( $m->execute( text => $scr_re), $res_re );
 }
 
 ######################################################################
@@ -88,7 +90,7 @@ Does this work
 correctly?
 ENDSCRIPT
   
-  ok( execute($scr_hello), $res_hello );
+  ok( $m->execute( text => $scr_hello), $res_hello );
 }
 
 ######################################################################
@@ -110,8 +112,8 @@ ENDSCRIPT
 
 ENDSCRIPT
   
-  ok( execute($scr_hello, name => 'Bob'), $res_hello );
-  ok( compile($scr_hello)->( name => 'Bob' ), $res_hello );
+  ok( $m->execute( text => $scr_hello, name => 'Bob'), $res_hello );
+  ok( $m->compile( text => $scr_hello)->( name => 'Bob' ), $res_hello );
 }
 
 ######################################################################
@@ -121,7 +123,7 @@ PERL_BLOCK_AT_EOF: {
   
   my $res_hello = 'Hello World';
   
-  ok( execute($scr_hello), $res_hello );
+  ok( $m->execute( text => $scr_hello), $res_hello );
 }
 
 ######################################################################
@@ -131,7 +133,7 @@ ANGLE_PERCENT_BLOCK_AT_EOF: {
   
   my $res_hello = 'Hello World';
   
-  ok( execute($scr_hello), $res_hello );
+  ok( $m->execute( text => $scr_hello), $res_hello );
 }
 
 ######################################################################
@@ -141,7 +143,7 @@ FILE_BLOCK_AT_EOF: {
   
   my $res_hello = "Test greeting:\n" . 'Good afternoon, Dave!' . "\n";
   
-  ok( execute($scr_hello), $res_hello );
+  ok( $m->execute( text => $scr_hello), $res_hello );
 }
 
 ######################################################################
@@ -149,14 +151,14 @@ FILE_BLOCK_AT_EOF: {
 LOOKS_LIKE_HTML: {
   my $scr_hello = '<TABLE border="1" width="100%"><tr><td>Hi</td></tr></table>';
 
-  ok( execute($scr_hello), $scr_hello );
+  ok( $m->execute( text => $scr_hello), $scr_hello );
 }
 
 ######################################################################
 
 STRICT_VARS: {
   my $scr_re = '% $foo ++; ';
-  ok( ! eval { execute($scr_re); 1 } );
+  ok( ! eval { $m->execute( text => $scr_re); 1 } );
 }
 
 ######################################################################
@@ -166,7 +168,7 @@ FILE_BLOCK_MULTILINE: {
   
   my $res_hello = "Test greeting:\n" . 'Good afternoon, Dave!' . "\n";
   
-  ok( execute($scr_hello), $res_hello );
+  ok( $m->execute( text => $scr_hello), $res_hello );
 }
 
 ######################################################################

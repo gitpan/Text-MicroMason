@@ -185,6 +185,6 @@ For more information, see L<Text::MicroMason::Safe>.
 For an overview of this templating framework, see L<Text::MicroMason>.
 
 For distribution, installation, support, copyright and license 
-information, see L<Text::MicroMason::ReadMe>.
+information, see L<Text::MicroMason::Docs::ReadMe>.
 
 =cut
