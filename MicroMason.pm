@@ -1,7 +1,7 @@
 package Text::MicroMason;
-$VERSION = 1.000_003;
+$VERSION = 1.04;
 
-@EXPORT_OK = qw( parse compile execute safe_compile safe_execute );
+@EXPORT_OK = qw( parse compile execute compile_file execute_file safe_compile safe_execute );
 sub import { require Exporter and goto &Exporter::import } # lazy Exporter
 
 require 5.0; # The tests use the new subref->() syntax, but the module doesn't
@@ -28,14 +28,18 @@ sub parse {
   
   my @tokens = ( $template =~ /(?:\A|\G)(
       # Lines begining with %
-      (?: \A|(?<=\n) ) \% [^\n\r]+ (?:\r\n|\r|\n|\Z) |
+      (?: \A|(?<=\r|\n)|\r\n|\r|\n ) \% [^\n\r]+ (?:\r\n|\r|\n|\Z) |
       # Blocks enclosed in <%perl> ... <%perl> tags.
       \<\%perl\>(?: [^\<]+ | \<[^\/] | \<\/[^\%] | \<\/\%[^p] )+?\<\/\%perl\> |
       # Blocks enclosed in <% ... %> tags.
-      \<\% (?: [^\%]+ | \%[^\>] )+ \%\> |
+      \<\% (?: [^\%]+ | \%[^\>] )+ \%\> | 		# \<\%.*?\%\> ?
+      # Blocks enclosed in <& ... &> tags.
+      \<\& (?: [^\&]+ | \&[^\>] )+ \&\> | 		# \<\&.*?\&\> ?
       # Things that don't match the above.
-      (?: [^\<\n]+ | \<(?!\%) | \n(?:[^\n\%\<] | (?=\n) | \<[^\%] ) )+ 
-			(?:\n(?:\Z|(?=\%|\<\%)) )?
+      (?: 
+	[^\<\r\n]+ | \<(?!\%|\&) | (?:\r\n|\r|\n)(?:[^\r\n\%\<] | 
+	(?=\r\n|\r|\n) | \<[^\%\&] | (?=\<[\%\&]) ) 
+      )+ (?:(?:\r\n|\r|\n)(?:\Z|(?=\%|\<\[\%\&])) )?
     )/gxs );
   # warn "MicroMason tokens: " . join(', ', map "'$_'", @tokens ) . "\n";
   
@@ -53,6 +57,9 @@ sub parse {
     } elsif ( /\A\<\%(.*)\%\>/ ) {
       # Blocks enclosed in <% ... %> tags.
       "  &\$_out(\n    $1\n  );"
+    } elsif ( /\A\<\&\s*(.*)\&\>/ ) {
+      # Blocks enclosed in <& ... &> tags.
+      "  &\$_out( Text::MicroMason::execute_file( $1 ) );"
     } else {
       # Things that don't match the above.
       s/([\\\'])/\\$1/g; "  &\$_out('$_');"
@@ -62,6 +69,8 @@ sub parse {
 
   return $code;
 } 
+
+######################################################################
 
 # $code_ref = compile( $mason_text );
 sub compile {
@@ -78,9 +87,41 @@ sub execute {
 
 ######################################################################
 
+# use vars qw( %FileCodeCache );
+
+# $code_ref = compile_file( $filename );
+sub compile_file {
+  my $file = shift 
+    or Carp::croak("MicroMason: filename is missing or empty");
+
+  # warn "MicroMason reading file: $file\n";
+  my $content;
+  READ_FILE: {
+    local *FILE;
+    open FILE, "$file" or Carp::croak("MicroMason can't read from $file: $!");
+    local $/ = undef;
+    $content = <FILE>;
+  }
+  
+  my $code = parse( $content );
+  
+  eval($code) or Carp::croak("MicroMason compilation failed: $@\n" . 
+	"Error in template file $file, interpreted as: $code");
+}
+
+# $result = execute_file( $filename, %args );
+sub execute_file {
+  my $sub_ref = (ref($_[0]) eq 'CODE') ? (shift) : compile_file( shift ); 
+  &$sub_ref( @_ )
+}
+
+######################################################################
+
+# $code_ref = safe_compile( $mason_text );
+# $code_ref = safe_compile( $safe_ref, $mason_text );
 sub safe_compile {
   require Safe;
-  my $safe = ( ref $_[0] ? shift :  Safe->new );
+  my $safe = ( ref $_[0] ? shift : Safe->new );
   my $code = parse( @_ ); 
   $safe->reval($code) or Carp::croak("MicroMason compilation failed: $@\n" . 
 	"Error in template subroutine: $code");
@@ -89,8 +130,7 @@ sub safe_compile {
 # $result = safe_execute( $mason_text, %args );
 # $result = safe_execute( $safe_ref, $mason_text, %args );
 sub safe_execute {
-  my $sub_ref = (ref($_[0]) eq 'CODE') ? (shift) : 
-		safe_compile(splice @_, 0, ref($_[0]) ? 2 : 1  ); 
+  my $sub_ref = safe_compile(splice @_, 0, ref($_[0]) ? 2 : 1  ); 
   &$sub_ref( @_ )
 }
 
@@ -122,7 +162,7 @@ Text::MicroMason - Simplified HTML::Mason Templating
 
     # Mason templates provide several ways to mix Perl and text
     $template = <<'END_TEMPLATE';
-    % if ( $ARGS{name} eq 'Dave' );
+    % if ( $ARGS{name} eq 'Dave' ) {
       I'm sorry <% $ARGS{name} %>, I'm afraid I can't do that right now.
     % } else {
       <%perl>
@@ -142,24 +182,18 @@ Text::MicroMason - Simplified HTML::Mason Templating
     $coderef = compile($template);
     print $coderef->('name'=>'Dave');
     print $coderef->('name'=>'Bob');
-
-
-=head1 MOTIVATION
-
-The HTML::Mason module provides a useful syntax for dynamic template
-interpretation (sometimes called embedded scripting):  plain text
-(or HTML) containing occasional chunks of Perl code whose results
-are interpolated into the text when the template is "executed."
-
-However, HTML::Mason also provides a full-featured web application
-framework, and sometimes I'd like to use this capability without
-configuring a full Mason installation. 
-
-Thus, the Text::MicroMason module was born: it supports the core aspects
-of the HTML::Mason syntax ("<%perl>...</%perl>", "<%...%>", "%...\n",
-"%ARGS" and "$_out->()" ), and omits the features that either require
-file access (like autohandlers and "<& file &>" includes) or are less
-widely used (like "<%method>" blocks).
+    
+    # All functions also available in an error-catching "try_*" form
+    use Text::MicroMason qw( try_execute );
+    ($result, $error) = try_execute( $template, 'name'=>'Alice');
+    
+    # Templates stored in files can be run directly or included in others
+    use Text::MicroMason qw( try_execute_file );
+    print try_execute_file( "./greeting.msn", 'name'=>'Charles');
+    
+    # Safe usage restricts templates from accessing your files or data
+    use Text::MicroMason qw( try_safe_execute );
+    print try_safe_execute( $template, 'name'=>'Charles');
 
 
 =head1 DESCRIPTION
@@ -167,18 +201,18 @@ widely used (like "<%method>" blocks).
 Text::MicroMason interpolates blocks of Perl code embedded into text
 strings, using the simplest features of HTML::Mason.
 
-=head2 Embedding Syntax
-
-Here's an example of Mason templating, taken from L<HTML::Mason>:
+Here's an example of Mason-style templating, taken from L<HTML::Mason>:
 
     % my $noun = 'World';
     Hello <% $noun %>!
     How are ya?
 
-Interpreting this template with Text::MicroMason produces the string:
+Interpreting this template with Text::MicroMason produces the same output as it would in HTML::Mason:
 
     Hello World!
     How are ya?
+
+=head1 MICROMASON SYNTAX
 
 Text::MicroMason supports the following subset of the HTML::Mason syntax:
 
@@ -200,6 +234,21 @@ For example, the following template text will return a scheduled
 greeting:
 
     Good <% (localtime)[2]>11 ? 'afternoon' : 'morning' %>.
+
+=item *
+
+E<lt>& I<template_filename>, I<arguments> &E<gt>
+
+Includes the results of a separate file containing MicroMason code, compiling it and executing it with any arguments passed after the filename.
+
+For example, we could place the following template text into an separate 
+file:
+
+    Good <% $ARGS{hour} >11 ? 'afternoon' : 'morning' %>.
+
+Assuming this file was named "greeting.msn", its results could be embedded within the output of another script as follows:
+
+  <& "greeting.msn", hour => (localtime)[2] &>
 
 =item *
 
@@ -240,7 +289,7 @@ single line if desired.
 
 % I<perl_code>
 
-Lines which begin with the % character may contain arbitrary Perl code.
+Lines which begin with the % character, without any leading whitespace, may contain arbitrary Perl code.
 
 This is equivalent to a single-line %perl block, but may be more
 readable in some contexts. For example, the following template text
@@ -255,6 +304,12 @@ will return one of two different messages each time it's interpreted:
 This also allows you to quickly comment out sections of a template by prefacing each line with C<% #>.
 
 =back
+
+=head1 FUNCTION REFERENCE
+
+Text containing MicroMason markup code is interpreted and executed by calling the following functions. 
+
+You may import any of these functions by including them in your C<use Text::MicroMason> call.
 
 =head2 Invocation
 
@@ -272,7 +327,7 @@ If you will be interpreting the same template repeatedly, you can save the compi
   ...
   $result = $tmpl_func->();
 
-(The $tmpl_func->() syntax is unavailable in older Perl versions; use the original &$tmpl_func() syntax instead.)
+(Note that the $tmpl_func->() syntax is unavailable in older versions of Perl; use the equivalent &$tmpl_func() syntax instead.)
 
 =head2 Argument Passing
 
@@ -288,11 +343,92 @@ For example, the below call will return '<b>Foo</b>':
 
   Text::MicroMason::execute('<b><% $ARGS{label} %></b>', label=>'Foo');
 
+=head2 Error Checking
+
+Both compilation and run-time errors in your template are handled
+as fatal exceptions. MicroMason will croak() if you attempt to
+compile or execute a template which contains a incorrect fragment
+of Perl syntax. Similarly, if the Perl code in your template causes
+die() or croak() to be called, this will interupt your program
+unless caught with eval{ }.
+
+For convenience, you may use the provided try_execute() and
+try_compile() functions, which wrap an eval { } block around the call
+to the basic execute() or compile() functions. In a scalar context
+they return the result of the call, or undef if it failed; in a
+list context they return the results of the call (undef if it
+failed) followed by the error message (undef if it succeeded). For
+example:
+
+  ($result, $error) = Text::MicroMason::try_execute( $mason_text );
+  if ( ! $error ) {
+    print $result;
+  } else {
+    print "Unable to execute template: $error";
+  }
+
+=head2 Safe Compartments
+
+If you wish to restrict the operations that a template can perform,
+use the safe_compile() and safe_execute() functions, or their
+try_*() wrappers.
+
+By default, these safe calls prevent the code in a template from
+performing any system activity or accessing any of your other Perl
+code.  Violations may result in either compile-time or run-time
+errors, so make sure you are using the try_* wrappers or your own
+eval block to catch exceptions.
+
+  ($result, $error) = Text::MicroMason::try_safe_execute( $mason_text );
+
+(Note that these restrictions mean that the C<E<lt>& I<file> &E<gt>> include syntax can not be used within a template interpreted by safe_compile(), although you could conceivably enable the "open" function to allow it.)
+
+To enable some operations or share variables or functions with the
+template code, create a Safe compartment and configure it, then
+pass it in as the first argument to safe_compile() or safe_execute()
+or their try_* equivalents:
+
+  $safe = Safe->new();
+  $safe->permit('time');
+  $safe->share($foo);
+  ($result, $error) = Text::MicroMason::try_safe_execute( $safe, $mason_text );
+
+=head1 IMPLEMENTATION NOTES
+
+When your template is compiled, all of the literal (non-Perl) pieces
+are converted to C<$_out-E<gt>('text');> statements, and the
+interpolated expressions are converted to C<$_out-E<gt>( expr );>
+statements. Code from %perl blocks and % lines are included exactly
+as-is. 
+
+Your code is eval'd in the C<Text::MicroMason::Commands> package,
+and C<use strict;> is on by default.
+
+=head2 Internal Sub-templates
+
+You can create sub-templates within your template text by defining
+them as anonymous subroutines and then calling them repeatedly.
+For example, the following template will concatenate the results of 
+the draw_item sub-template for each of three items:
+
+    <h1>We've Got Items!</h1>
+    
+    % my $draw_item = sub {
+      <p><b><% $_[0] %></b>:<br>
+	<a href="/more?item=<% $_[0] %>">See more about <% $_[0] %>.</p>
+    % };
+    
+    <%perl>
+      foreach my $item ( qw( Foo Bar Baz ) ) {
+	$draw_item->( $item );
+      }
+    </%perl>
+
 =head2 Returning Text from Perl Blocks
 
 To append to the result from within Perl code, call $_out->(I<text>). 
-(The $_out->() syntax is unavailable in older Perl versions; use the
-original &$_out() syntax instead.)
+(The $_out->() syntax is unavailable in older versions of Perl; use the
+equivalent &$_out() syntax instead.)
 
 For example, the below template text will return '123456789' when it is
 evaluated:
@@ -312,106 +448,6 @@ template is executed:
 
     This is a funny joke.
     % $OUT =~ tr[a-z][n-za-m] if $ARGS{minor};
-
-=head2 Implementation Mechanism
-
-When your template is compiled, all of the literal (non-Perl) pieces
-are converted to C<$_out-E<gt>('text');> statements, and the
-interpolated expressions are converted to C<$_out-E<gt>( expr );>
-statements. Code from %perl blocks and % lines are included exactly
-as-is. 
-
-Your code is eval'd in the C<Text::MicroMason::Commands> package,
-and C<use strict;> is on by default.
-
-You can create sub-templates within your template text by defining
-them as anonymous subroutines and then calling them repeatedly.
-For example, the following template will run the draw_item sub-template
-for each of three items:
-
-    <h1>We've Got Items!</h1>
-    
-    % my $draw_item = sub {
-      <p><b><% $_[0] %></b>:<br>
-	<a href="/more?item=<% $_[0] %>">See more about <% $_[0] %>.</p>
-    % };
-    
-    <%perl>
-      foreach my $item ( qw( Foo Bar Baz ) ) {
-	$draw_item->( $item );
-      }
-    </%perl>
-
-=head2 Error Checking
-
-Both compilation and run-time errors in your template are handled
-as fatal exceptions. MicroMason will croak() if you attempt to
-compile or execute a template which contains a incorrect fragment
-of Perl syntax. Similarly, if the Perl code in your template causes
-die() or croak() to be called, this will interupt your program
-unless caught with eval{ }.
-
-For convenience, you may also use the provided try_execute() and
-try_compile() functions, which wrap an eval { } block around the call
-to the basic execute() or compile() functions. In a scalar context
-they return the result of the call, or undef if it failed; in a
-list context they return the results of the call (undef if it
-failed) followed by the error message (undef if it succeeded). For
-example:
-
-  ($result, $error) = Text::MicroMason::try_execute( $mason_text );
-  if ( ! $error ) {
-    print $result;
-  } else {
-    print "Unable to execute template: $error";
-  }
-
-=head2 Safe Compartments
-
-If you wish to restrict the operations that a template can perform, use the safe_compile() and safe_execute() functions, or their try_*() wrappers.
-
-By default, these calls prevent the code in a template from performing any system activity or accessing any of your other Perl code. Violations may result in either compile-time or run-time errors, so make sure you are using the try_* wrappers or your own eval block.
-
-  my ($result, $error) = try_safe_execute( $mason_text );
-
-To enable some operations or share variables or functions with the template code, create a Safe compartment and configure it, then pass it in as the first argument to safe_compile() or safe_execute():
-
-  my $safe = Safe->new();
-  $safe->permit('time');
-  $safe->share($foo);
-  my ($result, $error) = try_safe_execute( $safe, $mason_text );
-
-=head2 Unsupported Features
-
-The following sets of HTML::Mason features are B<not> supported:
-
-=over 4
-
-=item -
-
-No %attr, %shared, %method, %def, %init, or %args blocks.
-
-=item -
-
-No |h or |u options to escape the result of interpolated expressions.
-
-=item -
-
-No $m Mason interpreter context.
-
-=item -
-
-No $r request object
-
-=item -
-
-No E<lt>& I<file> &E<gt> includes.
-
-=item -
-
-No shared files like autohandler and dhandler.
-
-=back
 
 
 =head1 DIAGNOSTICS
@@ -440,24 +476,92 @@ Additional diagnostic for compilation errors, showing the text of the subroutine
 
 =item * 
 
+Error in template file %s, interpreted as: %s
+
+Additional diagnostic for compilation errors in external files, showing the filename and the text of the subroutine which failed to compile.
+
+=item * 
+
 MicroMason execution failed: %s
 
 After parsing and compiling the template succesfully, the subroutine was run and caused a fatal exception, generally because that some Perl code used within the template caused die() to be called (or an equivalent function like croak or confess).
 
+=item *
+
+MicroMason: filename is missing or empty
+
+One of the compile_file or execute_file functions was called with no arguments, or with an empty or undefined filename.
+
+=item *
+
+MicroMason can't read from %s: %s
+
+One of the compile_file or execute_file functions was called but we were unable to read the requested file, because the file path is incorrect or we have insufficient priveleges to read that file.
+
 =back
 
 
-=head1 SEE ALSO
+=head1 COMPATIBILITY WITH HTML::MASON 
 
 See L<HTML::Mason> for a much more full-featured version of the
 capabilities provided by this module.
 
 If you've already got HTML::Mason installed, configured, and loaded
-into your process, you're probably better off using it. The
-C<$interp-E<gt>make_component()> method allows you to parse a text string
-without saving it to disk first.
+into your process, you're probably better off using it rather than
+this package. HTML::Mason's C<$interp-E<gt>make_component()> method
+allows you to parse a text string without saving it to disk first.
 
-=head2 Related Modules
+=head2 Unsupported Features
+
+The following sets of HTML::Mason features are B<not> supported by Text::MicroMason:
+
+=over 4
+
+=item *
+
+No %attr, %shared, %method, %def, %init, or %args blocks.
+
+=item *
+
+No |h or |u options to escape the result of interpolated expressions.
+
+=item *
+
+No $m Mason interpreter context.
+
+=item *
+
+No $r request object
+
+=item *
+
+No shared files like autohandler and dhandler.
+
+=item *
+
+No mod_perl integration or configuration capability.
+
+=back
+
+
+=head1 MOTIVATION
+
+The HTML::Mason module provides a useful syntax for dynamic template
+interpretation (sometimes called embedded scripting):  plain text
+(or HTML) containing occasional chunks of Perl code whose results
+are interpolated into the text when the template is "executed."
+
+However, HTML::Mason also provides a full-featured web application
+framework with mod_perl integration, a caching engine, and numerous
+other functions, and there are times in which I'd like to use the
+templating capability without configuring a full Mason installation.
+
+Thus, the Text::MicroMason module was born: it supports the core
+aspects of the HTML::Mason syntax ("<%...%>" expressions, "%...\n"
+and "<%perl>...</%perl>" blocks, "<& file &>" includes, "%ARGS"
+and "$_out->()" ), and omits the features that are web specific
+(like autohandlers) or are less widely used (like "<%method>"
+blocks).
 
 You may well be thinking "yet another dynamic templating module?
 Sheesh!" And you'd have a good point. There certainly are a variety
@@ -476,68 +580,89 @@ a reasonable subset of HTML::Mason syntax in a very light-weight
 fashion. In comparison to the other modules listed, MicroMason aims
 to be fairly lightweight, using one eval per parse, converting the
 template to an cacheable unblessed subroutine ref, eschewing method
-calls, and containing just 70-ish lines of Perl.
+calls, and containing only 80 or so lines of Perl.
 
 
 =head1 INSTALLATION
 
-This module should work with any recent version of Perl 5; there are no
-prerequisite modules beyond the standard distribution.
+This module should work with any version of Perl 5, without platform
+dependencies or additional modules beyond the core distribution.
 
-Retrieve the current distribution from here:
+Retrieve the current distribution from CPAN, or from:
 
-  http://work.evolution.com/dist/
+  http://www.evoscript.com/Text-MicroMason/
 
 Download and unpack the distribution, and execute the standard "perl Makefile.PL", "make test", "make install" sequence. 
 
 
 =head1 VERSION
 
-This is version 1.0.3 of Text::MicroMason.
-
-This module should work with any version of Perl 5, without platform
-dependencies or additional modules beyond the core distribution.
-
-=head2 Module Naming Issues
-
-Although originally derived from HTML::Mason, I have moved this
-module from the HTML namespace to Text, as it doesn't specifically
-address HTML or web technologies
-
-This module should be categorized under group 11, Text Processing,
-although there's also an argument for placing it 15 Web/HTML, where
-HTML::Mason appears.
+This is version 1.04 of Text::MicroMason.
 
 =head2 Distribution Summary
 
-The proposed CPAN DSLI entry should read:
+The CPAN DSLI entry reads:
 
-  Name            DSLI  Description
-  --------------  ----  ---------------------------------------------
+  Name            DSLIP  Description
+  --------------  -----  ---------------------------------------------
   Text::
-  ::MicroMason    bdpr  Simple text templates with HTML::Mason syntax
+  ::MicroMason    bdpfp  Simplified HTML::Mason Templating
+
+This module should be categorized under group 11, Text Processing
+(although there's also an argument for placing it 15 Web/HTML, where
+HTML::Mason appears).
 
 =head2 Discussion and Support
 
-Bug reports or general feedback would be welcomed by the author at simonm@evolution.com.
+Bug reports or general feedback would be welcomed by the author at simonm@cavalletto.org.
 
 
 =head1 CHANGES
 
-2001-07-01 Simon: Documentation tweaks. Renamed from HTML to Text.
+=over 4
 
-2001-04-10 Simon: Munged interface for clarity. Added Safe support. 
+=item 2002-06-23 
+
+Adjusted regular expression based on parsing problems reported by Mark Hampton. 
+Added file-include support with <& ... &> syntax. 
+Documentation tweaks. Adjusted version number to simpler 0.00 format.
+Released as Text-MicroMason-1.04.tar.gz.
+
+=item 2002-01-14 
+
+Documentation tweaks based on feedback from Pascal Barbedor. Updated author's contact information.
+
+=item 2001-07-01
+
+Documentation tweaks. Renamed from HTML::MicroMason to Text::MicroMason. Released as Text-MicroMason-1.0.3.tar.gz.
+
+=item 2001-04-10 
+
+Munged interface for clarity. Added Safe support. 
 Adjusted docs to reflect feedback from mason-users.
+Released as HTML-MicroMason-1.0.2.tar.gz.
 
-2001-03-28 Simon: Parser tweakage; additional documentation.
+=item 2001-03-28 
+
+Parser tweakage; additional documentation.
 Added Exporter support.
-  
-2001-03-26 Simon: Added try_interpret; documented error messages.
-  
-2001-03-23 Simon: Extended documentation; added makefile, test script. 
-Renamed accumulator to $OUT to match Text::Template.
+Released as HTML-MicroMason-1.0.1.tar.gz.
 
-2001-03-22 Simon: Created.
+=item 2001-03-26 
+
+Added try_interpret; documented error messages.
+  
+=item 2001-03-23 
+
+Extended documentation; added makefile, test script. 
+Renamed accumulator to $OUT to match Text::Template.
+Released as HTML-MicroMason-1.0.0.tar.gz.
+
+=item 2001-03-22 
+
+Created.
+
+=back
 
 
 =head1 TO DO
@@ -546,17 +671,13 @@ Renamed accumulator to $OUT to match Text::Template.
 
 =item *
 
-Submit updated distribution to c.l.p.modules and modules@perl.org for feedback, and upload to CPAN.
+Test compatibility against older versions of Perl and odder OS platforms.
 
 =item *
 
-Test compatibility against older and odder versions of Perl.
-
-=item ? 
-
 Perhaps support E<lt>%initE<gt> ... E<lt>/%initE<gt>, by treating it as a %perl block at the begining of the string.
 
-=item ? 
+=item *
 
 Perhaps support E<lt>%argsE<gt> $foo => default E<lt>/%argsE<gt>.
 
@@ -565,21 +686,32 @@ Perhaps warn if %args block exists but template called with odd number of argume
 =back
 
 
-=head1 AUTHORS
+=head1 CREDITS AND COPYRIGHT
 
-Developed by:
+=head2 Developed By
 
-  M. Simon Cavalletto, simonm@evolution.com
-  Evolution Online Systems, http://www.evolution.com
+  M. Simon Cavalletto, simonm@cavalletto.org
+  Evolution Softworks, www.evoscript.org
+
+=head2 The Shoulders of Giants
 
 Inspired by Jonathan Swartz's HTML::Mason.
 
+=head2 Feedback and Suggestions 
 
-=head1 LICENSE
+Thanks to:
 
-This module is free software. It may be used, redistributed and/or
-modified under the same terms as Perl.
+  Pascal Barbedor
+  Mark Hampton
 
-Copyright 2001 Evolution Online Systems.
+=head2 Copyright
+
+Copyright 2002 Matthew Simon Cavalletto. 
+
+Portions copyright 2001 Evolution Online Systems, Inc.
+
+=head2 License
+
+You may use, modify, and distribute this software under the same terms as Perl.
 
 =cut
