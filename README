@@ -1,0 +1,126 @@
+NAME
+    Text::MicroMason - Simplified HTML::Mason Templating
+
+SYNOPSIS
+        # Mason templates provide several ways to mix Perl and text
+        $template = <<'END_TEMPLATE';
+        % if ( $ARGS{name} eq 'Dave' );
+          I'm sorry <% $ARGS{name} %>, I'm afraid I can't do that right now.
+        % } else {
+          <%perl>
+            my $hour = (localtime)[2];
+            my $greeting = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
+          </%perl>
+          Good <% $greeting %>, <% $ARGS{name} %>!
+        % }
+        END_TEMPLATE
+        
+        # Use the execute function to parse and evalute a template 
+        use Text::MicroMason qw( execute );
+        print execute($template, 'name'=>'Dave');
+        
+        # Or compile it into a subroutine, and evalute repeatedly
+        use Text::MicroMason qw( compile );
+        $coderef = compile($template);
+        print $coderef->('name'=>'Dave');
+        print $coderef->('name'=>'Bob');
+
+MOTIVATION
+    The HTML::Mason module provides a useful syntax for dynamic template
+    interpretation (sometimes called embedded scripting): plain text (or
+    HTML) containing occasional chunks of Perl code whose results are
+    interpolated into the text when the template is "executed."
+
+    However, HTML::Mason also provides a full-featured web application
+    framework, and sometimes I'd like to use this capability without
+    configuring a full Mason installation.
+
+    Thus, the Text::MicroMason module was born: it supports the core aspects
+    of the HTML::Mason syntax ("<%perl>...</%perl>", "<%...%>", "%...\n",
+    "%ARGS" and "$_out->()" ), and omits the features that either require
+    file access (like autohandlers and "<& file &>" includes) or are less
+    widely used (like "<%method>" blocks).
+
+SEE ALSO
+    See the HTML::Mason manpage for a much more full-featured version of the
+    capabilities provided by this module.
+
+    If you've already got HTML::Mason installed, configured, and loaded into
+    your process, you're probably better off using it; the $interp-
+    >make_component() method allows you to parse a text string without
+    saving it to disk first.
+
+  Related Modules
+
+    You may well be thinking "yet another dynamic templating module?
+    Sheesh!" And you'd have a good point. There certainly are a variety of
+    templating toolkits on CPAN already; even restricting ourselves to those
+    which use Perl syntax for both interpolated expressions and flow control
+    (as opposed to "little languages") leaves a fairly crowded field,
+    including Template::Toolkit, Template::Perl, Text::Template, and
+    Text::ScriptTemplate, as well as those that are part of full-blown web
+    application frameworks like Apache::ASP, ePerl, HTML::Embperl, and
+    HTML::Mason.
+
+    Nonetheless, I think this module occupies a useful niche: it provides a
+    reasonable subset of HTML::Mason syntax in a very light-weight fashion.
+    In comparison to the other modules listed, MicroMason aims to be fairly
+    lightweight, using one eval per parse, converting the template to an
+    cacheable unblessed subroutine ref, eschewing method calls, and
+    containing just 70-ish lines of Perl.
+
+INSTALLATION
+    This module should work with any recent version of Perl 5; there are no
+    prerequisite modules beyond the standard distribution.
+
+    Retrieve the current distribution from here:
+
+      http://work.evolution.com/dist/
+
+    Download and unpack the distribution, and execute the standard "perl
+    Makefile.PL", "make test", "make install" sequence.
+
+VERSION
+    This is version 1.0.3 of Text::MicroMason.
+
+    This module should work with any version of Perl 5, without platform
+    dependencies or additional modules beyond the core distribution.
+
+  Module Naming Issues
+
+    Although originally derived from HTML::Mason, I have moved this module
+    from the HTML namespace to Text, as it doesn't specifically address HTML
+    or web technologies
+
+    This module should be categorized under group 11, Text Processing,
+    although there's also an argument for placing it 15 Web/HTML, where
+    HTML::Mason appears.
+
+  Distribution Summary
+
+    The proposed CPAN DSLI entry should read:
+
+      Name            DSLI  Description
+      --------------  ----  ---------------------------------------------
+      Text::
+      ::MicroMason    bdpr  Simple text templates with HTML::Mason syntax
+
+  Discussion and Support
+
+    Bug reports or general feedback would be welcomed by the author at
+    simonm@evolution.com.
+
+AUTHORS
+    Developed by:
+
+      M. Simon Cavalletto, simonm@evolution.com
+      Evolution Online Systems, http://www.evolution.com
+
+    Inspired by Jonathan Swartz's HTML::Mason.
+
+LICENSE
+    This module is free software. It may be used, redistributed and/or
+    modified under the same terms as Perl.
+
+    Copyright 2001 Evolution Online Systems.
+
