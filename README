@@ -39,7 +39,7 @@ MOTIVATION
     Sheesh!" And you'd have a good point. There certainly are a variety of
     templating toolkits on CPAN already; even restricting ourselves to those
     which use Perl syntax for both interpolated expressions and flow control
-    (as opposed to "little languages") leaves a fairly crowded field,
+    (as opposed to "little languages") there's a fairly crowded field,
     including Template::Toolkit, Template::Perl, Text::Template, and
     Text::ScriptTemplate, as well as those that are part of full-blown web
     application frameworks like Apache::ASP, ePerl, HTML::Embperl, and
@@ -50,7 +50,34 @@ MOTIVATION
     In comparison to the other modules listed, MicroMason aims to be fairly
     lightweight, using one eval per parse, converting the template to an
     cacheable unblessed subroutine ref, eschewing method calls, and
-    containing only 80 or so lines of Perl.
+    containing only 90 or so lines of Perl code.
+
+COMPATIBILITY WITH HTML::MASON
+    See the HTML::Mason manpage for a much more full-featured version of the
+    capabilities provided by this module.
+
+    If you've already got HTML::Mason installed, configured, and loaded into
+    your process, you're probably better off using it rather than this
+    package. HTML::Mason's "$interp->make_component()" method allows you to
+    parse a text string without saving it to disk first.
+
+  Unsupported Features
+
+    The following sets of HTML::Mason features are not supported by
+    Text::MicroMason:
+
+    *   No %attr, %shared, %method, %def, %init, or %args blocks.
+
+    *   No |h or |u options to escape the result of interpolated
+        expressions.
+
+    *   No $m Mason interpreter context.
+
+    *   No $r request object
+
+    *   No shared files like autohandler and dhandler.
+
+    *   No mod_perl integration or configuration capability.
 
 INSTALLATION
     This module should work with any version of Perl 5, without platform
@@ -64,7 +91,7 @@ INSTALLATION
     Makefile.PL", "make test", "make install" sequence.
 
 VERSION
-    This is version 1.04 of Text::MicroMason.
+    This is version 1.05 of Text::MicroMason.
 
   Distribution Summary
 
@@ -85,6 +112,18 @@ VERSION
     simonm@cavalletto.org.
 
 CHANGES
+    2003-08-11
+        Adjusted regular expression based on parsing problems reported by
+        Philip King and Daniel J. Wright, related to newlines and EOF. Added
+        regression tests that fail under 1.04 but pass under 1.05 to ensure
+        these features keep working as expected.
+
+        Added non-printing-character escaping to parser failure and
+        debugging messages to better track future reports of
+        whitespace-related bugs.
+
+        Moved tests from test.pl into t/ subdirectory.
+
     2002-06-23
         Adjusted regular expression based on parsing problems reported by
         Mark Hampton. Added file-include support with <& ... &> syntax.
@@ -147,10 +186,12 @@ CREDITS AND COPYRIGHT
 
       Pascal Barbedor
       Mark Hampton
+      Philip King
+      Daniel J. Wright
 
   Copyright
 
-    Copyright 2002 Matthew Simon Cavalletto.
+    Copyright 2002, 2003 Matthew Simon Cavalletto.
 
     Portions copyright 2001 Evolution Online Systems, Inc.
 
@@ -158,3 +199,4 @@ CREDITS AND COPYRIGHT
 
     You may use, modify, and distribute this software under the same terms
     as Perl.
+

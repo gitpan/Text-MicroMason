@@ -1,0 +1,13 @@
+MANIFEST
+Makefile.PL
+MicroMason.pm
+README
+t/0-startup.t
+t/1-basics.t
+t/2-perlsyn.t
+t/3-errors.t
+t/4-file.t
+t/5-safe.t
+t/6-regression.t
+t/test-recur.msn
+t/test.msn

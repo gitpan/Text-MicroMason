@@ -1,7 +1,10 @@
 package Text::MicroMason;
-$VERSION = 1.04;
+$VERSION = 1.05;
 
-@EXPORT_OK = qw( parse compile execute compile_file execute_file safe_compile safe_execute );
+@EXPORT_OK = qw( 
+  compile execute safe_compile safe_execute
+  compile_file execute_file 
+);
 sub import { require Exporter and goto &Exporter::import } # lazy Exporter
 
 require 5.0; # The tests use the new subref->() syntax, but the module doesn't
@@ -18,33 +21,56 @@ $Text::MicroMason::Prefix ||= 'package Text::MicroMason::Commands; sub {
   local $SIG{__DIE__} = sub { die "MicroMason execution failed: ", @_ };
   my $OUT = ""; my $_out = sub { $OUT .= join "", @_ }; my %ARGS = @_; ';
 
-$Text::MicroMason::Postfix ||= '  return $OUT;' . "\n}";
+$Text::MicroMason::Postfix ||= '  ; return $OUT;' . "\n}";
+
+$Text::MicroMason::FileIncluder ||= 'Text::MicroMason::execute_file';
 
 ######################################################################
+
+%Text::MicroMason::Escape = ( 
+  ( map { chr($_), unpack('H2', chr($_)) } (0..255) ),
+  "\\"=>'\\', "\r"=>'r', "\n"=>'n', "\t"=>'t', "\""=>'"' 
+);
+
+# $special_characters_escaped = printable( $source_string );
+sub printable ($) {
+  local $_ = scalar(@_) ? (shift) : $_;
+  return unless defined;
+  s/([\r\n\t\"\\\x00-\x1f\x7F-\xFF])/\\$Text::MicroMason::Escape{$1}/sg;
+  return "'$_'";
+}
 
 # $perl_code = parse( $mason_text );
 sub parse {
   my $template = join("\n", @_);
   
   my @tokens = ( $template =~ /(?:\A|\G)(
-      # Lines begining with %
-      (?: \A|(?<=\r|\n)|\r\n|\r|\n ) \% [^\n\r]+ (?:\r\n|\r|\n|\Z) |
-      # Blocks enclosed in <%perl> ... <%perl> tags.
-      \<\%perl\>(?: [^\<]+ | \<[^\/] | \<\/[^\%] | \<\/\%[^p] )+?\<\/\%perl\> |
-      # Blocks enclosed in <% ... %> tags.
-      \<\% (?: [^\%]+ | \%[^\>] )+ \%\> | 		# \<\%.*?\%\> ?
-      # Blocks enclosed in <& ... &> tags.
-      \<\& (?: [^\&]+ | \&[^\>] )+ \&\> | 		# \<\&.*?\&\> ?
-      # Things that don't match the above.
-      (?: 
-	[^\<\r\n]+ | \<(?!\%|\&) | (?:\r\n|\r|\n)(?:[^\r\n\%\<] | 
-	(?=\r\n|\r|\n) | \<[^\%\&] | (?=\<[\%\&]) ) 
-      )+ (?:(?:\r\n|\r|\n)(?:\Z|(?=\%|\<\[\%\&])) )?
-    )/gxs );
-  # warn "MicroMason tokens: " . join(', ', map "'$_'", @tokens ) . "\n";
-  
-  if ( ( (my $count = length(join '', @tokens)) < length( $template ) ) ) {
-    Carp::croak("MicroMason parsing halted at '".substr($template, $count)."'");
+    # Lines begining with %
+    (?: \A|(?<=\r|\n) ) \% [^\n\r]+ (?:\r\n|\r|\n|\Z) |
+    # Blocks enclosed in <%perl> ... <%perl> tags.
+    \<\%perl\>(?: [^\<]+ | \<[^\/] | \<\/[^\%] | \<\/\%[^p] )*?\<\/\%perl\> |
+    # Blocks enclosed in <% ... %> tags.
+    \<\% (?: [^\%]+ | \%[^\>] )+ \%\> | 		# \<\%.*?\%\> ?
+    # Blocks enclosed in <& ... &> tags.
+    \<\& (?: [^\&]+ | \&[^\>] )+ \&\> | 		# \<\&.*?\&\> ?
+    # Things that don't match the above.
+    (?: 
+      [^\<\r\n%]+ | \<(?!\%|\&) | 
+      (?:\r\n|\r|\n)(?:\Z|[^\r\n\%\<]|(?=\r\n|\r|\n|\%)|\<[^\%\&]|(?=\<[\%\&])) 
+    )+ (?:(?:\r\n|\r|\n)+(?:\Z|(?=\%|\<\[\%\&])) )?
+  )/gxs );
+
+  my $parsed = join('', @tokens);
+  if ( 0 ) {
+    warn( "Source: " . length($template) . " " . printable($template) . "\n" ); 
+    warn( "Parsed: " . length($parsed) . " " . printable($parsed) . "\n" ); 
+    warn( "Tokens: " . join(', ', map printable($_), @tokens ) . "\n" ); 
+  }
+
+  if ( ( (my $count = length($parsed)) != length( $template ) ) ) {
+    Carp::croak("MicroMason parsing halted at $count of " . length($template) .
+	 " characters: " . printable(substr($template, $count)) . ", after " .
+	 join(', ', map printable($_), (reverse @tokens)[0..2]));
   }
   
   my $code = join "\n", $Text::MicroMason::Prefix, map( {
@@ -56,16 +82,18 @@ sub parse {
       s/\<\/\%perl\>\Z// and $_
     } elsif ( /\A\<\%(.*)\%\>/ ) {
       # Blocks enclosed in <% ... %> tags.
-      "  &\$_out(\n    $1\n  );"
+      "  &\$_out( do { $1 } );"
     } elsif ( /\A\<\&\s*(.*)\&\>/ ) {
       # Blocks enclosed in <& ... &> tags.
-      "  &\$_out( Text::MicroMason::execute_file( $1 ) );"
+      "  &\$_out( $Text::MicroMason::FileIncluder( $1 ) );"
     } else {
       # Things that don't match the above.
       s/([\\\'])/\\$1/g; "  &\$_out('$_');"
     }
   } @tokens ), $Text::MicroMason::Postfix;
-  # warn "MicroMason subroutine: $code\n";
+  if ( 0 ) {
+    warn "MicroMason subroutine: $code\n";
+  }
 
   return $code;
 } 
@@ -86,8 +114,6 @@ sub execute {
 }
 
 ######################################################################
-
-# use vars qw( %FileCodeCache );
 
 # $code_ref = compile_file( $filename );
 sub compile_file {
@@ -112,6 +138,59 @@ sub compile_file {
 # $result = execute_file( $filename, %args );
 sub execute_file {
   my $sub_ref = (ref($_[0]) eq 'CODE') ? (shift) : compile_file( shift ); 
+  &$sub_ref( @_ )
+}
+
+######################################################################
+
+# To support use of Cache::Cache without focing a dependency on it
+MICRO_CACHE_CLASS: {
+  package Text::MicroMason::BasicCache;
+  sub new { my $class = shift; bless { @_ }, $class }
+  sub get { (shift)->{ (shift) } }
+  sub set { (shift)->{ (shift) } = (shift) }
+  sub clear { %{ (shift) } = () }
+}
+
+use vars qw( $FileCodeCache );
+$FileCodeCache = Text::MicroMason::BasicCache->new();
+
+# $code_ref = compile_file_codecache( $filename );
+# $code_ref = compile_file_codecache( $filename, $cache );
+sub compile_file_codecache {
+  my $file = shift 
+    or Carp::croak("MicroMason: filename is missing or empty");
+  
+  my $cache = shift || $FileCodeCache;
+
+  my $time = time();
+
+  my $cache_entry = $cache->get( $file );
+  if ( $cache_entry ) {
+    unless ( ref( $cache_entry) eq 'ARRAY' and $#$cache_entry == 2 ) {
+      Carp::croak("MicroMason: file code cache '$cache' hold corrupted data; " . 
+			      "value for '$file' is '$cache_entry'");
+    }
+  } else {
+    $cache_entry = [ 0, 0, undef ];
+  }
+  
+  if ( $cache_entry->[0] < $time ) {
+    $cache_entry->[0] = time();
+    my $mtime = -M $file;
+    if ( $cache_entry->[1] < $mtime ) {
+      $cache_entry->[1] = $mtime;
+      $cache_entry->[2] = compile_file( $file );
+    }
+    $cache->set( $file, $cache_entry );
+  }
+
+  return $cache_entry->[2]
+}
+
+# $result = execute_file_codecache( $filename, $cache, %args );
+sub execute_file_codecache {
+  my $sub_ref = compile_file_codecache( shift, shift ); 
   &$sub_ref( @_ )
 }
 
@@ -145,6 +224,18 @@ foreach my $sub ( @Text::MicroMason::EXPORT_OK ) {
   }
 }
 push @Text::MicroMason::EXPORT_OK, map "try_$_", @Text::MicroMason::EXPORT_OK;
+
+######################################################################
+
+# $code_ref = compiler( text => $mason_text, %options );
+# $code_ref = compiler( file => $filename, %options );
+#     %options: safe_partition => 1, 
+#		safe_options => [ share => \&Text::MicroMason::execute_file ],
+#		compile_errors => 1, 
+#		runtime_errors => 1, 
+#		file_code_cache => 1, 
+#		runtime_cache => 1
+# sub compiler { ... }
 
 ######################################################################
 
@@ -501,6 +592,45 @@ One of the compile_file or execute_file functions was called but we were unable 
 =back
 
 
+=head1 MOTIVATION
+
+The HTML::Mason module provides a useful syntax for dynamic template
+interpretation (sometimes called embedded scripting):  plain text
+(or HTML) containing occasional chunks of Perl code whose results
+are interpolated into the text when the template is "executed."
+
+However, HTML::Mason also provides a full-featured web application
+framework with mod_perl integration, a caching engine, and numerous
+other functions, and there are times in which I'd like to use the
+templating capability without configuring a full Mason installation.
+
+Thus, the Text::MicroMason module was born: it supports the core
+aspects of the HTML::Mason syntax ("<%...%>" expressions, "%...\n"
+and "<%perl>...</%perl>" blocks, "<& file &>" includes, "%ARGS"
+and "$_out->()" ), and omits the features that are web specific
+(like autohandlers) or are less widely used (like "<%method>"
+blocks).
+
+You may well be thinking "yet another dynamic templating module?
+Sheesh!" And you'd have a good point. There certainly are a variety
+of templating toolkits on CPAN already; even restricting ourselves
+to those which use Perl syntax for both interpolated expressions
+and flow control (as opposed to "little languages") there's a fairly
+crowded field, including L<Template::Toolkit|Template::Toolkit>,
+L<Template::Perl|Template::Perl>, L<Text::Template|Text::Template>,
+and L<Text::ScriptTemplate|Text::ScriptTemplate>, as well as those
+that are part of full-blown web application frameworks like
+L<Apache::ASP|Apache::ASP>, ePerl, L<HTML::Embperl|HTML::Embperl>,
+and L<HTML::Mason|HTML::Mason>.
+
+Nonetheless, I think this module occupies a useful niche: it provides
+a reasonable subset of HTML::Mason syntax in a very light-weight
+fashion. In comparison to the other modules listed, MicroMason aims
+to be fairly lightweight, using one eval per parse, converting the
+template to an cacheable unblessed subroutine ref, eschewing method
+calls, and containing only a hundred or so lines of Perl code.
+
+
 =head1 COMPATIBILITY WITH HTML::MASON 
 
 See L<HTML::Mason> for a much more full-featured version of the
@@ -544,45 +674,6 @@ No mod_perl integration or configuration capability.
 =back
 
 
-=head1 MOTIVATION
-
-The HTML::Mason module provides a useful syntax for dynamic template
-interpretation (sometimes called embedded scripting):  plain text
-(or HTML) containing occasional chunks of Perl code whose results
-are interpolated into the text when the template is "executed."
-
-However, HTML::Mason also provides a full-featured web application
-framework with mod_perl integration, a caching engine, and numerous
-other functions, and there are times in which I'd like to use the
-templating capability without configuring a full Mason installation.
-
-Thus, the Text::MicroMason module was born: it supports the core
-aspects of the HTML::Mason syntax ("<%...%>" expressions, "%...\n"
-and "<%perl>...</%perl>" blocks, "<& file &>" includes, "%ARGS"
-and "$_out->()" ), and omits the features that are web specific
-(like autohandlers) or are less widely used (like "<%method>"
-blocks).
-
-You may well be thinking "yet another dynamic templating module?
-Sheesh!" And you'd have a good point. There certainly are a variety
-of templating toolkits on CPAN already; even restricting ourselves
-to those which use Perl syntax for both interpolated expressions
-and flow control (as opposed to "little languages") leaves a fairly
-crowded field, including L<Template::Toolkit|Template::Toolkit>,
-L<Template::Perl|Template::Perl>, L<Text::Template|Text::Template>,
-and L<Text::ScriptTemplate|Text::ScriptTemplate>, as well as those
-that are part of full-blown web application frameworks like
-L<Apache::ASP|Apache::ASP>, ePerl, L<HTML::Embperl|HTML::Embperl>,
-and L<HTML::Mason|HTML::Mason>.
-
-Nonetheless, I think this module occupies a useful niche: it provides
-a reasonable subset of HTML::Mason syntax in a very light-weight
-fashion. In comparison to the other modules listed, MicroMason aims
-to be fairly lightweight, using one eval per parse, converting the
-template to an cacheable unblessed subroutine ref, eschewing method
-calls, and containing only 80 or so lines of Perl.
-
-
 =head1 INSTALLATION
 
 This module should work with any version of Perl 5, without platform
@@ -597,7 +688,7 @@ Download and unpack the distribution, and execute the standard "perl Makefile.PL
 
 =head1 VERSION
 
-This is version 1.04 of Text::MicroMason.
+This is version 1.05 of Text::MicroMason.
 
 =head2 Distribution Summary
 
@@ -620,6 +711,14 @@ Bug reports or general feedback would be welcomed by the author at simonm@cavall
 =head1 CHANGES
 
 =over 4
+
+=item 2003-08-11
+
+Adjusted regular expression based on parsing problems reported by Philip King and Daniel J. Wright, related to newlines and EOF. Added regression tests that fail under 1.04 but pass under 1.05 to ensure these features keep working as expected. 
+Added non-printing-character escaping to parser failure and debugging messages to better track future reports of whitespace-related bugs.
+Moved tests from test.pl into t/ subdirectory. 
+Added experimental suppport for file code cache in compile_file_codecache.
+Released as Text-MicroMason-1.05.tar.gz.
 
 =item 2002-06-23 
 
@@ -671,6 +770,10 @@ Created.
 
 =item *
 
+Consider deprecating most or all of the existing public interface in favor of a single compiler() function that supports all of the possible options, including files, code and result caches, and exception handling.
+
+=item *
+
 Test compatibility against older versions of Perl and odder OS platforms.
 
 =item *
@@ -703,10 +806,12 @@ Thanks to:
 
   Pascal Barbedor
   Mark Hampton
+  Philip King
+  Daniel J. Wright
 
 =head2 Copyright
 
-Copyright 2002 Matthew Simon Cavalletto. 
+Copyright 2002, 2003 Matthew Simon Cavalletto. 
 
 Portions copyright 2001 Evolution Online Systems, Inc.
 
