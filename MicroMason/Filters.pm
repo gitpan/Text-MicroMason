@@ -5,8 +5,6 @@ use Carp;
 
 use Safe;
 
-use vars qw( @MIXIN );
-
 ######################################################################
 
 use vars qw( %Defaults %Filters );
@@ -17,16 +15,13 @@ $Defaults{filters} = \%Filters;
 $Filters{h} = \&HTML::Entities::encode if eval { require HTML::Entities};
 $Filters{u} = \&URI::Escape::uri_escape if eval { require URI::Escape };
 
-BEGIN { push @MIXIN, "#line ".__LINE__.' "'.__FILE__.'"', "", <<'/' }
 sub defaults {
-  (shift)->SUPER::defaults(), %Text::MicroMason::Filters::Defaults
+  (shift)->SUPER('defaults'), %Text::MicroMason::Filters::Defaults
 }
-/
 
 ######################################################################
 
 # $perl_code = $mason->assemble( @tokens );
-BEGIN { push @MIXIN, "#line ".__LINE__.' "'.__FILE__.'"', "", <<'/' }
 sub assemble {
   my $self = shift;
   my @tokens = @_;
@@ -44,9 +39,8 @@ sub assemble {
     }
   }
   
-  $self->SUPER::assemble( @tokens );
+  $self->SUPER('assemble', @tokens );
 }
-/
 
 # @flags = $mason->parse_filters( @filter_strings );
 sub parse_filters {
@@ -106,7 +100,7 @@ __END__
 
 =head1 NAME
 
-Text::MicroMason::Filters - Filter output with "|h" and "|u"
+Text::MicroMason::Filters - Add Output Filters like "|h" and "|u"
 
 
 =head1 SYNOPSIS

@@ -61,7 +61,7 @@ __END__
 
 =head1 NAME
 
-Text::MicroMason::Functions - Function exporter for MicroMason templates
+Text::MicroMason::Functions - Function Exporter for Simple Mason Templates
 
 
 =head1 SYNOPSIS

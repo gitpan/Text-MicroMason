@@ -1,6 +1,6 @@
 =head1 NAME
 
-Text::MicroMason::Devel - MicroMason Template Syntax And Tips
+Text::MicroMason::Devel - MicroMason Template Syntax And Techniques
 
 
 =head1 SYNOPSIS
@@ -31,12 +31,15 @@ Mason syntax provides several ways to mix Perl into a text template:
 
 This document describes the default template syntax used by Text::MicroMason and how it is turned into runnable Perl code.
 
+See also L<HTML::Mason::Devel>.
 
 =head1 TEMPLATE SYNTAX
 
 Text::MicroMason::Base supports a syntax that is mostly a subset of that used by HTML::Mason.
 
 =head2 Template Markup
+
+The following types of markup are recognized in template pages:
 
 =over 4
 
@@ -45,8 +48,6 @@ Text::MicroMason::Base supports a syntax that is mostly a subset of that used by
 I<literal_text>
 
 Anything not specifically parsed by one of the below rules is interpreted as literal text.
-
-This is equivalent to a <%text>...</%text> block.
 
 =item *
 
@@ -65,8 +66,6 @@ a semicolon.
 
     Good <% my $h = (localtime)[2]; $h > 11 ? 'afternoon' 
                                             : 'morning'  %>.
-
-This is equivalent to an <%output>...</%output> block.
 
 =item *
 
@@ -114,13 +113,13 @@ Assuming this file was named "greeting.msn", its results could be embedded withi
 
   <& "greeting.msn", hour => (localtime)[2] &>
 
-This is equivalent to an <%include>...</%include> block.
-
 =item *
 
 E<lt>%I<name>E<gt> ... E<lt>/%I<name>E<gt>
 
-A named block performs one of the behaviors described in L</"Named Blocks">. The block name at the start and end must match, and must one of the supported block names.
+A named block contains a span of text. The name at the start and end must match, and must be one of the supported block names. 
+
+Depending on the name, performs one of the behaviors described in L</"Named Blocks">.
 
 =back
 
@@ -168,6 +167,24 @@ could be combined into a single line if desired.
 
 =item *
 
+E<lt>%argsE<gt> I<variable> => I<default> E<lt>/%argsE<gt>
+
+Defines a collection of variables to be initialized from named arguments passed to the subroutine. Arguments are separated by one or more newlines, and may optionally be followed by a default value. If no default value is provided, the argument is required and the subroutine will croak if it is not provided. 
+
+For example, adding the following block to a template will initialize the three named variables, and will fail if no C<a =E<gt> '...'> argument pair is passed:
+
+  <%args>
+    $a
+    @b => qw( foo bar baz )
+    %c => ()
+  </%args>
+
+All the arguments are available as lexically scoped ("my") variables in the rest of the component. Default expressions are evaluated in top-to-bottom order, and one expression may reference an earlier one.
+
+Only valid Perl variable names may be used in <%args> sections. Parameters with non-valid variable names cannot be pre-declared and must be fetched manually out of the %ARGS hash. 
+
+=item *
+
 E<lt>%initE<gt> I<perl_code> E<lt>/%initE<gt>
 
 Similar to a %perl block, except that the code is moved up to the start of
@@ -212,21 +229,33 @@ number each time it is called:
 
 =item *
 
-E<lt>%argsE<gt> I<variable> => I<default> E<lt>/%argsE<gt>
+E<lt>%docE<gt> ... E<lt>/%docE<gt>
 
-Defines a collection of variables to be initialized from named arguments passed to the subroutine. Arguments are separated by one or more newlines, and may optionally be followed by a default value. If no default value is provided, the argument is required and the subroutine will croak if it is not provided. 
+Provides space for template developer documentation or comments which are not included in the output.
 
-For example, adding the following block to a template will initialize the three named variables, and will fail if no C<a =E<gt> '...'> argument pair is passed:
+=back
 
-  <%args>
-    $a
-    @b => qw( foo bar baz )
-    %c => ()
-  </%args>
+The following types of named blocks are not supported by HTML::Mason, but are supported here as a side-effect of the way the lexer and assembler are implemented.
 
-All the arguments are available as lexically scoped ("my") variables in the rest of the component. Default expressions are evaluated in top-to-bottom order, and one expression may reference an earlier one.
+=over 4
 
-Only valid Perl variable names may be used in <%args> sections. Parameters with non-valid variable names cannot be pre-declared and must be fetched manually out of the %ARGS hash. 
+=item *
+
+E<lt>%textE<gt> ... E<lt>/%textE<gt>
+
+Produces literal text in the template output. Can be used to surround text
+that contains other markup tags that should not be interpreted.
+
+Equivalent to un-marked-up text.
+
+E<lt>%outputE<gt> ... E<lt>/%outputE<gt>
+
+A Perl expression to be interpolated into the result.
+The block may span multiple lines and is scoped inside a "do" block,
+so it may contain multiple Perl statements and it need not end with
+a semicolon. 
+
+Equivalent to the C<E<lt>% ... %E<gt>> markup syntax.
 
 =item *
 
@@ -236,18 +265,7 @@ Includes the results of a separate file containing MicroMason code, compiling it
 
   <%include> "greeting.msn", hour => (localtime)[2] </%include>
 
-=item *
-
-E<lt>%outputE<gt> ... E<lt>/%outputE<gt>
-
-Produces literal text in the template output. Can be used to surround text
-that contains other markup tags that should not be interpreted.
-
-=item *
-
-E<lt>%docE<gt> ... E<lt>/%docE<gt>
-
-Provides space for template developer documentation or comments which are not included in the output.
+Equivalent to the C<E<lt>& ... &E<gt>> markup syntax.
 
 =back
 

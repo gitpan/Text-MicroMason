@@ -22,7 +22,7 @@ __END__
 
 =head1 NAME
 
-Text::MicroMason::Cache::Null - Null cache object
+Text::MicroMason::Cache::Null - Trivial Cache with No Data Storage
 
 
 =head1 DESCRIPTION

@@ -5,8 +5,6 @@ use Carp;
 
 use Safe;
 
-use vars qw( @MIXIN );
-
 ######################################################################
 
 my %block_types = ( 
@@ -60,7 +58,7 @@ __END__
 
 =head1 NAME
 
-Text::MicroMason::ServerPages - Support syntax similar to ASP/JSP
+Text::MicroMason::ServerPages - Alternate Template Syntax like ASP/JSP
 
 
 =head1 SYNOPSIS

@@ -1,6 +1,6 @@
 =head1 NAME
 
-Text::MicroMason::ReadMe - About the MicroMason distribution
+Text::MicroMason::ReadMe - About the MicroMason Distribution
 
 =head1 MOTIVATION
 
@@ -107,7 +107,7 @@ No mod_perl integration or configuration capability.
 
 =head1 DISTRIBUTION
 
-This is version 1.92_0 of Text::MicroMason. 
+This is version 1.93_0 of Text::MicroMason. 
 
 This is an EXPERIMENTAL release on a development track for a 2.0 release.
 

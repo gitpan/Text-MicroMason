@@ -3,31 +3,26 @@ package Text::MicroMason::ExecuteCache;
 use strict;
 use Carp;
 
+require Text::MicroMason::Base;
 require Text::MicroMason::Cache::Simple;
 
 ######################################################################
 
-use vars qw( @MIXIN %Defaults );
+use vars qw( %Defaults );
 
 $Defaults{ execute_cache } = Text::MicroMason::Cache::Simple->new();
 
-BEGIN { push @MIXIN, "#line ".__LINE__.' "'.__FILE__.'"', "", <<'/' }
 sub defaults {
-  (shift)->SUPER::defaults(), %Text::MicroMason::ExecuteCache::Defaults
+  (shift)->SUPER('defaults'), %Text::MicroMason::ExecuteCache::Defaults
 }
-/
 
 ######################################################################
 
-use vars qw( @MIXIN %Assembler );
-require Text::MicroMason::Base;
-
 # $code_ref = compile( text => $template );
-BEGIN { push @MIXIN, "#line ".__LINE__.' "'.__FILE__.'"', "", <<'/' }
 sub compile {
   my $self = shift;
   
-  my $code_ref = $self->SUPER::compile(@_);
+  my $code_ref = $self->SUPER('compile', @_);
   
   my $cache = $self->{ 'execute_cache' }
     or return $code_ref;
@@ -37,8 +32,6 @@ sub compile {
     $cache->get( $key ) or $cache->set( $key, &$code_ref( @_ ) );
   }  
 }
-/
-
 
 ######################################################################
 
@@ -48,7 +41,7 @@ __END__
 
 =head1 NAME
 
-Text::MicroMason::ExecuteCache - Cache template output results
+Text::MicroMason::ExecuteCache - Use a Cache for Template Results
 
 
 =head1 SYNOPSIS
@@ -90,8 +83,6 @@ Note that you should not use this feature if your template code interacts with a
 =item compile()
 
 Wraps each template that is compiled into a Perl subroutine in a memoizing closure. 
-
-Implemented using the @MIXINS feature provided by Text::MicroMason's class() method.
 
 =back
 

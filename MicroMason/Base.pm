@@ -253,7 +253,7 @@ sub execute {
   my $self = shift;
   my $sub = ( $_[0] eq 'code' ) ? do { shift; shift } : 
 	$self->compile( shift, shift, ref($_[0]) ? %{ shift() } : () )
-    or $self->croak_msg("Couldn't compile");
+    or $self->croak_msg("Couldn't compile: $@");
   &$sub( @_ );
 }
 
@@ -277,7 +277,31 @@ sub debug_msg {
 }
 
 sub croak_msg {
-  shift and Carp::croak( ( @_ == 1 ) ? $_[0] : join(' ', map _printable(), @_) )
+  shift and Carp::confess( ( @_ == 1 ) ? $_[0] : join(' ', map _printable(), @_) )
+}
+
+######################################################################
+
+sub SUPER {
+  my ( $self, $method, @args ) = @_;
+  my $calling_package = caller(0);
+  
+  my @classes = ref($self) || $self;
+  my @isa;
+  while ( my $class = shift @classes ) {
+    push @isa, $class;
+    no strict;
+    unshift @classes, @{ $class . "::ISA" };
+  }
+  while ( my $class = shift @isa ) {
+    last if ( $class eq $calling_package )
+  }
+
+  while ( my $class = shift @isa ) {
+    next unless my $sub = $class->can( $method );
+    return &$sub( $self, @args );
+  }
+  $self->croak_msg( "Can't find SUPER method" );
 }
 
 ######################################################################
@@ -288,7 +312,7 @@ sub croak_msg {
 
 =head1 NAME
 
-Text::MicroMason::Base - Core Class for Simple Mason Templating 
+Text::MicroMason::Base - Simple Compiler for Mason Templating 
 
 
 =head1 SYNOPSIS

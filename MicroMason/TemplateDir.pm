@@ -12,14 +12,11 @@ $Defaults{ strict_root } = '';
 
 ######################################################################
 
-use vars qw( @MIXIN );
-
-BEGIN { push @MIXIN, "#line ".__LINE__.' "'.__FILE__.'"', "", <<'/' }
 sub resolve {
   my ( $self, $src_type, $src_data ) = @_;
 
   if ( $src_type ne 'file' ) {
-    return $self->SUPER::resolve( $src_type, $src_data );
+    return $self->SUPER('resolve', $src_type, $src_data );
   }
   
   my $current = $self->{source_file};
@@ -41,7 +38,6 @@ sub resolve {
   
   return ( 'file' => $path, source_file => $path );
 }
-/
 
 ######################################################################
 
@@ -51,7 +47,7 @@ sub resolve {
 
 =head1 NAME
 
-Text::MicroMason::TemplateDir - Interpret file path relative to base dir
+Text::MicroMason::TemplateDir - Use Base Directory and Relative Paths
 
 
 =head1 SYNOPSIS
@@ -68,7 +64,10 @@ Templates stored in files can be run directly or included in others:
 
 =head1 TO DO
 
-This module is not finished.
+This module is not finished. 
+
+Should it optionally chdir() during the execution of each template?
+
 
 
 =head1 DESCRIPTION

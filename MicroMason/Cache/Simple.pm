@@ -22,7 +22,7 @@ __END__
 
 =head1 NAME
 
-Text::MicroMason::Cache::Simple - Minimal cache object
+Text::MicroMason::Cache::Simple - Basic Cache with Minimal Interface
 
 
 =head1 DESCRIPTION

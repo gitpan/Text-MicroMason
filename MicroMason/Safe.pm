@@ -5,8 +5,6 @@ use Carp;
 
 use Safe;
 
-use vars qw( @MIXIN );
-
 ######################################################################
 
 use vars qw( %Defaults );
@@ -101,7 +99,7 @@ __END__
 
 =head1 NAME
 
-Text::MicroMason::Safe - Compile all templates in a Safe compartment
+Text::MicroMason::Safe - Compile all Templates in a Safe Compartment
 
 
 =head1 SYNOPSIS

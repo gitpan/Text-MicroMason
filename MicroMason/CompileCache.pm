@@ -8,34 +8,28 @@ require Text::MicroMason::Cache::File;
 
 ######################################################################
 
-use vars qw( @MIXIN %Defaults );
+use vars qw( %Defaults );
 
 $Defaults{ compile_cache_text } = Text::MicroMason::Cache::Simple->new();
 $Defaults{ compile_cache_file } = Text::MicroMason::Cache::File->new();
 
-BEGIN { push @MIXIN, "#line ".__LINE__.' "'.__FILE__.'"', "", <<'/' }
 sub defaults {
-  (shift)->SUPER::defaults(), %Text::MicroMason::CompileCache::Defaults
+  (shift)->SUPER('defaults'), %Text::MicroMason::CompileCache::Defaults
 }
-/
 
 ######################################################################
 
-use vars qw( @MIXIN );
-
 # $code_ref = compile( file => $filename );
-BEGIN { push @MIXIN, "#line ".__LINE__.' "'.__FILE__.'"', "", <<'/' }
 sub compile {
   my ( $self, $src_type, $src_data, %options ) = @_;
   
   my $cache_type = 'compile_cache_' . $src_type;
   my $cache = $self->{ $cache_type }
-    or return $self->SUPER::compile($src_type, $src_data, %options);
+    or return $self->SUPER('compile', $src_type, $src_data, %options);
   
   $cache->get( $src_data ) or $cache->set( $src_data, 
-	      $self->SUPER::compile($src_type, $src_data, %options) )
+	      $self->SUPER('compile', $src_type, $src_data, %options) )
 }
-/
 
 ######################################################################
 
@@ -45,7 +39,7 @@ __END__
 
 =head1 NAME
 
-Text::MicroMason::CompileCache - Use cache for parse/compile step
+Text::MicroMason::CompileCache - Use a Cache for Template Compilation
 
 
 =head1 SYNOPSIS
@@ -77,7 +71,7 @@ Templates stored in files are also cached, until the file changes:
 
 =item compile()
 
-Implemented using the @MIXINS feature provided by Text::MicroMason's class() method.
+Caching wrapper around normal compile() behavior.
 
 =back
 

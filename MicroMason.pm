@@ -1,5 +1,5 @@
 package Text::MicroMason;
-$VERSION = 1.92_0;
+$VERSION = 1.93_0;
 
 require 5.0; # The tests use the new subref->() syntax, but the module doesn't
 use strict;
@@ -40,44 +40,38 @@ sub class {
   my @args = ( @_ > 1 ) ? @_ : ( ! $_[0] ) ? () : ref($_[0]) ? @{$_[0]} : $_[0];
   
   # warn "class with_traits -> " . join(', ', $factory, @args) . "\n";
-  
-  my $package = "Text::MicroMason::Base";
-  my $name = 'Base';
-  
-  while ( scalar @args ) {
-    my $trait = shift @args;
-   
+
+  unshift @args, 'Base';
+
+  my (@names, @packages);
+  foreach my $trait ( @args ) {
     my $t_class = $trait;
     ( $t_class =~ /::/ ) or $t_class = "Text::MicroMason::$t_class";
+    push @packages, $t_class;
     
     my $t_name = $trait;
     $t_name =~ s/.*:://;
-    $name .= "_$t_name";
-    
-    my $new_class = $factory . "::" . $name;
-    
-    no strict;
-    unless ( @{ "$new_class\::ISA" } ) {
-      my $t_file = $t_class;
-      $t_file =~ s{::}{/}g;
-      $t_file .= ".pm";
+    push @names, $t_name;
+
+    my $t_file = "$t_class.pm";
+    $t_file =~ s{::}{/}g;
+    unless ( $INC{ $t_file } ) {
       # warn "require $t_file";
-      require $t_file;
-  
-      my $code = join( "\n",
-	"package $new_class;", 
-	"\@ISA = qw( $t_class $package );",
-	"use strict;", 
-	@{$t_class . "::MIXIN"},
-	"1"
-      );
-      # warn "class code: $code";
-      eval $code or die $@;
+      require $t_file
     }
-    $package = $new_class;
   }
-  # warn "class with_traits <- $package\n";
-  $package;
+
+  my $name = join('_', @names);
+  
+  my $new_class = $factory . "::" . $name;
+  
+  no strict;
+  if ( $#packages and ! @{ $new_class . "::ISA" } ) {
+    # warn "-> $new_class ISA ", reverse(@packages), "\n";
+    @{ $new_class . "::ISA" } = reverse @packages;
+  }
+  
+  return $new_class;
 }
 
 ######################################################################
@@ -148,6 +142,8 @@ You can import various functions if you prefer to avoid method calls:
 Text::MicroMason interpolates blocks of Perl code embedded into text
 strings, using the simpler features of HTML::Mason.
 
+MicroMason converts a template from a block of source text with special embedded tags into a Perl subroutine which can accept arguments and returns an output string.
+
 =head2 Template Syntax
 
 Here's an example of Mason-style templating, taken from L<HTML::Mason>:
@@ -165,7 +161,7 @@ The template syntax supported by Text::MicroMason and some useful template devel
 
 =head2 Function Exporter Interface
 
-Importable functions are provided for users who prefer a procedural style invocation. 
+Importable functions are provided for users who prefer a procedural interface. 
 
 The supported functions are listed in L<Text::MicroMason::Functions>. (For backwards compatibility, those functions can also be imported from the main Text::MicroMason package.) 
 

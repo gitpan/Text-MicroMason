@@ -11,19 +11,15 @@ $Defaults{ error_string } = 1;
 
 ######################################################################
 
-use vars qw( @MIXIN );
-
-BEGIN { push @MIXIN, '#line '.__LINE__.' "'.__FILE__.'"', '', <<'/' }
 sub compile {
-  my $result = eval { local $SIG{__DIE__}; (shift)->SUPER::compile(@_) };
+  my $result = eval { local $SIG{__DIE__}; (shift)->SUPER('compile', @_) };
   wantarray ? ($result, $@) : $result;
 }
 
 sub execute {
-  my $result = eval { local $SIG{__DIE__}; (shift)->SUPER::execute(@_) };
+  my $result = eval { local $SIG{__DIE__}; (shift)->SUPER('execute', @_) };
   wantarray ? ($result, $@) : $result;
 }
-/
 
 ######################################################################
 
@@ -35,7 +31,7 @@ __END__
 
 =head1 NAME
 
-Text::MicroMason::CatchErrors - Catch template exceptions
+Text::MicroMason::CatchErrors - Add Exception Catching for Templates
 
 
 =head1 SYNOPSIS
@@ -73,8 +69,7 @@ croak() to be called, this will interupt your program unless caught by an
 eval block.
 
 This class provides that error catching behavior for the compile and
-execute methods. It is implemented using the @MIXIN feature provided by
-Text::MicroMason's class() method.
+execute methods.
 
 In a scalar context they return the result of the call, or undef if it
 failed; in a list context they return the results of the call (undef if

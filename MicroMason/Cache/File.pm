@@ -42,7 +42,7 @@ __END__
 
 =head1 NAME
 
-Text::MicroMason::Cache::File - Cache with file modification checks
+Text::MicroMason::Cache::File - Basic Cache with File-Based Expiration
 
 
 =head1 DESCRIPTION
