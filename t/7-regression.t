@@ -3,7 +3,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 20 }
+BEGIN { plan tests => 21 }
 
 my $loaded;
 END { ok(0) unless $loaded; }
@@ -157,6 +157,16 @@ LOOKS_LIKE_HTML: {
 STRICT_VARS: {
   my $scr_re = '% $foo ++; ';
   ok( ! eval { execute($scr_re); 1 } );
+}
+
+######################################################################
+
+FILE_BLOCK_MULTILINE: {
+  my $scr_hello = "<& \n 't/test-recur.msn', name => 'Dave' \n &>";
+  
+  my $res_hello = "Test greeting:\n" . 'Good afternoon, Dave!' . "\n";
+  
+  ok( execute($scr_hello), $res_hello );
 }
 
 ######################################################################

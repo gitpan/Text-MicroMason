@@ -3,7 +3,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 6 }
+BEGIN { plan tests => 5 }
 
 my $loaded;
 END { ok(0) unless $loaded; }
@@ -35,17 +35,12 @@ SYNTAX: {
 TEXT_END
 
   my $code = try_compile($script);
-  my $output = try_execute($code, name => 'Sam', hour => 9);
+  
+  my ( $output, $error ) = try_execute($code, name => 'Sam', hour => 9);
   ok( $output =~ /\QGood morning, Sam!\E/ );
+  ok( ! $error );
   $output = try_execute($code, name => 'Dave', hour => 23);
   ok( $output =~ /\Qsorry Dave\E/ );
 }
 
-FILE_IS_NOT_SAFE: {
-  my $script = qq| <& 't/test.msn', %ARGS &> |;
-  
-  my ($output, $err) = try_safe_execute($script, name => 'Sam', hour => 9);
-  ok( ! defined $output );
-  ok( $err =~ /Undefined subroutine/ );
-}
-
+######################################################################

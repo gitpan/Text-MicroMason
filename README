@@ -1,25 +1,5 @@
 NAME
-    Text::MicroMason - Simplified HTML::Mason Templating
-
-DESCRIPTION
-    Text::MicroMason interpolates blocks of Perl code embedded into text
-    strings, using the simplest features of HTML::Mason.
-
-    Here's an example of Mason-style templating, taken from the HTML::Mason
-    manpage:
-
-        % my $noun = 'World';
-        Hello <% $noun %>!
-        How are ya?
-
-    Interpreting this template with Text::MicroMason produces the same
-    output as it would in HTML::Mason:
-
-        Hello World!
-        How are ya?
-
-    A complete discussion of the supported syntax and the way it is
-    compiled is provided in the module's inline POD.
+    Text::MicroMason::ReadMe - About the MicroMason distribution
 
 MOTIVATION
     The HTML::Mason module provides a useful syntax for dynamic template
@@ -55,7 +35,7 @@ MOTIVATION
     In comparison to the other modules listed, MicroMason aims to be fairly
     lightweight, using one eval per parse, converting the template to an
     cacheable unblessed subroutine ref, eschewing method calls, and
-    containing just over a hundred lines of Perl code.
+    containing just a few hundred lines of Perl code.
 
   Compatibility with HTML::Mason
 
@@ -72,53 +52,22 @@ MOTIVATION
 
     *   No %attr, %shared, %method, or %def blocks.
 
-    *   No |h or |u options to escape the result of interpolated
-        expressions.
-
-    *   No $m Mason interpreter context.
-
     *   No $r request object
 
     *   No shared files like autohandler and dhandler.
 
     *   No mod_perl integration or configuration capability.
 
-DISTRIBUTION, INSTALLATION AND SUPPORT
-  Version
+DISTRIBUTION
+    This is version 1.55 of Text::MicroMason.
 
-    This is version 1.07 of Text::MicroMason.
+    This is an EXPERIMENTAL release on a development track for a 2.0
+    release.
 
-  Prerequisites
-
-    This module should work with any version of Perl 5, without platform
-    dependencies or additional modules beyond the core distribution.
-
-  Installation
-
-    You should be able to install this module using the CPAN shell
-    interface:
-
-      perl -MCPAN -e 'install Text::MicroMason'
-
-    Alternately, you may retrieve this package from CPAN or from the
-    author's site:
-
-    * http://search.cpan.org/~evo/
-
-    * http://www.cpan.org/modules/by-authors/id/E/EV/EVO
-
-    * http://www.evoscript.org/Text-MicroMason/dist/
-
-    After downloading the distribution, follow the normal procedure to
-    unpack and install it, using the commands shown below or their local
-    equivalents on your system:
-
-      tar xzf Text-MicroMason-*.tar.gz
-      cd Text-MicroMason-*
-      perl Makefile.PL
-      make test && sudo make install
-
-  Release Status
+    This module has been available on CPAN for over two years, with a
+    relatively stable interface and feature set. If you encounter any
+    problems, please inform the author and I'll endeavor to patch them
+    promptly.
 
     This module's CPAN registration should read:
 
@@ -131,10 +80,27 @@ DISTRIBUTION, INSTALLATION AND SUPPORT
     (although there's also an lesser argument for placing it 15 Web/HTML,
     where HTML::Mason appears).
 
-    This module has been available on CPAN for over two years, with a
-    relatively stable interface and feature set. If you encounter any
-    problems, please inform the author and I'll endeavor to patch them
-    promptly.
+INSTALLATION
+    This module should work with any version of Perl 5, without platform
+    dependencies or additional modules beyond the core distribution.
+
+    You should be able to install this module using the CPAN shell
+    interface:
+
+      perl -MCPAN -e 'install Text::MicroMason'
+
+    Alternately, you may retrieve this package from CPAN
+    ("http://search.cpan.org/~evo/") or from the author's site
+    ("http://www.evoscript.org/Text-MicroMason").
+
+    After downloading the distribution, follow the normal procedure to
+    unpack and install it, using the commands shown below or their local
+    equivalents on your system:
+
+      tar xzf Text-MicroMason-*.tar.gz
+      cd Text-MicroMason-*
+      perl Makefile.PL
+      make test && sudo make install
 
   Tested Platforms
 
@@ -147,8 +113,7 @@ DISTRIBUTION, INSTALLATION AND SUPPORT
 
     * http://testers.cpan.org/show/Text-MicroMason.html
 
-  Support
-
+SUPPORT
     If you have questions or feedback about this module, please feel free to
     contact the author at the below address. Although there is no formal
     support program, I do attempt to answer email promptly.
@@ -165,23 +130,30 @@ DISTRIBUTION, INSTALLATION AND SUPPORT
     "http://rt.cpan.org/NoAuth/Bugs.html?Dist=Text-MicroMason" or send mail
     to "Dist=Text-MicroMason#rt.cpan.org", replacing "#" with "@".
 
-CREDITS AND COPYRIGHT
-  Author
+    If you've found this module useful or have feedback about your
+    experience with it, consider sharing your opinion with other Perl users
+    by posting your comment to CPAN's ratings system
+    ("http://cpanratings.perl.org/rate/?distribution=Text-MicroMason").
 
-    Developed by Matthew Simon Cavalletto at Evolution Softworks. More free
-    Perl software is available at "www.evoscript.org".
+    For more general discussion, you may wish to post a message on PerlMonks
+    ("http://perlmonks.org/?node=Seekers%20of%20Perl%20Wisdom") or on the
+    comp.lang.perl.misc newsgroup
+    ("http://groups.google.com/groups?group=comp.lang.perl.misc").
 
-    You may contact the author directly at "evo@cpan.org" or
+AUTHOR
+    Developed by Matthew Simon Cavalletto at Evolution Softworks. You may
+    contact the author directly at "evo@cpan.org" or
     "simonm@cavalletto.org".
 
-  The Shoulders of Giants
+    Custom development and technical consulting are available at
+    "www.evolutionsoftworks.com". More free Perl software is available at
+    "www.evoscript.org".
 
+THANKS
     Based on the superb HTML::Mason, originally developed by Jonathan
     Swartz.
 
-  Feedback and Suggestions
-
-    My sincere thanks to the following users who have provided feedback:
+    My sincere thanks to the following users for their feedback:
 
       Pascal Barbedor
       Mark Hampton
@@ -189,14 +161,13 @@ CREDITS AND COPYRIGHT
       Daniel J. Wright
       William Kern
       Tommi Maekitalo
+      Alan Ferrency
 
-  Copyright
-
-    Copyright 2002, 2003 Matthew Simon Cavalletto.
+LICENSE
+    Copyright 2002, 2003, 2004 Matthew Simon Cavalletto.
 
     Portions copyright 2001 Evolution Online Systems, Inc.
 
-  License
-
     You may use, modify, and distribute this software under the same terms
     as Perl.
+

@@ -1,91 +1,176 @@
-2003-09-26
-    Discard line break after <%perl> block as suggested by Tommi
-    Maekitalo. 
+NAME
+    Text::MicroMason::Changes - Change history for the MicroMason
+    distribution
 
-      UPGRADE COMPATIBILITY WARNING:
-      Note that removing these line breaks may affect the rendering
-      of your current templates! Although I am typically hesitant
-      to change established behavior, this does improve the template
-      output and brings us into line with HTML::Mason's behavior.
+VERSION 2
+  Version 1.55
 
-    Added $Debug flag and support for <%args> blocks based on a
-    contribution by Tommi Maekitalo.
+    2004-09-23
+        Documentation updates.
 
-    Adjusted internals to allow block reordering, and added support for
-    <%init> and <%once>.
+  Version 1.54
 
-    Released as Text-MicroMason-1.07.tar.gz.
+    2004-09-22
+        Renamed "interpret" method to "execute" for consistency with
+        function interface.
 
-2003-09-04
-    Changed the way that subroutines were scoped into the
-    Text::MicroMason::Commands namespace so that Safe compartments with
-    separate namespaces and shared symbols have the visibility that one
-    would expect.
+        Moved try_ functionality to new ErrorCatching mixin.
 
-    Fixed a bug in which an unadorned percent sign halted parsing, as
-    reported by William Kern at PixelGate. Added a test to the end of
-    6-regression.t that fails under 1.05 but passes under 1.06 to
-    confirm this.
+        Generalized behavior of assemble method; moved template elements
+        into %Assembly hash.
 
-    Simplified parser regular expressions by using non-greedy matching.
+  Version 1.53
 
-    Added documentation for *_file() functions. Corrected documentation
-    to reflect the fact that template code is not compiled with "use
-    safe" in effect by default, but that this might change in the
-    future.
+    2004-09-22
+        Moved Safe functionality to new Safe mixin.
 
-    Released as Text-MicroMason-1.06.tar.gz.
+        Moved filtering functionality to new Filters mixin.
 
-2003-08-11
-    Adjusted regular expression based on parsing problems reported by
-    Philip King and Daniel J. Wright, related to newlines and EOF. Added
-    regression tests that fail under 1.04 but pass under 1.05 to ensure
-    these features keep working as expected.
+    2004-09-21
+        Added mixin inheritance hacking logic based on
+        DBIx::SQLEngine::Record::Class.
 
-    Added non-printing-character escaping to parser failure and
-    debugging messages to better track future reports of
-    whitespace-related bugs.
+  Version 1.52
 
-    Moved tests from test.pl into t/ subdirectory.
+    2004-09-19
+        Extracted Changes to separate POD document.
 
-    Added experimental suppport for file code cache in
-    compile_file_codecache.
+    2004-09-18
+        Additional work.
 
-    Released as Text-MicroMason-1.05.tar.gz.
+  Version 1.51
 
-2002-06-23
-    Adjusted regular expression based on parsing problems reported by
-    Mark Hampton.
+    2004-09-17
+        Refactoring of method interface to merge compie and interpretation
+        into single subroutines with parameters to indicate whether we're
+        reading text or a file.
 
-    Added file-include support with <& ... &> syntax.
+        Added initial support for filtering interpolated expressions based
+        on a patch and extended discussion with Alan Ferrency.
 
-    Documentation tweaks. Adjusted version number to simpler 0.00
-    format. Released as Text-MicroMason-1.04.tar.gz.
+        Packaged as version 1.51 but not released to CPAN.
 
-2002-01-14
-    Documentation tweaks based on feedback from Pascal Barbedor. Updated
-    author's contact information.
+    2004-09-16
+        Refactored to object-oriented implementation to allow subclassing.
 
-2001-07-01
-    Renamed from HTML::MicroMason to Text::MicroMason. Documentation
-    tweaks. Released as Text-MicroMason-1.0.3.tar.gz.
+        Started CodeCache subclass based on experimental caching code 1.07.
 
-2001-04-10
-    Munged interface for clarity. Added Safe support. Adjusted docs to
-    reflect feedback from mason-users. Released as
-    HTML-MicroMason-1.0.2.tar.gz.
+        Started TemplateDir subclass with base directory and relative path
+        calculations based on a patch from Tommi Maekitalo.
 
-2001-03-28
-    Parser tweakage; additional documentation. Added Exporter support.
-    Released as HTML-MicroMason-1.0.1.tar.gz.
+        Incorporated patch from Tommi Maekitalo to put default values from
+        an <%args> block into the %ARGS variable as well as the separate
+        named variables.
 
-2001-03-26
-    Added try_interpret; documented error messages.
+        Created ServerPages subclass based on feature request from William
+        Kern.
 
-2001-03-23
-    Extended documentation; added makefile, test script. Renamed
-    accumulator to $OUT to match Text::Template. Released as
-    HTML-MicroMason-1.0.0.tar.gz.
+    2004-09-15
+        Moved package documentation into separate ReadMe.pod.
 
-2001-03-22
-    Created.
+VERSION 1
+  Version 1.07
+
+    2003-09-26
+        Discard line break after <%perl> block as suggested by Tommi
+        Maekitalo. Note that removing these line breaks may affect the
+        rendering of your current templates! Although I am typically
+        hesitant to change established behavior, this does improve the
+        template output and brings us into line with HTML::Mason's behavior.
+
+        Added $Debug flag and support for <%args> blocks based on a
+        contribution by Tommi Maekitalo.
+
+        Adjusted internals to allow block reordering, and added support for
+        <%init> and <%once>.
+
+        Released as Text-MicroMason-1.07.tar.gz.
+
+  Version 1.06
+
+    2003-09-04
+        Changed the way that subroutines were scoped into the
+        Text::MicroMason::Commands namespace so that Safe compartments with
+        separate namespaces and shared symbols have the visibility that one
+        would expect.
+
+        Fixed a bug in which an unadorned percent sign halted parsing, as
+        reported by William Kern at PixelGate. Added a test to the end of
+        6-regression.t that fails under 1.05 but passes under 1.06 to
+        confirm this.
+
+        Simplified parser regular expressions by using non-greedy matching.
+
+        Added documentation for *_file() functions. Corrected documentation
+        to reflect the fact that template code is not compiled with "use
+        safe" in effect by default, but that this might change in the
+        future.
+
+        Released as Text-MicroMason-1.06.tar.gz.
+
+  Version 1.05
+
+    2003-08-11
+        Adjusted regular expression based on parsing problems reported by
+        Philip King and Daniel J. Wright, related to newlines and EOF. Added
+        regression tests that fail under 1.04 but pass under 1.05 to ensure
+        these features keep working as expected.
+
+        Added non-printing-character escaping to parser failure and
+        debugging messages to better track future reports of
+        whitespace-related bugs.
+
+        Moved tests from test.pl into t/ subdirectory.
+
+        Added experimental suppport for file code cache in
+        compile_file_codecache.
+
+        Released as Text-MicroMason-1.05.tar.gz.
+
+  Version 1.04
+
+    2002-06-23
+        Adjusted regular expression based on parsing problems reported by
+        Mark Hampton.
+
+        Added file-include support with <& ... &> syntax.
+
+        Documentation tweaks. Adjusted version number to simpler 0.00
+        format. Released as Text-MicroMason-1.04.tar.gz.
+
+    2002-01-14
+        Documentation tweaks based on feedback from Pascal Barbedor. Updated
+        author's contact information.
+
+  Version 1.0.3
+
+    2001-07-01
+        Renamed from HTML::MicroMason to Text::MicroMason. Documentation
+        tweaks. Released as Text-MicroMason-1.0.3.tar.gz.
+
+  Version 1.0.2
+
+    2001-04-10
+        Munged interface for clarity. Added Safe support. Adjusted docs to
+        reflect feedback from mason-users. Released as
+        HTML-MicroMason-1.0.2.tar.gz.
+
+  Version 1.0.1
+
+    2001-03-28
+        Parser tweakage; additional documentation. Added Exporter support.
+        Released as HTML-MicroMason-1.0.1.tar.gz.
+
+    2001-03-26
+        Added try_interpret; documented error messages.
+
+  Version 1.0.0
+
+    2001-03-23
+        Extended documentation; added makefile, test script. Renamed
+        accumulator to $OUT to match Text::Template. Released as
+        HTML-MicroMason-1.0.0.tar.gz.
+
+    2001-03-22
+        Created.
+
