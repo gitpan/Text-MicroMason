@@ -3,15 +3,21 @@ package Text::MicroMason::CompileCache;
 use strict;
 use Carp;
 
-######################################################################
-
-use vars qw( %Defaults );
-
 require Text::MicroMason::Cache::Simple;
 require Text::MicroMason::Cache::File;
 
-$Defaults{ text_compile_cache } = Text::MicroMason::Cache::Simple->new();
-$Defaults{ file_compile_cache } = Text::MicroMason::Cache::File->new();
+######################################################################
+
+use vars qw( @MIXIN %Defaults );
+
+$Defaults{ compile_cache_text } = Text::MicroMason::Cache::Simple->new();
+$Defaults{ compile_cache_file } = Text::MicroMason::Cache::File->new();
+
+BEGIN { push @MIXIN, "#line ".__LINE__.' "'.__FILE__.'"', "", <<'/' }
+sub defaults {
+  (shift)->SUPER::defaults(), %Text::MicroMason::CompileCache::Defaults
+}
+/
 
 ######################################################################
 
@@ -22,14 +28,12 @@ BEGIN { push @MIXIN, "#line ".__LINE__.' "'.__FILE__.'"', "", <<'/' }
 sub compile {
   my ( $self, $src_type, $src_data, %options ) = @_;
   
-  my $cache = $options{ $src_type . '_code_cache' }
+  my $cache_type = 'compile_cache_' . $src_type;
+  my $cache = $self->{ $cache_type }
     or return $self->SUPER::compile($src_type, $src_data, %options);
   
-  $cache->get( $src_data ) or do {
-    my $sub = $self->SUPER::compile($src_type, $src_data, %options);
-    $cache->set( $src_data, $sub );
-    $sub;
-  }
+  $cache->get( $src_data ) or $cache->set( $src_data, 
+	      $self->SUPER::compile($src_type, $src_data, %options) )
 }
 /
 
@@ -66,8 +70,6 @@ Templates stored in files are also cached, until the file changes:
 
 =head1 DESCRIPTION
 
-This module uses a simple cache interface that is widely supported. You can use the simple cache classes provided in the Text::MicroMason::Cache:: namespace, or select other caching modules on CPAN that support the interface described in L<Cache::Cache>.
-
 
 =head2 Public Methods
 
@@ -78,6 +80,26 @@ This module uses a simple cache interface that is widely supported. You can use 
 Implemented using the @MIXINS feature provided by Text::MicroMason's class() method.
 
 =back
+
+=head2 Supported Attributes
+
+=over 4
+
+=item compile_cache_text
+
+Defaults to an instance of Text::MicroMason::Cache::Simple. You may pass in your own cache object.
+
+=item compile_cache_file
+
+Defaults to an instance of Text::MicroMason::Cache::File. You may pass in your own cache object.
+
+=back
+
+This module uses a simple cache interface that is widely supported: the
+only methods required are C<get($key)> and C<set($key, $value)>. You can
+use the simple cache classes provided in the Text::MicroMason::Cache::
+namespace, or select other caching modules on CPAN that support the
+interface described in L<Cache::Cache>.
 
 
 =head1 SEE ALSO

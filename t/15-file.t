@@ -3,7 +3,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 5 }
+BEGIN { plan tests => 6 }
 
 my $loaded;
 END { ok(0) unless $loaded; }
@@ -17,7 +17,7 @@ ok( $loaded = 1 );
 use Text::MicroMason qw( try_execute_file try_compile try_execute );
 
 FILE: {
-  my $output = try_execute_file('t/test.msn', name=>'Sam', hour=>14);
+  my $output = try_execute_file('examples/test.msn', name=>'Sam', hour=>14);
   ok( $output =~ /\QGood afternoon, Sam!\E/ );
 }
 
@@ -30,17 +30,22 @@ SYNTAX: {
 % if ( $ARGS{name} eq 'Dave' and $hour > 22 ) {
   I'm sorry <% $ARGS{name} %>, I'm afraid I can't do that right now.
 % } else {
-  <& 't/test.msn', name => $ARGS{name}, hour => $hour &>
+  <& 'examples/test.msn', name => $ARGS{name}, hour => $hour &>
 % }
 TEXT_END
 
   my $code = try_compile($script);
-  
-  my ( $output, $error ) = try_execute($code, name => 'Sam', hour => 9);
+  my $output = try_execute($code, name => 'Sam', hour => 9);
   ok( $output =~ /\QGood morning, Sam!\E/ );
-  ok( ! $error );
   $output = try_execute($code, name => 'Dave', hour => 23);
   ok( $output =~ /\Qsorry Dave\E/ );
 }
 
-######################################################################
+FILE_IS_NOT_SAFE: {
+  my $script = qq| <& 'examples/test.msn', %ARGS &> |;
+  
+  my ($output, $err) = try_safe_execute($script, name => 'Sam', hour => 9);
+  ok( ! defined $output );
+  ok( $err =~ /in this compartment/ );
+}
+

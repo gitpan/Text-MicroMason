@@ -65,7 +65,7 @@ Text::MicroMason::ServerPages - Support syntax similar to ASP/JSP
 
 =head1 SYNOPSIS
 
-Server Pages syntax provides a way to mix Perl into a text template:
+Server Pages syntax provides another way to mix Perl into a text template:
 
     <% my $name = $ARGS{name};
       if ( $name eq 'Dave' ) {  %>
@@ -75,7 +75,7 @@ Server Pages syntax provides a way to mix Perl into a text template:
 	my $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
       %>
       Good <%= $daypart %>, <%= $name %>!
-    % } %>
+    <% } %>
 
 Instead of using this class directly, pass its name to be mixed in:
 
@@ -102,25 +102,35 @@ The following elements are recognized by the ServerPages lexer:
 
 =over 4
 
-=item <% perl statements %>
+=item *
+
+E<lt>% perl statements %E<gt>
 
 Arbitrary Perl code to be executed at this point in the template.
 
-=item <%= perl expression %>
+=item *
+
+E<lt>%= perl expression %E<gt>
 
 A Perl expression to be evaluated and included in the output.
 
-=item <%-- comment --%>
+=item *
 
-Documentation or inactive code to be skipped over silently.
+E<lt>%& file, arguments %E<gt>
 
-=item <%& file arguments %>
+Includes an external template file. 
 
-Includes an external template file.
+=item *
 
-=item <%name> ... <%/name>
+E<lt>%-- comment --%E<gt>
 
-Supported names are: 'perl', 'args', 'once', 'init', 'cleanup', and 'doc'.
+Documentation or inactive code to be skipped over silently. Can also be used to quickly comment out part of a template.
+
+=item *
+
+E<lt>%I<name>E<gt> ... E<lt>/%I<name>E<gt>
+
+Supported block names are: 'perl', 'args', 'once', 'init', 'cleanup', and 'doc'.
 
 =back
 

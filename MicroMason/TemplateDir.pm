@@ -8,6 +8,7 @@ use File::Spec;
 use vars qw( %Defaults );
 
 $Defaults{ template_root } = '';
+$Defaults{ strict_root } = '';
 
 ######################################################################
 
@@ -16,22 +17,29 @@ use vars qw( @MIXIN );
 BEGIN { push @MIXIN, "#line ".__LINE__.' "'.__FILE__.'"', "", <<'/' }
 sub resolve {
   my ( $self, $src_type, $src_data ) = @_;
+
   if ( $src_type ne 'file' ) {
-    $self->SUPER::resolve( $src_type, $src_data );
+    return $self->SUPER::resolve( $src_type, $src_data );
   }
   
-  my $current = $self->{basefile} || '.';
-  my $rootdir = $self->{template_root} || '';
+  my $current = $self->{source_file};
+  my $rootdir = $self->{template_root} || '.';
   
-  my $base = File::Spec->file_name_is_absolute($file) || ! $current 
+  my $base = File::Spec->file_name_is_absolute($src_data) || ! $current 
 			      ? $rootdir 
 			      : ( File::Spec->splitpath( $current ) )[1];
   
-  my $path = File::Spec->catfile( $base, $file );
+  my $path = File::Spec->catfile( $base, $src_data );
   
-  $self->{debug} and $self->debug_msg( "MicroMason resolved '$file': $path" );
+  $self->{debug} and $self->debug_msg( "MicroMason resolved '$src_data': $path" );
 
-  return ( 'file' => $path, basefile => $path );
+  if ( $self->{ strict_root } ) {
+    $path = File::Spec->canonpath( $path );
+    $path =~ /^\Q$self->{ strict_root }\E/ 
+      or $self->croak_msg("Not in required base path '$self->{ strict_root }'");
+  }
+  
+  return ( 'file' => $path, source_file => $path );
 }
 /
 

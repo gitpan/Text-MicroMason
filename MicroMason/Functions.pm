@@ -68,29 +68,29 @@ Text::MicroMason::Functions - Function exporter for MicroMason templates
 
 Use the execute function to parse and evalute a template:
 
-    use Text::MicroMason qw( execute );
+    use Text::MicroMason::Functions qw( execute );
     print execute($template, 'name'=>'Dave');
 
 Or compile it into a subroutine, and evaluate repeatedly:
 
-    use Text::MicroMason qw( compile );
+    use Text::MicroMason::Functions qw( compile );
     $coderef = compile($template);
     print $coderef->('name'=>'Dave');
     print $coderef->('name'=>'Bob');
 
 Templates stored in files can be run directly or included in others:
 
-    use Text::MicroMason qw( execute_file );
+    use Text::MicroMason::Functions qw( execute_file );
     print execute_file( "./greeting.msn", 'name'=>'Charles');
 
 Safe usage restricts templates from accessing your files or data:
 
-    use Text::MicroMason qw( safe_execute );
+    use Text::MicroMason::Functions qw( safe_execute );
     print safe_execute( $template, 'name'=>'Bob');
 
 All above functions are available in an error-catching "try_*" form:
 
-    use Text::MicroMason qw( try_execute );
+    use Text::MicroMason::Functions qw( try_execute );
     ($result, $error) = try_execute( $template, 'name'=>'Alice');
 
 
@@ -145,12 +145,6 @@ A parallel set of functions exist to handle templates which are stored in a file
 
   $result = execute_file( './report_tmpl.msn', %args );
 
-A matching pair of try_*() wrappers are available to catch run-time errors in reading the file or parsing its contents:
-
-  ($template, $error) = try_compile_file( './report_tmpl.msn' );
-
-  ($result, $error) = try_execute_file( './report_tmpl.msn', %args );
-
 Template documents are just plain text files that contains the string to be parsed. The files may have any name you wish, and the .msn extension shown above is not required.
 
 =head2 Error Checking
@@ -168,6 +162,12 @@ For example:
   } else {
     print "Unable to execute template: $error";
   }
+
+A matching pair of try_*_file() wrappers are available to catch run-time errors in reading a file or parsing its contents:
+
+  ($template, $error) = try_compile_file( './report_tmpl.msn' );
+
+  ($result, $error) = try_execute_file( './report_tmpl.msn', %args );
 
 For more information, see L<Text::MicroMason::ErrorCatching>.
 

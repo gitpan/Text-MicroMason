@@ -40,7 +40,8 @@ a reasonable subset of HTML::Mason syntax in a very light-weight
 fashion. In comparison to the other modules listed, MicroMason aims
 to be fairly lightweight, using one eval per parse, converting the
 template to an cacheable unblessed subroutine ref, eschewing method
-calls, and containing just a few hundred lines of Perl code.
+calls, and containing just a few hundred lines of Perl code in the 
+core, with optional features activated only if requested.
 
 =head2 Compatibility with HTML::Mason
 
@@ -63,19 +64,19 @@ Template interpolation with <% expr %>
 
 =item *
 
-Expression filtering with |h and |u (via -Filter option)
-
-=item *
-
 Literal Perl lines with leading % 
 
 =item *
 
-%args, %perl, %once, %init, %cleanup, and %doc blocks
+Named %args, %perl, %once, %init, %cleanup, and %doc blocks
 
 =item *
 
 The $m mason object, although with many fewer methods
+
+=item *
+
+Expression filtering with |h and |u (via -Filter mixin)
 
 =back
 
@@ -106,7 +107,7 @@ No mod_perl integration or configuration capability.
 
 =head1 DISTRIBUTION
 
-This is version 1.9_0 of Text::MicroMason. 
+This is version 1.92_0 of Text::MicroMason. 
 
 This is an EXPERIMENTAL release on a development track for a 2.0 release.
 

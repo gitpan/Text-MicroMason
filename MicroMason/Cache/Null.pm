@@ -1,4 +1,4 @@
-package Text::MicroMason::Cache::Simple;
+package Text::MicroMason::Cache::Null;
 
 use strict;
 
@@ -6,11 +6,11 @@ use strict;
 
 sub new { my $class = shift; bless { @_ }, $class }
 
-sub get { $_[0]->{ $_[1] } }
+sub get { return }
 
-sub set { $_[0]->{ $_[1] } = $_[2] }
+sub set { return $_[2] }
 
-sub clear { %{ $_[0] } = () }
+sub clear { return }
 
 ######################################################################
 
@@ -22,14 +22,12 @@ __END__
 
 =head1 NAME
 
-Text::MicroMason::Cache::Simple - Minimal cache object
+Text::MicroMason::Cache::Null - Null cache object
 
 
 =head1 DESCRIPTION
 
-This trivial cache class just stores values in a hash. 
-
-It does not perform any of the following functions: expiration, cache size limiting, flatening of complex keys, or deep copying of complex values.
+This trivial cache class supports the cache interface but doesn't store or retrieve any values. 
 
 =head2 Public Methods
 
@@ -37,32 +35,32 @@ It does not perform any of the following functions: expiration, cache size limit
 
 =item new()
 
-  $cache = Text::MicroMason::Cache::Simple->new();
+  $cache = Text::MicroMason::Cache::Null->new();
 
 =item get()
 
-  $value = $cache->get( $key );
+  undef = $cache->get( $key );
 
-Retrieves the value associated with this key, or undef if there is no value.
+Does nothing.
 
 =item set()
 
   $cache->set( $key, $value );
 
-Stores the provided value in association with this key. 
+Returns the provided value.
 
 =item clear()
 
   $cache->clear();
 
-Removes all data from the cache.
+Does nothing.
 
 =back
 
 
 =head1 SEE ALSO
 
-For uses of this cache class, see L<Text::MicroMason::CompileCache>.
+For uses of this cache class, see L<Text::MicroMason::ExecuteCache>.
 
 Additional cache classes are available in the Text::MicroMason::Cache:: namespace, or select other caching modules on CPAN that support the interface described in L<Cache::Cache>.
 

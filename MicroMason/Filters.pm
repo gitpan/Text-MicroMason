@@ -48,7 +48,7 @@ sub assemble {
 }
 /
 
-# 
+# @flags = $mason->parse_filters( @filter_strings );
 sub parse_filters {
   my $self = shift;
   
@@ -169,7 +169,11 @@ If called with one or more pairs of filter flags and associated functions, adds 
 
 =item parse_filters
 
-Parses a string containing any number of filter flags and returns a list of flags to use. Flags should be separated by commas, except that the commas may be omitted when using only the built-in "h", "u" and "n" flags. Flags are applied from left to right. Any use of the "n" flag wipes out all flags defined to the left of it. 
+Parses one or more strings containing any number of filter flags and returns a list of flags to be used. 
+
+  @flags = $mason->parse_filters( @filter_strings );
+
+Flags should be separated by commas, except that the commas may be omitted when using only the built-in "h", "u" and "n" flags. Flags are applied from left to right. Any use of the "n" flag wipes out all flags defined to the left of it. 
 
 =item filter
 

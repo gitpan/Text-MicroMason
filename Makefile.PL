@@ -7,6 +7,8 @@ WriteMakefile(
     'VERSION_FROM' => 'MicroMason.pm',
     'PREREQ_PM'    => {}, 
 
+    test => { TESTS => undef },
+
     ($] >= 5.005 ? (
       ABSTRACT_FROM     => 'MicroMason.pm', 
       AUTHOR            => 'Matthew Simon Cavalletto <simonm@cavalletto.org>',

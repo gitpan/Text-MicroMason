@@ -73,25 +73,27 @@ sub lex {
 use vars qw( %Assembler );
 $Defaults{ assembler } = \%Assembler;
 
-$Assembler{ sub_start } = 'sub { 
-  local $SIG{__DIE__} = sub { die "MicroMason execution failed: ", @_ }';
+$Assembler{template} = [ qw( @once $sub_start $err_hdlr $args_start $out_start
+			      @init @perl !@cleanup $out_end $sub_end -@doc ) ];
+
+$Assembler{ sub_start } = 'sub { ';
 $Assembler{ sub_end } = '}';
+
+$Assembler{ err_hdlr } = 
+    'local $SIG{__DIE__} = sub { die "MicroMason execution failed: ", @_ }';
 
 # Argument processing elements
 $Assembler{ args_start } = 'my %ARGS = @_ if ($#_ % 2)';
 $Assembler{ args_required } = '($#_ % 2) or Carp::croak("Odd number of parameters passed to sub expecting name/value pairs")';
 
 # Output generation
-# $Assembler{out_start} = 'my $OUT = ""; my $_out = sub {$OUT .= join "", @_}';
-# $Assembler{out_do} = '  &$_out';
-# $Assembler{out_end} = 'return $OUT';
-
 $Assembler{out_start} = 'my @OUT; my $_out = sub { push @OUT, @_ }';
 $Assembler{out_do} = '  push @OUT, ';
-$Assembler{out_end} = 'return join("", @OUT)';
+$Assembler{out_end} = 'join("", @OUT)';
 
-$Assembler{template} = [ qw( @once $sub_start $args_start $out_start @init
-				  @perl !@cleanup $out_end $sub_end -@doc )];
+# $Assembler{out_start} = 'my $OUT = ""; my $_out = sub {$OUT .= join "", @_}';
+# $Assembler{out_do} = '  &$_out';
+# $Assembler{out_end} = '$OUT';
 
 ######################################################################
 
@@ -146,6 +148,8 @@ sub assemble {
       reverse @{ $token_streams{ $2 } }
     } elsif ( $1 eq '-@' ) {
       ()
+    } else {
+      $self->croak_msg("Can't assemble $_");
     }
   } @assembly );
 }
@@ -197,6 +201,7 @@ sub read_file {
   local *FILE;
   open FILE, "$file" or $self->croak_msg("MicroMason can't open $file: $!");
   local $/ = undef;
+  $self->debug_msg("MicroMason reading from '$file'");
   local $_ = <FILE>;
   close FILE or $self->croak_msg("MicroMason can't close $file: $!");;
   return ( $_, source_file => $file );
@@ -217,6 +222,7 @@ sub read_file {
 sub compile {
   my ( $self, $src_type, $src_data, %options ) = @_;
   $options{caller} ||= join(' line ', (caller)[1,2] );
+  $self = $self->new( %options ) if ( scalar keys %options );
   
   ( $src_type, $src_data ) = $self->resolve( $src_type, $src_data );
   $self->{debug} and $self->debug_msg("MicroMason read:", $src_type, $src_data); 
@@ -224,8 +230,7 @@ sub compile {
   my $src_method = "read_$src_type";
   my ( $template, %more_options ) = $self->$src_method( $src_data );
   $self->{debug} and $self->debug_msg( "MicroMason source:", $template ); 
-
-  # local %$self = ( %$self, %options, %more_options ); 
+  $self = $self->new( %more_options ) if ( scalar keys %more_options );
 
   my @tokens = $self->lex( $template, $options{source_file} );
   $self->{debug} and $self->debug_msg( "MicroMason tokens:", @tokens ); 
@@ -311,6 +316,11 @@ Templates stored in files can be run directly or included in others:
 =head1 DESCRIPTION
 
 The Text::MicroMason::Base class provides a parser and execution environment for a simple templating system based on HTML::Mason.
+
+
+=head2 Template Syntax
+
+The template syntax supported by Text::MicroMason and some useful template developer techniques are described in L<Text::MicroMason::Devel>.
 
 
 =head2 Public Methods
@@ -421,11 +431,13 @@ Converts non-printable characters to readable form using the standard backslash 
 
 =item $Defaults{ debug }
 
-Debugging flag activates warns throughout the code. Used by debug_msg().
+Boolean value. Debugging flag activates warns throughout the code. Used by debug_msg(). 
 
 =item $Defaults{ assembler }
 
-Text elements used for subroutine assembly. Used by assemble().
+Reference to a hash of text elements used for Perl subroutine assembly. Used by assemble(). 
+
+The assembly template defines the types of blocks supported and the order they appear in, as well as where other standard elements should go. Those other elements also appear in the assembler hash.
 
 =back
 

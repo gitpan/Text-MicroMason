@@ -6,6 +6,27 @@ Text::MicroMason::Changes - Change history for the MicroMason distribution
 =head1 VERSION 2 HISTORY
 
 
+=head2 Version 1.9_1
+
+=over 4
+
+=item 2004-10-10
+
+Posted description of mixin mechanism to PerlMonks for discussion.
+
+Debugged CompileCache and finished ExecuteCache. Added test scripts.
+
+Debugged TemplateDir and added test script.
+
+Implemented support for one-time options passed to compile that override other attributes. Adjusted Safe facade to prevent this from being done there in order to avoid escapes from a Safe compartment.
+
+=item 2004-10-09
+
+Reorganized t/ directory.
+
+=back
+
+
 =head2 Version 1.9_0
 
 =over 4

@@ -45,9 +45,25 @@ sub safe_compartment {
 sub safe_facade {
   my $self = shift;
   Text::MicroMason::SafeFacade->new(
-    map { my $name = $_;  $name => sub { $self->$name( @_ ) } }
+    map { 
+      my $method = $_; 
+      $method = "safe_$method" if $self->can("safe_$method"); 
+      $_ => sub { $self->$method( @_ ) } 
+    }
     map { ! $_ ? () : ref($_) ? @$_ : split ' ' } $self->{safe_methods} 
   )
+}
+
+sub safe_compile {
+  my ( $self, $src_type, $src_data ) = @_;
+  $self->compile( $src_type, $src_data );
+}
+
+sub safe_execute {
+  my $self = shift;
+  my $sub = $self->compile( shift, shift )
+	or $self->croak_msg("Couldn't compile");
+  &$sub( @_ );
 }
 
 ######################################################################
@@ -111,10 +127,10 @@ Safe usage restricts templates from accessing your files or data:
 This package adds support for Safe compartments to MicroMason, allowing 
 you to  restrict the operations that a template can perform.
 
-By default, these safe calls prevent the code in a template from
-performing any system activity or accessing any of your other Perl
-code.  Violations may result in either compile-time or run-time
-errors, so make sure you are using an eval block or the CatchErrors trait to catch exceptions.
+By default, these safe calls prevent the code in a template from performing
+any system activity or accessing any of your other Perl code.  Violations
+may result in either compile-time or run-time errors, so make sure you
+are using an eval block or the CatchErrors trait to catch exceptions.
 
   use Text::MicroMason;
   my $mason = Text::MicroMason->new( -Safe );
@@ -122,10 +138,18 @@ errors, so make sure you are using an eval block or the CatchErrors trait to cat
   $result = eval { $mason->execute( text => $template ) };
 
 
-=head2 Configuring Safe Compartments
+=head2 Supported Attributes
 
-To enable some operations or share variables or functions with the
-template code, create a Safe compartment and configure it:
+=over 4
+
+=item safe
+
+Optional reference to a Safe compartment. If you do not provide this, one
+is generated for you.
+
+To enable some operations or share variables or functions with the template
+code, create a Safe compartment and configure it before passing it in as
+the value of the "safe" attribute:
 
   $safe = Safe->new();
   $safe->permit('time');
@@ -135,20 +159,30 @@ template code, create a Safe compartment and configure it:
 
   $result = eval { $mason->execute( text => $template ) };
 
+=item safe_methods
 
-=head2 Safe Mason Facades
+A space-separated string of methods names to be supported by the SafeFacade.
 
-Code compiled in a Safe compartment only has a limited version 
-of the the $m variable. This object is an instance of the Text::MicroMason::SafeFacade class and can only perform certain pre-defined methods. 
+Code compiled in a Safe compartment only has access to a limited version
+of the the $m variable. This object is an instance of the
+Text::MicroMason::SafeFacade class and can only perform certain pre-defined
+methods.
 
-To control which Mason methods are available, pass a C<safe_methods> argument to new() followed by the method names in a space-separated string. 
+To control which Mason methods are available, pass a C<safe_methods>
+argument to new() followed by the method names in a space-separated string.
 
-For example, to allow templates to include other templates, or use the "<& file &>" include syntax, you would need to allow the execute method:
+For example, to allow templates to include other templates, or use the
+"<& file &>" include syntax, you would need to allow the execute method:
 
   $mason = Text::MicroMason->new( -Safe, safe_methods => 'execute' );
 
+If you're combining this with the Filters mixin, you'll also need to allow
+calls to the filter method; to allow multiple methods, join their names
+with spaces:
 
-=head1 REFERENCE
+  $mason = Text::MicroMason->new( -Safe, safe_methods => 'execute filter' );
+
+=back
 
 =head2 Private Methods
 
@@ -156,7 +190,8 @@ For example, to allow templates to include other templates, or use the "<& file 
 
 =item eval_sub()
 
-Instead of the eval() used by the base class, this calls reval() on a Safe compartment.
+Instead of the eval() used by the base class, this calls reval() on a Safe
+compartment.
 
 =item safe_compartment()
 
@@ -164,7 +199,8 @@ Returns the Safe compartment passed by the user or generates a new one.
 
 =item safe_facade()
 
-Generates an instance of the SafeFacade equipped with only the methods listed in the safe_methods attribute.
+Generates an instance of the SafeFacade equipped with only the methods
+listed in the safe_methods attribute.
 
 =back
 
@@ -175,22 +211,26 @@ Generates an instance of the SafeFacade equipped with only the methods listed in
 
 =item new()
 
-Creates a new hash-based instance mapping method names to subroutine references.
+Creates a new hash-based instance mapping method names to subroutine
+references.
 
 =item facade_method()
 
-Calls a named method by looking up the corresponding subroutine and calling it.
+Calls a named method by looking up the corresponding subroutine and calling
+it.
 
 =item AUTOLOAD()
 
-Generates wrapper methods that call the facade_method() for any lowercase method name.
+Generates wrapper methods that call the facade_method() for any lowercase
+method name.
 
 =back
 
 
 =head1 SEE ALSO
 
-For the core functionality of this package see L<Text::MicroMason> and L<Text::MicroMason::Base>.
+For the core functionality of this package see L<Text::MicroMason> and
+L<Text::MicroMason::Base>.
 
 For distribution, installation, support, copyright and license 
 information, see L<Text::MicroMason::ReadMe>.

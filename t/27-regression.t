@@ -137,7 +137,7 @@ ANGLE_PERCENT_BLOCK_AT_EOF: {
 ######################################################################
 
 FILE_BLOCK_AT_EOF: {
-  my $scr_hello = "<& 't/test-recur.msn', name => 'Dave' &>";
+  my $scr_hello = "<& 'examples/test-recur.msn', name => 'Dave' &>";
   
   my $res_hello = "Test greeting:\n" . 'Good afternoon, Dave!' . "\n";
   
@@ -162,7 +162,7 @@ STRICT_VARS: {
 ######################################################################
 
 FILE_BLOCK_MULTILINE: {
-  my $scr_hello = "<& \n 't/test-recur.msn', name => 'Dave' \n &>";
+  my $scr_hello = "<& \n 'examples/test-recur.msn', name => 'Dave' \n &>";
   
   my $res_hello = "Test greeting:\n" . 'Good afternoon, Dave!' . "\n";
   

@@ -3,16 +3,40 @@
 Text::MicroMason::Devel - MicroMason Template Syntax And Tips
 
 
+=head1 SYNOPSIS
+
+Mason syntax provides several ways to mix Perl into a text template:
+
+    <%args>
+      $name
+    </%args>
+    % if ( $name eq 'Dave' ) {
+      I'm sorry <% $name %>, I'm afraid I can't do that right now.
+    % } else {
+      <%perl>
+	my $hour = (localtime)[2];
+	my $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
+      </%perl>
+      Good <% $daypart %>, <% $name %>!
+    % }
+
+    <& "includes/page_footer.msn" &>
+
+    <%doc>
+      Here's a comment describing this greeting message template. 
+    </%doc>
+
+
 =head1 DESCRIPTION
 
-This document describes the default template syntax and subroutine assembly used by Text::MicroMason.
-
-This behavior can be supplemented or overridden by subclasses. (Of particular interest are the private lex(), assemble(), and eval_sub() methods.)
+This document describes the default template syntax used by Text::MicroMason and how it is turned into runnable Perl code.
 
 
 =head1 TEMPLATE SYNTAX
 
-Text::MicroMason::Base supports the following subset of the HTML::Mason syntax:
+Text::MicroMason::Base supports a syntax that is mostly a subset of that used by HTML::Mason.
+
+=head2 Template Markup
 
 =over 4
 
@@ -21,6 +45,8 @@ Text::MicroMason::Base supports the following subset of the HTML::Mason syntax:
 I<literal_text>
 
 Anything not specifically parsed by one of the below rules is interpreted as literal text.
+
+This is equivalent to a <%text>...</%text> block.
 
 =item *
 
@@ -40,6 +66,8 @@ a semicolon.
     Good <% my $h = (localtime)[2]; $h > 11 ? 'afternoon' 
                                             : 'morning'  %>.
 
+This is equivalent to an <%output>...</%output> block.
+
 =item *
 
 % I<perl_code>
@@ -55,10 +83,9 @@ greeting:
     % my $daypart = (localtime)[2]>11 ? 'afternoon' : 'morning';
     Good <% $daypart %>.
 
-The line may contain one or more statements.  This code is not
-placed in its own scope, although it is automatically terminated
-by a semicolon.  However, it can still form a spanning block scope
-closed by a later perl block.
+The line may contain one or more statements.  This code is automatically
+terminated by a semicolon but it is not placed in its own block scope, so
+it can still open a spanning block scope closed by a later perl block.
 
 For example, the following template text will return one of two different messages each time it's interpreted:
 
@@ -69,6 +96,39 @@ For example, the following template text will return one of two different messag
     % }
 
 This also allows you to quickly comment out sections of a template by prefacing each line with C<% #>.
+
+This is equivalent to a <%perl>...</%perl> block.
+
+=item *
+
+E<lt>& I<template_filename>, I<arguments> &E<gt>
+
+Includes the results of a separate file containing MicroMason code, compiling it and executing it with any arguments passed after the filename.
+
+For example, we could place the following template text into an separate 
+file:
+
+    Good <% $ARGS{hour} >11 ? 'afternoon' : 'morning' %>.
+
+Assuming this file was named "greeting.msn", its results could be embedded within the output of another script as follows:
+
+  <& "greeting.msn", hour => (localtime)[2] &>
+
+This is equivalent to an <%include>...</%include> block.
+
+=item *
+
+E<lt>%I<name>E<gt> ... E<lt>/%I<name>E<gt>
+
+A named block performs one of the behaviors described in L</"Named Blocks">. The block name at the start and end must match, and must one of the supported block names.
+
+=back
+
+=head2 Named Blocks
+
+The following types of named blocks are supported:
+
+=over 4
 
 =item *
 
@@ -86,10 +146,9 @@ example, the below template initializes a Perl variable inside a
     </%perl>
     Here are some numbers: <% $count %>
 
-The block may contain one or more statements.  This code is not
-placed in its own scope, although it is automatically terminated
-by a semicolon.  However, it can still form a spanning block scope
-closed by a later perl block.
+The code may contain one or more statements.  This code is automatically
+terminated by a semicolon but it is not placed in its own block scope, so
+it can still open a spanning block scope closed by a later perl block.
 
 For example, when the below template text is evaluated it will
 return a sequence of digits:
@@ -171,18 +230,18 @@ Only valid Perl variable names may be used in <%args> sections. Parameters with 
 
 =item *
 
-E<lt>& I<template_filename>, I<arguments> &E<gt>
+E<lt>%includeE<gt> I<template_filename>, I<arguments> E<lt>/%includeE<gt>
 
 Includes the results of a separate file containing MicroMason code, compiling it and executing it with any arguments passed after the filename.
 
-For example, we could place the following template text into an separate 
-file:
+  <%include> "greeting.msn", hour => (localtime)[2] </%include>
 
-    Good <% $ARGS{hour} >11 ? 'afternoon' : 'morning' %>.
+=item *
 
-Assuming this file was named "greeting.msn", its results could be embedded within the output of another script as follows:
+E<lt>%outputE<gt> ... E<lt>/%outputE<gt>
 
-  <& "greeting.msn", hour => (localtime)[2] &>
+Produces literal text in the template output. Can be used to surround text
+that contains other markup tags that should not be interpreted.
 
 =item *
 
@@ -250,6 +309,31 @@ template is executed:
 
     This is a funny joke.
     % $OUT =~ tr[a-z][n-za-m] if $ARGS{minor};
+
+
+=head1 SYNTAX MIXINS
+
+This behavior can be supplemented or overridden by subclasses and mixins. (Of particular interest are the private lex(), assemble(), and eval_sub() methods.) For more information about how these mixin behaviors are implemented and selected, see L<Text::MicroMason/"Object-Oriented Interface">.
+
+=head2 Filters
+
+HTML::Mason provides an expression filtering mechanism which is typically used for applying HTML and URL escaping functions to output. 
+
+The Filters mixin provides this capability for Text::MicroMason templates. To select it, add its name to your Mason initialization call:
+
+  my $mason = Text::MicroMason->new( -Filters );
+
+Output expressions may then be followed by "|h" or "|u" escapes; for example this line would convert any ampersands in the output to the equivalent HTML entity:
+
+  Welcome to <% $company_name |h %>
+
+For more information see L<Text::MicroMason::Filters>
+
+=head2 ServerPages
+
+The ServerPages mixin replaces the supported template syntax with one similar to that used by the ASP and JSP templating systems.
+
+For more information see L<Text::MicroMason::ServerPages>
 
 
 =head1 SEE ALSO
