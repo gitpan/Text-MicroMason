@@ -1,3 +1,21 @@
+2003-09-26
+    Discard line break after <%perl> block as suggested by Tommi
+    Maekitalo. 
+
+      UPGRADE COMPATIBILITY WARNING:
+      Note that removing these line breaks may affect the rendering
+      of your current templates! Although I am typically hesitant
+      to change established behavior, this does improve the template
+      output and brings us into line with HTML::Mason's behavior.
+
+    Added $Debug flag and support for <%args> blocks based on a
+    contribution by Tommi Maekitalo.
+
+    Adjusted internals to allow block reordering, and added support for
+    <%init> and <%once>.
+
+    Released as Text-MicroMason-1.07.tar.gz.
+
 2003-09-04
     Changed the way that subroutines were scoped into the
     Text::MicroMason::Commands namespace so that Safe compartments with
@@ -11,6 +29,11 @@
 
     Simplified parser regular expressions by using non-greedy matching.
 
+    Added documentation for *_file() functions. Corrected documentation
+    to reflect the fact that template code is not compiled with "use
+    safe" in effect by default, but that this might change in the
+    future.
+
     Released as Text-MicroMason-1.06.tar.gz.
 
 2003-08-11
@@ -23,13 +46,19 @@
     debugging messages to better track future reports of
     whitespace-related bugs.
 
-    Moved tests from test.pl into t/ subdirectory. Added experimental
-    suppport for file code cache in compile_file_codecache. Released as
-    Text-MicroMason-1.05.tar.gz.
+    Moved tests from test.pl into t/ subdirectory.
+
+    Added experimental suppport for file code cache in
+    compile_file_codecache.
+
+    Released as Text-MicroMason-1.05.tar.gz.
 
 2002-06-23
     Adjusted regular expression based on parsing problems reported by
-    Mark Hampton. Added file-include support with <& ... &> syntax.
+    Mark Hampton.
+
+    Added file-include support with <& ... &> syntax.
+
     Documentation tweaks. Adjusted version number to simpler 0.00
     format. Released as Text-MicroMason-1.04.tar.gz.
 
@@ -38,8 +67,8 @@
     author's contact information.
 
 2001-07-01
-    Documentation tweaks. Renamed from HTML::MicroMason to
-    Text::MicroMason. Released as Text-MicroMason-1.0.3.tar.gz.
+    Renamed from HTML::MicroMason to Text::MicroMason. Documentation
+    tweaks. Released as Text-MicroMason-1.0.3.tar.gz.
 
 2001-04-10
     Munged interface for clarity. Added Safe support. Adjusted docs to

@@ -3,7 +3,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 18 }
+BEGIN { plan tests => 20 }
 
 my $loaded;
 END { ok(0) unless $loaded; }
@@ -19,6 +19,14 @@ MINIMAL_CASES: {
   ok( execute(' '), ' ' );
   ok( execute("0"), "0" );
   ok( execute("\n"), "\n" );
+}
+
+######################################################################
+
+EMPTY_PERL_LINE: {
+  my $scr_re = "x\n%\nx";
+  my $res_re = "x\nx";
+  ok( execute($scr_re), $res_re );
 }
 
 ######################################################################
@@ -131,7 +139,7 @@ ANGLE_PERCENT_BLOCK_AT_EOF: {
 FILE_BLOCK_AT_EOF: {
   my $scr_hello = "<& 't/test-recur.msn', name => 'Dave' &>";
   
-  my $res_hello = "Test greeting:\n\n" . 'Good afternoon, Dave!' . "\n";
+  my $res_hello = "Test greeting:\n" . 'Good afternoon, Dave!' . "\n";
   
   ok( execute($scr_hello), $res_hello );
 }
@@ -142,6 +150,13 @@ LOOKS_LIKE_HTML: {
   my $scr_hello = '<TABLE border="1" width="100%"><tr><td>Hi</td></tr></table>';
 
   ok( execute($scr_hello), $scr_hello );
+}
+
+######################################################################
+
+STRICT_VARS: {
+  my $scr_re = '% $foo ++; ';
+  ok( ! eval { execute($scr_re); 1 } );
 }
 
 ######################################################################

@@ -49,8 +49,7 @@ ENDSCRIPT
 
   my $res_count = <<'ENDSCRIPT';
 Counting...
-123456789
-Done!
+123456789Done!
 ENDSCRIPT
   
   ok( execute($scr_count), $res_count );
@@ -69,25 +68,15 @@ ENDSCRIPT
 
   my $res_count = <<'ENDSCRIPT';
 <table><tr>
-
   <td><b>1</b></td>
-
   <td><b>2</b></td>
-
   <td><b>3</b></td>
-
   <td><b>4</b></td>
-
   <td><b>5</b></td>
-
   <td><b>6</b></td>
-
   <td><b>7</b></td>
-
   <td><b>8</b></td>
-
   <td><b>9</b></td>
-
 </tr></table>
 ENDSCRIPT
   

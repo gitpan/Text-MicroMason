@@ -1,5 +1,5 @@
 package Text::MicroMason;
-$VERSION = 1.06;
+$VERSION = 1.07;
 
 @EXPORT_OK = qw( 
   compile execute safe_compile safe_execute compile_file execute_file 
@@ -10,16 +10,8 @@ require 5.0; # The tests use the new subref->() syntax, but the module doesn't
 use strict;
 require Carp;
 
-######################################################################
-
-# Constant pre/postfix used for subroutine generation
-$Text::MicroMason::Prefix ||= 'sub {
-  local $SIG{__DIE__} = sub { die "MicroMason execution failed: ", @_ };
-  my $OUT = ""; my $_out = sub { $OUT .= join "", @_ }; my %ARGS = @_; ';
-
-$Text::MicroMason::Postfix ||= '  ; return $OUT;' . "\n}";
-
-$Text::MicroMason::FileIncluder ||= 'Text::MicroMason::execute_file';
+use vars qw( $Debug );
+$Debug ||= 0;
 
 ######################################################################
 
@@ -28,66 +20,101 @@ $Text::MicroMason::FileIncluder ||= 'Text::MicroMason::execute_file';
   "\\"=>'\\', "\r"=>'r', "\n"=>'n', "\t"=>'t', "\""=>'"' 
 );
 
-# $special_characters_escaped = printable( $source_string );
-sub printable ($) {
+# $special_characters_escaped = _printable( $source_string );
+sub _printable ($) {
   local $_ = scalar(@_) ? (shift) : $_;
   return unless defined;
   s/([\r\n\t\"\\\x00-\x1f\x7F-\xFF])/\\$Text::MicroMason::Escape{$1}/sg;
   return "'$_'";
 }
 
+######################################################################
+
+# Constant pre/postfix used for subroutine generation
+$Text::MicroMason::Prefix ||= 'sub {
+  local $SIG{__DIE__} = sub { die "MicroMason execution failed: ", @_ };
+  my $OUT = ""; my $_out = sub { $OUT .= join "", @_ }; 
+  my %ARGS = @_ if ($#_ % 2); ';
+
+$Text::MicroMason::Postfix ||= '  ; return $OUT;' . "\n}";
+
+$Text::MicroMason::FileIncluder ||= 'Text::MicroMason::execute_file';
+
 # $perl_code = parse( $mason_text );
 sub parse {
   my $template = join("\n", @_);
   
-  my @tokens = ( $template =~ /(?:\A|\G)(
+  my @tokens = ( $template =~ /\G (
     # Lines begining with %
-    (?: \A|(?<=\r|\n) ) \% [^\n\r]+ (?:\r\n|\r|\n|\Z) |
-    # Blocks enclosed in <%perl> ... <%perl> tags.
-    \<\%perl\> .*? \<\/\%perl\> |	  
-    # Blocks enclosed in <% ... %> tags.
+    (?: \A|(?<=\r|\n) ) \% [^\n\r]* (?:\r\n|\r|\n|\z) |
+    # Blocks in <%word> ... <%word> tags.
+    \<\%(?:perl|args|once|init|cleanup)\> .*? \<\/\%\w{4,7}\> (?:\r\n|\r|\n)? | 
+    # Blocks in <% ... %> tags.
     \<\% .*? \%\> | 
-    # Blocks enclosed in <& ... &> tags.
+    # Blocks in <& ... &> tags.
     \<\& .*? \&\> | 
     # Things that don't match the above.
     (?: 
       [^\<\r\n%]+ | \<(?!\%|\&) | (?<=[^\r\n\<])% |
-      (?:\r\n|\r|\n)(?:\Z|[^\r\n\%\<]|(?=\r\n|\r|\n|\%)|\<[^\%\&]|(?=\<[\%\&])) 
-    )+ (?:(?:\r\n|\r|\n)+(?:\Z|(?=\%|\<\[\%\&])) )?
+      (?:\r\n|\r|\n)(?:\z|[^\r\n\%\<]|(?=\r\n|\r|\n|\%)|\<[^\%\&]|(?=\<[\%\&])) 
+    )+ (?:(?:\r\n|\r|\n)+(?:\z|(?=\%|\<\[\%\&])) )?
   )/gxs );
   
   my $parsed = join('', @tokens);
-  if ( 0 ) {
-    warn( "Source: " . length($template) . " " . printable($template) . "\n" ); 
-    warn( "Parsed: " . length($parsed) . " " . printable($parsed) . "\n" ); 
-    warn( "Tokens: " . join(', ', map printable($_), @tokens ) . "\n" ); 
-  }
-
-  if ( ( (my $count = length($parsed)) != length( $template ) ) ) {
-    Carp::croak("MicroMason parsing halted at $count of " . length($template) .
-	 " characters: " . printable(substr($template, $count)) . ", after " .
-	 join(', ', map printable($_), (reverse @tokens)[0..2]));
+  if ( $Debug ) {
+    warn( "Source: " . length($template) . " " . _printable($template) . "\n" ); 
+    warn( "Parsed: " . length($parsed) . " " . _printable($parsed) . "\n" ); 
+    warn( "Tokens: " . join(', ', map _printable($_), @tokens ) . "\n" ); 
   }
   
-  my $code = join "\n", $Text::MicroMason::Prefix, map( {
+  if ( ( (my $count = length($parsed)) != length( $template ) ) ) {
+    Carp::croak("MicroMason parsing halted at $count of " . length($template) .
+	 " characters: " . _printable(substr($template, $count)) . ", after " .
+	 join(', ', map _printable($_), reverse( (reverse @tokens)[0..2]) ) );
+  }
+
+  my @pre = $Text::MicroMason::Prefix;
+  my @post = $Text::MicroMason::Postfix;
+  my @code; push @code, map( {
     if ( s/\A\n?\%\s?// ) {
       # Lines begining with %
       $_
     } elsif ( s/\A\<\%perl\>// ) {
-      # Blocks enclosed in <%perl> ... <%perl> tags.
+      # Blocks in <%perl> ... <%perl> tags.
       s/\<\/\%perl\>\Z// and $_
+    } elsif ( s/\A\<\%init\>// ) {
+      # Blocks in <%init> ... <%init> tags get moved up to start of sub
+      s/\<\/\%init\>\Z// and unshift(@code, "$_;") and ()
+    } elsif ( s/\A\<\%cleanup\>// ) {
+      # Blocks in <%cleanup> ... <%cleanup> tags get moved down to end of sub
+      s/\<\/\%cleanup\>\Z// and unshift(@post, "$_;") and ()
+    } elsif ( s/\A\<\%once\>// ) {
+      # Blocks in <%once> ... <%once> tags get moved up above the sub
+      s/\<\/\%once\>\Z// and unshift(@pre, "$_;") and ()
+    } elsif ( s/\A\<\%args\>// ) {
+      # Blocks in <%args> ... <%args> tags.
+      s/\<\/\%args\>\Z//;
+      s/^\s*([\$\@\%])(\w+) (?:\s* => \s* ([^\r\n]+))?/
+	"my $1$2 = exists \$ARGS{$2} ? " . 
+	( ($1 eq '$') ? "\$ARGS{$2}" : "$1\{ \$ARGS{$2} }" ) . " : " . 
+	($3 ? $3 : qq{Carp::croak("no value sent for required parameter '$2'")}) 
+	. ";"/gexm;
+      $_ = qq{($#_ % 2) or Carp::croak("Odd number of parameters passed to sub expecting name/value pairs"); $_}.
+      push(@pre,$_) and ();
     } elsif ( /\A\<\%(.*)\%\>/ ) {
-      # Blocks enclosed in <% ... %> tags.
+      # Blocks in <% ... %> tags.
       "  &\$_out( do { $1 } );"
     } elsif ( /\A\<\&\s*(.*)\&\>/ ) {
-      # Blocks enclosed in <& ... &> tags.
+      # Blocks in <& ... &> tags.
       "  &\$_out( $Text::MicroMason::FileIncluder( $1 ) );"
     } else {
       # Things that don't match the above.
       s/([\\\'])/\\$1/g; "  &\$_out('$_');"
     }
-  } @tokens ), $Text::MicroMason::Postfix;
-  if ( 0 ) {
+  } @tokens );
+  
+  my $code = join "\n", @pre, @code, @post;
+  if ( $Debug ) {
     warn "MicroMason subroutine: $code\n";
   }
 
@@ -102,7 +129,7 @@ sub compile {
 
   # Template code will be compiled in the below package; strict it.
   package Text::MicroMason::Commands; 
-  # use strict; 
+  use strict; 
   
   eval($code) or Carp::croak("MicroMason compilation failed: $@\n" . 
 	"Error in template subroutine: $code");
@@ -145,59 +172,6 @@ sub execute_file {
 
 ######################################################################
 
-# To support use of Cache::Cache without focing a dependency on it
-MICRO_CACHE_CLASS: {
-  package Text::MicroMason::BasicCache;
-  sub new { my $class = shift; bless { @_ }, $class }
-  sub get { (shift)->{ (shift) } }
-  sub set { (shift)->{ (shift) } = (shift) }
-  sub clear { %{ (shift) } = () }
-}
-
-use vars qw( $FileCodeCache );
-$FileCodeCache = Text::MicroMason::BasicCache->new();
-
-# $code_ref = compile_file_codecache( $filename );
-# $code_ref = compile_file_codecache( $filename, $cache );
-sub compile_file_codecache {
-  my $file = shift 
-    or Carp::croak("MicroMason: filename is missing or empty");
-  
-  my $cache = shift || $FileCodeCache;
-
-  my $time = time();
-
-  my $cache_entry = $cache->get( $file );
-  if ( $cache_entry ) {
-    unless ( ref( $cache_entry) eq 'ARRAY' and $#$cache_entry == 2 ) {
-      Carp::croak("MicroMason: file code cache '$cache' hold corrupted data; " . 
-			      "value for '$file' is '$cache_entry'");
-    }
-  } else {
-    $cache_entry = [ 0, 0, undef ];
-  }
-  
-  if ( $cache_entry->[0] < $time ) {
-    $cache_entry->[0] = time();
-    my $mtime = -M $file;
-    if ( $cache_entry->[1] < $mtime ) {
-      $cache_entry->[1] = $mtime;
-      $cache_entry->[2] = compile_file( $file );
-    }
-    $cache->set( $file, $cache_entry );
-  }
-
-  return $cache_entry->[2]
-}
-
-# $result = execute_file_codecache( $filename, $cache, %args );
-sub execute_file_codecache {
-  my $sub_ref = compile_file_codecache( shift, shift ); 
-  &$sub_ref( @_ )
-}
-
-######################################################################
-
 # $code_ref = safe_compile( $mason_text );
 # $code_ref = safe_compile( $safe_ref, $mason_text );
 sub safe_compile {
@@ -229,6 +203,69 @@ push @Text::MicroMason::EXPORT_OK, map "try_$_", @Text::MicroMason::EXPORT_OK;
 
 ######################################################################
 
+1;
+
+__END__
+
+######################################################################
+
+### Experimental ###
+# To support use of Cache::Cache without focing a dependency on it
+MICRO_CACHE_CLASS: {
+  package Text::MicroMason::BasicCache;
+  sub new { my $class = shift; bless { @_ }, $class }
+  sub get { (shift)->{ (shift) } }
+  sub set { (shift)->{ (shift) } = (shift) }
+  sub clear { %{ (shift) } = () }
+}
+
+### Experimental ###
+use vars qw( $FileCodeCache );
+$FileCodeCache = Text::MicroMason::BasicCache->new();
+
+### Experimental ###
+# $code_ref = compile_file_codecache( $filename );
+# $code_ref = compile_file_codecache( $filename, $cache );
+sub compile_file_codecache {
+  my $file = shift 
+    or Carp::croak("MicroMason: filename is missing or empty");
+  
+  my $cache = shift || $FileCodeCache;
+  
+  my $time = time();
+  
+  my $cache_entry = $cache->get( $file );
+  if ( $cache_entry ) {
+    unless ( ref( $cache_entry) eq 'ARRAY' and $#$cache_entry == 2 ) {
+      Carp::croak("MicroMason: file code cache '$cache' hold corrupted data; " . 
+			      "value for '$file' is '$cache_entry'");
+    }
+  } else {
+    $cache_entry = [ 0, 0, undef ];
+  }
+  
+  if ( $cache_entry->[0] < $time ) {
+    $cache_entry->[0] = time();
+    my $mtime = -M $file;
+    if ( $cache_entry->[1] < $mtime ) {
+      $cache_entry->[1] = $mtime;
+      $cache_entry->[2] = compile_file( $file );
+    }
+    $cache->set( $file, $cache_entry );
+  }
+
+  return $cache_entry->[2]
+}
+
+### Experimental ###
+# $result = execute_file_codecache( $filename, $cache, %args );
+sub execute_file_codecache {
+  my $sub_ref = compile_file_codecache( shift, shift ); 
+  &$sub_ref( @_ )
+}
+
+######################################################################
+
 # $code_ref = compiler( text => $mason_text, %options );
 # $code_ref = compiler( file => $filename, %options );
 #     %options: safe_partition => 1, 
@@ -245,7 +282,6 @@ push @Text::MicroMason::EXPORT_OK, map "try_$_", @Text::MicroMason::EXPORT_OK;
 
 __END__
 
-
 =head1 NAME
 
 Text::MicroMason - Simplified HTML::Mason Templating
@@ -256,14 +292,17 @@ Text::MicroMason - Simplified HTML::Mason Templating
 Mason syntax provides several ways to mix Perl into a text template:
 
     $template = <<'END_TEMPLATE';
-    % if ( $ARGS{name} eq 'Dave' ) {
-      I'm sorry <% $ARGS{name} %>, I'm afraid I can't do that right now.
+    <%args>
+      $name
+    </%args>
+    % if ( $name eq 'Dave' ) {
+      I'm sorry <% $name %>, I'm afraid I can't do that right now.
     % } else {
       <%perl>
 	my $hour = (localtime)[2];
-	my $greeting = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
+	my $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
       </%perl>
-      Good <% $greeting %>, <% $ARGS{name} %>!
+      Good <% $daypart %>, <% $name %>!
     % }
     END_TEMPLATE
 
@@ -311,7 +350,7 @@ Interpreting this template with Text::MicroMason produces the same output as it 
     Hello World!
     How are ya?
 
-=head2 Supported Syntax
+=head1 TEMPLATE SYNTAX
 
 Text::MicroMason supports the following subset of the HTML::Mason syntax:
 
@@ -343,13 +382,42 @@ a semicolon.
 
 =item *
 
+% I<perl_code>
+
+Lines which begin with the % character, without any leading
+whitespace, may contain arbitrary Perl code to be executed when
+encountering this portion of the template.  Their result is not
+interpolated into the result.
+
+For example, the following template text will return a scheduled
+greeting:
+
+    % my $daypart = (localtime)[2]>11 ? 'afternoon' : 'morning';
+    Good <% $daypart %>.
+
+The line may contain one or more statements.  This code is not
+placed in its own scope, and so should include a semicolon at the
+end, unless it deliberately forms a spanning block scope closed by
+a later perl block. Without a semicolon, the Perl code can include
+flow-control statements whose scope stretches across multiple
+blocks.
+
+For example, the following template text will return one of two different messages each time it's interpreted:
+
+    % if ( int rand 2 ) {
+      Hello World!
+    % } else {
+      Goodbye Cruel World!
+    % }
+
+This also allows you to quickly comment out sections of a template by prefacing each line with C<% #>.
+
+=item *
+
 E<lt>%perlE<gt> I<perl_code> E<lt>/%perlE<gt>
 
 Blocks surrounded by %perl tags may contain arbitrary Perl code.
 Their result is not interpolated into the result.
-
-Statements in this type of block are not placed in their own scope,
-and so should include a semicolon at the end.
 
 These blocks may span multiple lines in your template file. For
 example, the below template initializes a Perl variable inside a
@@ -360,10 +428,13 @@ example, the below template initializes a Perl variable inside a
     </%perl>
     Here are some numbers: <% $count %>
 
-The Perl code can include flow-control statements whose scope
-stretches across multiple blocks. For example, when the below template
-text is evaluated it will return a digit sequence similar to the
-above:
+The block may contain one or more statements. 
+This code is not placed in its own scope, and so should include a
+semicolon at the end, unless it deliberately forms a spanning block
+scope closed by a later perl block.
+
+For example, when the below template text is evaluated it will
+return a sequence of digits:
 
     Here are some numbers: 
     <%perl> 
@@ -381,24 +452,63 @@ single line if desired.
 
 =item *
 
-% I<perl_code>
+E<lt>%initE<gt> I<perl_code> E<lt>/%initE<gt>
 
-Lines which begin with the % character, without any leading whitespace, may contain arbitrary Perl code.
+Similar to a %perl block, except that the code is moved up to the start of the subroutine. This allows a template's initialization code to be moved to the end of the file rather than requiring it to be at the top.
 
-Statements in this type of block are not placed in their own scope,
-and so should include a semicolon at the end.
+For example, the following template text will return a scheduled
+greeting:
 
-This is equivalent to a single-line %perl block, but may be more
-readable in some contexts. For example, the following template text
-will return one of two different messages each time it's interpreted:
+    Good <% $daypart %>.
+    <%init> 
+      my $daypart = (localtime)[2]>11 ? 'afternoon' : 'morning';
+    </%init>
 
-    % if ( int rand 2 ) {
-      Hello World!
-    % } else {
-      Goodbye Cruel World!
-    % }
+=item *
 
-This also allows you to quickly comment out sections of a template by prefacing each line with C<% #>.
+E<lt>%cleanupE<gt> I<perl_code> E<lt>/%cleanupE<gt>
+
+Similar to a %perl block, except that the code is moved down to the end of the subroutine. 
+
+=item *
+
+E<lt>%onceE<gt> I<perl_code> E<lt>/%onceE<gt>
+
+Similar to a %perl block, except that the code is executed once,
+when the template is first compiled. (If a caller is using execute,
+this code will be run repeatedly, but if they call compile and then
+invoke the resulting subroutine multiple times, the %once code will
+only execute during the compilation step.)
+
+This code does not have access to %ARGS and can not generate output.
+It can be used to define constants, create persistent variables,
+or otherwise prepare the environment.
+
+For example, the following template text will return a increasing
+number each time it is called:
+
+    <%once> 
+      my $counter = 1000;
+    </%once>
+    The count is <% ++ $counter %>.
+
+=item *
+
+E<lt>%argsE<gt> I<variable> => I<default> E<lt>/%argsE<gt>
+
+Defines a collection of variables to be initialized from named arguments passed to the subroutine. Arguments are separated by one or more newlines, and may optionally be followed by a default value. If no default value is provided, the argument is required and the subroutine will croak if it is not provided. 
+
+For example, adding the following block to a template will initialize the three named variables, and will fail if no C<a =E<gt> '...'> argument pair is passed:
+
+  <%args>
+    $a
+    @b => qw( foo bar baz )
+    %c => ()
+  </%args>
+
+All the arguments are available as lexically scoped ("my") variables in the rest of the component. Default expressions are evaluated in top-to-bottom order, and one expression may reference an earlier one.
+
+Only valid Perl variable names may be used in <%args> sections. Parameters with non-valid variable names cannot be pre-declared and must be fetched manually out of the %ARGS hash. 
 
 =item *
 
@@ -448,11 +558,13 @@ You can also pass a list of key-value pairs as arguments to execute, or to the c
   
   $result = $sub_ref->( %args );
 
-Within the scope of your template, any arguments that were provided will be accessible in C<%ARGS>, as well as in @_.
+Within the scope of your template, any arguments that were provided will be accessible in the global @_, the C<%ARGS> hash, and any variables named in an %args block.
 
-For example, the below call will return '<b>Foo</b>':
+For example, the below calls will all return '<b>Foo</b>':
 
+  execute('<b><% shift(@_) %></b>', 'Foo');
   execute('<b><% $ARGS{label} %></b>', label=>'Foo');
+  execute('<%args>$label</%args><b><% $label %></b>', label=>'Foo');
 
 =head2 Error Checking
 
@@ -545,8 +657,8 @@ interpolated expressions are converted to C<$_out-E<gt>( expr );>
 statements. Code from %perl blocks and % lines are included exactly
 as-is. 
 
-Your code is eval'd in the C<Text::MicroMason::Commands> package.
-Currently C<use strict;> is off by default, but this may change in the future.
+Your code is eval'd in the C<Text::MicroMason::Commands> package. 
+The C<use strict;> pragma is enabled by default to simplify debugging.
 
 =head2 Internal Sub-templates
 
@@ -666,6 +778,8 @@ and "$_out->()" ), and omits the features that are web specific
 (like autohandlers) or are less widely used (like "<%method>"
 blocks).
 
+=head2 Related Modules
+
 You may well be thinking "yet another dynamic templating module?
 Sheesh!" And you'd have a good point. There certainly are a variety
 of templating toolkits on CPAN already; even restricting ourselves
@@ -683,10 +797,10 @@ a reasonable subset of HTML::Mason syntax in a very light-weight
 fashion. In comparison to the other modules listed, MicroMason aims
 to be fairly lightweight, using one eval per parse, converting the
 template to an cacheable unblessed subroutine ref, eschewing method
-calls, and containing only a hundred or so lines of Perl code.
+calls, and containing just over a hundred lines of Perl code.
 
 
-=head1 COMPATIBILITY WITH HTML::MASON 
+=head2 Compatibility with HTML::Mason
 
 See L<HTML::Mason> for a much more full-featured version of the
 capabilities provided by this module.
@@ -696,15 +810,13 @@ into your process, you're probably better off using it rather than
 this package. HTML::Mason's C<$interp-E<gt>make_component()> method
 allows you to parse a text string without saving it to disk first.
 
-=head2 Unsupported Features
-
 The following sets of HTML::Mason features are B<not> supported by Text::MicroMason:
 
 =over 4
 
 =item *
 
-No %attr, %shared, %method, %def, %init, or %args blocks.
+No %attr, %shared, %method, or %def blocks.
 
 =item *
 
@@ -728,27 +840,51 @@ No mod_perl integration or configuration capability.
 
 =back
 
+=head1 DISTRIBUTION, INSTALLATION AND SUPPORT
 
-=head1 INSTALLATION
+=head2 Version
+
+This is version 1.07 of Text::MicroMason.
+
+=head2 Prerequisites
 
 This module should work with any version of Perl 5, without platform
 dependencies or additional modules beyond the core distribution.
 
-Retrieve the current distribution from CPAN, or from the author's site:
+=head2 Installation
 
-  http://search.cpan.org/author/EVO/Text-MicroMason/
-  http://www.evoscript.com/Text-MicroMason/
+You should be able to install this module using the CPAN shell interface:
 
-Download and unpack the distribution, and execute the standard "perl Makefile.PL", "make test", "make install" sequence. 
+  perl -MCPAN -e 'install Text::MicroMason'
 
+Alternately, you may retrieve this package from CPAN or from the author's site:
 
-=head1 VERSION
+=over 2
 
-This is version 1.06 of Text::MicroMason.
+=item *
 
-=head2 Distribution Summary
+http://search.cpan.org/~evo/
 
-The CPAN DSLI entry reads:
+=item *
+
+http://www.cpan.org/modules/by-authors/id/E/EV/EVO
+
+=item *
+
+http://www.evoscript.org/Text-MicroMason/dist/
+
+=back
+
+After downloading the distribution, follow the normal procedure to unpack and install it, using the commands shown below or their local equivalents on your system:
+
+  tar xzf Text-MicroMason-*.tar.gz
+  cd Text-MicroMason-*
+  perl Makefile.PL
+  make test && sudo make install
+
+=head2 Release Status
+
+This module's CPAN registration should read:
 
   Name            DSLIP  Description
   --------------  -----  ---------------------------------------------
@@ -756,27 +892,122 @@ The CPAN DSLI entry reads:
   ::MicroMason    Rdpfp  Simplified HTML::Mason Templating
 
 This module should be categorized under group 11, Text Processing
-(although there's also an argument for placing it 15 Web/HTML, where
-HTML::Mason appears).
+(although there's also an lesser argument for placing it 15 Web/HTML, 
+where HTML::Mason appears).
 
-=head2 Discussion and Support
+This module has been available on CPAN for over two years, with a
+relatively stable interface and feature set. If you encounter
+any problems, please inform the author and I'll endeavor to patch
+them promptly. 
 
-Bug reports or general feedback would be welcomed by the author at simonm@cavalletto.org.
+=head2 Tested Platforms
+
+This release has been tested succesfully on the following platforms:
+
+  5.6.1 on darwin
+
+Earlier releases have also tested OK on a wide variety of platforms.
+You may review the current test results from CPAN-Testers:
+
+=over 2
+
+=item *
+
+http://testers.cpan.org/show/Text-MicroMason.html
+
+=back
+
+=head2 Support
+
+If you have questions or feedback about this module, please feel
+free to contact the author at the below address. Although there is
+no formal support program, I do attempt to answer email promptly. 
+
+I would be particularly interested in any suggestions towards
+improving the documentation, correcting any Perl-version or platform
+dependencies, as well as general feedback and suggested additions.
+
+Bug reports that contain a failing test case are greatly appreciated,
+and suggested patches will be promptly considered for inclusion in
+future releases.
 
 To report bugs via the CPAN web tracking system, go to 
 C<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Text-MicroMason> or send mail 
 to C<Dist=Text-MicroMason#rt.cpan.org>, replacing C<#> with C<@>.
 
+=head2 Community
 
-=head1 CHANGES
+If you've found this module useful or have feedback about your
+experience with it, consider sharing your opinion with other Perl
+users by posting your comment to CPAN's ratings system:
+
+=over 2
+
+=item *
+
+http://cpanratings.perl.org/rate/?distribution=Text-MicroMason
+
+=back
+
+For more general discussion, you may wish to post a message on PerlMonks or the comp.lang.perl.misc newsgroup:
+
+=over 2
+
+=item *
+
+http://www.perlmonks.org/index.pl?node=Seekers%20of%20Perl%20Wisdom
+
+=item *
+
+http://groups.google.com/groups?group=comp.lang.perl.misc
+
+=back
+
+=head2 Development Plans
+
+=over 4 
+
+=item *
+
+Complete and test compile_file_codecache and related functions.
+
+=item *
+
+Consider deprecating most or all of the existing public interface in favor of a single compiler() function that supports all of the possible options, including files, code and result caches, and exception handling.
+
+=back
+
+=head2 Change History
 
 =over 4
 
+=item 2003-09-26
+
+Discard line break after <%perl> block as suggested by Tommi
+Maekitalo. Note that removing these line breaks may affect the
+rendering of your current templates! Although I am typically hesitant
+to change established behavior, this does improve the template
+output and brings us into line with HTML::Mason's behavior.
+
+Added $Debug flag and support for <%args> blocks based on a
+contribution by Tommi Maekitalo.
+
+Adjusted internals to allow block reordering, and added support
+for <%init> and <%once>.
+
+Released as Text-MicroMason-1.07.tar.gz.
+
 =item 2003-09-04
 
-Changed the way that subroutines were scoped into the Text::MicroMason::Commands namespace so that Safe compartments with separate namespaces and shared symbols have the visibility that one would expect. 
+Changed the way that subroutines were scoped into the
+Text::MicroMason::Commands namespace so that Safe compartments with
+separate namespaces and shared symbols have the visibility that
+one would expect.
 
-Fixed a bug in which an unadorned percent sign halted parsing, as reported by William Kern at PixelGate. Added a test to the end of 6-regression.t that fails under 1.05 but passes under 1.06 to confirm this.
+Fixed a bug in which an unadorned percent sign halted parsing, as
+reported by William Kern at PixelGate. Added a test to the end of
+6-regression.t that fails under 1.05 but passes under 1.06 to
+confirm this.
 
 Simplified parser regular expressions by using non-greedy matching.
 
@@ -843,46 +1074,18 @@ Created.
 =back
 
 
-=head1 TO DO
-
-=over 4 
-
-=item *
-
-Consider deprecating most or all of the existing public interface in favor of a single compiler() function that supports all of the possible options, including files, code and result caches, and exception handling.
-
-=item *
-
-Complete and test compile_file_codecache and related functions.
-
-=item *
-
-Test compatibility against older versions of Perl and odder OS platforms.
-
-=item *
-
-Perhaps support E<lt>%initE<gt> ... E<lt>/%initE<gt>, by treating it as a %perl block at the begining of the string.
-
-=item *
-
-Perhaps support E<lt>%argsE<gt> $foo => default E<lt>/%argsE<gt>.
-
-Perhaps warn if %args block exists but template called with odd number of arguments.
-
-=back
-
-
 =head1 CREDITS AND COPYRIGHT
 
-=head2 Developed By
+=head2 Author
 
 Developed by Matthew Simon Cavalletto at Evolution Softworks. 
-You may contact the author directly at C<simonm@cavalletto.org>.
 More free Perl software is available at C<www.evoscript.org>.
+
+You may contact the author directly at C<evo@cpan.org> or C<simonm@cavalletto.org>. 
 
 =head2 The Shoulders of Giants
 
-Inspired by Jonathan Swartz's HTML::Mason.
+Based on the superb HTML::Mason, originally developed by Jonathan Swartz. 
 
 =head2 Feedback and Suggestions 
 
@@ -893,6 +1096,7 @@ My sincere thanks to the following users who have provided feedback:
   Philip King
   Daniel J. Wright
   William Kern
+  Tommi Maekitalo
 
 =head2 Copyright
 
