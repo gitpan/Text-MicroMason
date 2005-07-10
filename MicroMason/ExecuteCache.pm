@@ -13,7 +13,7 @@ use vars qw( %Defaults );
 $Defaults{ execute_cache } = Text::MicroMason::Cache::Simple->new();
 
 sub defaults {
-  (shift)->NEXT('defaults'), %Text::MicroMason::ExecuteCache::Defaults
+  (shift)->NEXT('defaults'), %Defaults
 }
 
 ######################################################################
@@ -30,7 +30,7 @@ sub compile {
   sub {
     my $key = join("|", $code_ref, @_);
     $cache->get( $key ) or $cache->set( $key, &$code_ref( @_ ) );
-  }  
+  }
 }
 
 ######################################################################

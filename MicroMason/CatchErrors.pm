@@ -5,11 +5,9 @@ use Carp;
 
 ######################################################################
 
-use vars qw( %Defaults );
-
-$Defaults{ error_string } = 1;
-
-######################################################################
+# sub defaults {
+#   (shift)->NEXT('assembler_rules'), error_string => 1
+# }
 
 sub compile {
   my $result = eval { local $SIG{__DIE__}; (shift)->NEXT('compile', @_) };

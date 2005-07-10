@@ -6,7 +6,7 @@ use Test;
 BEGIN { plan tests => 3 }
 
 use Text::MicroMason;
-my $m = Text::MicroMason->new( -CatchErrors, -TemplateDir, template_root => 'examples/' );
+my $m = Text::MicroMason->new( -CatchErrors, -TemplateDir, template_root => 'samples/' );
 
 ######################################################################
 
@@ -28,7 +28,7 @@ TAG: {
 
 BASE: {
   my $m = Text::MicroMason->new( -CatchErrors, -TemplateDir );
-  my $scr_hello = "<& 'examples/test-relative.msn', name => 'Dave' &>";
+  my $scr_hello = "<& 'samples/test-relative.msn', name => 'Dave' &>";
   my $res_hello = "Test greeting:\n" . 'Good afternoon, Dave!' . "\n";
   ok( $m->execute(text=>$scr_hello), $res_hello );
 }

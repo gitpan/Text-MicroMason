@@ -16,13 +16,19 @@ sub defaults {
 
 ######################################################################
 
-sub new {
+my %param_mapping = (    		### <<== INCOMPLETE ###
+  global_vars => 'loop_global_vars',
+  cache => '-CompileCache',
+  path => '-TemplatePaths',
+);
+
+sub create {
   my ( $class, %options ) = @_;
   my @compile; 
   if ( my $file = delete $options{filename} ) {
     @compile = ( 'file' => $file );
   } 
-  my $self = $class->NEXT('new', %options);
+  my $self = $class->NEXT('create', %options);
   $self->compile( @compile ) if @compile;
   $self;
 }
@@ -156,8 +162,23 @@ sub assemble_tmpl_include {
 
 sub assemble_tmpl_loop {
   my ($self, $args) = @_;
-  perl => q/foreach my $args ( $m->param( '/ . $args->{name} . q/' ) ) { 
-    local $m->{params} = [ $args, $m->{global_vars} ? @{$m->{params}} : () ];/
+  if ( ! $self->{loop_context_vars} ) {
+    perl => q/foreach my $args ( $m->param( '/ . $args->{name} . q/' ) ) {
+      local $m->{params} = [ $args, $m->{loop_global_vars} ? @{$m->{params}} : () ];/
+  } else {
+    perl => q/my @loop = $m->param( '/ . $args->{name} . q/' );
+      foreach my $count ( 0 .. $#loop ) {
+    my $args = $loop[ $count ];
+    my %loop_context = (
+      __counter__ => $count,
+      __odd__ => ( $count % 2 ),
+      __first__ => ( $count == 0 ),
+      __inner__ => ( $count > 0 and $count < $#loop ),
+      __last__ => ( $count == $#loop ),
+    );
+    local $m->{params} = [ $args, \%loop_context, $m->{loop_global_vars} ? @{$m->{params}} : () ];
+      /
+  }
 }
 
 sub assemble_tmpl_if {
@@ -264,10 +285,6 @@ The following features of HTML::Template are not supported yet:
 
 =item *
 
-The loop_context_vars attribute (Add to assemble_tmpl_loop() method.)
-
-=item *
-
 Search path for files. (Candidate for separate mixin class or addition to TemplateDir.)
 
 =item *
@@ -361,9 +378,17 @@ E<lt>tmpl_loop name=...E<gt> ... E<lt>/tmpl_loopE<gt>
 
 =over 4
 
-=item global_vars
+=item associate
 
-Don't hide external parameters inside a loop scope.
+Optional reference to a CGI parameter object or other object with a similar param() method. 
+
+=item loop_global_vars (HTML::Template's "global_vars")
+
+If set to true, don't hide external parameters inside a loop scope.
+
+=item loop_context_vars
+
+If set to true, defines additional variables within each <TMPL_LOOP>: __counter__, which specifies the row index, and four boolean flags, __odd__, __first__, __inner__, and __last__.
 
 =back
 
@@ -377,7 +402,7 @@ Creates a new Mason object. If a filename parameter is supplied, the correspondi
 
 =item param()
 
-Gets and sets parameter arguments.
+Gets and sets parameter arguments. Similar to the param() method provied by HTML::Template and the CGI module.
 
 =item compile()
 

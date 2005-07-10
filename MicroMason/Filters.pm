@@ -7,18 +7,14 @@ use Safe;
 
 ######################################################################
 
-use vars qw( %Defaults %Filters );
-
 # Output filtering
-$Defaults{default_filters} = '';
-$Defaults{filters} = \%Filters;
-
+use vars qw( %Filters );
 $Filters{p} = \&Text::MicroMason::Base::_printable;
 $Filters{h} = eval { require HTML::Entities; \&HTML::Entities::encode;  };
 $Filters{u} = eval { require URI::Escape;    \&URI::Escape::uri_escape };
 
 sub defaults {
-  (shift)->NEXT('defaults'), %Text::MicroMason::Filters::Defaults
+  (shift)->NEXT('defaults'), filters => \%Filters, default_filters => ''
 }
 
 ######################################################################
@@ -217,7 +213,7 @@ Applies one or more filters to the provided content string.
 
 For an overview of this templating framework, see L<Text::MicroMason>.
 
-This is a mixin class intended for use with L<Text::MicroMason::Mason>.
+This is a mixin class intended for use with L<Text::MicroMason::HTMLMason>.
 
 For distribution, installation, support, copyright and license 
 information, see L<Text::MicroMason::Docs::ReadMe>.

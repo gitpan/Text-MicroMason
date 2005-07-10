@@ -7,10 +7,9 @@ use Safe;
 
 ######################################################################
 
-use vars qw( %Defaults );
-
-$Defaults{ safe } = 1;
-$Defaults{ safe_methods } = 'filter';
+sub defaults {
+  (shift)->NEXT('defaults'), safe => 1, safe_methods => 'filter'
+}
 
 ######################################################################
 

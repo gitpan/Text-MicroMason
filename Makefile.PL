@@ -5,7 +5,9 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'         => 'Text::MicroMason',
     'VERSION_FROM' => 'MicroMason.pm',
-    'PREREQ_PM'    => {}, 
+    'PREREQ_PM'    => {
+      'Class::MixinFactory' => 0.9,
+    }, 
 
     test => { TESTS => undef },
 
@@ -18,6 +20,9 @@ WriteMakefile(
 ########################################################################
 
 sub MY::postamble { q{
+
+fresh: realclean FORCE
+	perl Makefile.PL
 
 again: realclean FORCE
 	perl Makefile.PL; make pm_to_blib

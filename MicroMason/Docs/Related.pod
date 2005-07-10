@@ -1,0 +1,79 @@
+=head1 NAME
+
+Text::MicroMason::Docs::Related - A Brief Survey of Templating Modules 
+
+=head1 RELATED MODULES
+
+Text::MicroMason is just one of dozens (or hundreds) of templating 
+distributions on CPAN. 
+
+This document mentions a few related modules and includes a brief discussion of some similarities and differences among them.
+
+=head2 Selecting a Templating System
+
+There are serveral ways we can differentiate between templating systems:
+
+=over 4
+
+=item Perl Syntax vs. Little Languages
+
+Some templating systems use Perl syntax for both interpolated expressions
+and flow control, including L<Text::Template|Text::Template>,
+L<Template::Perl|Template::Perl>, and L<Text::ScriptTemplate|Text::ScriptTemplate>.
+
+Others use "little languages", including L<Template::Toolkit|Template::Toolkit> and L<HTML::Template|HTML::Template>.
+
+=item Just Templating vs. Web Application Framework
+
+Some templating systems just provide functions to fill in templates, like L<Text::Template|Text::Template>.
+
+Others are part of full-blown web application frameworks like
+L<Apache::ASP|Apache::ASP>, ePerl, L<HTML::Embperl|HTML::Embperl>,
+and L<HTML::Mason|HTML::Mason>.
+
+=item Modular vs Monolithic
+
+Some templating systems are not particularly configurable or extensible. 
+
+Others support various kinds of extensions, including L<Template::Toolkit|Template::Toolkit>, L<HTML::Mason|HTML::Mason> and L<Text::MicroMason|Text::MicroMason>.
+
+=item Interpreted vs. Compiled 
+
+Some templating systems repeatedly parse the template from scratch every time it is used.
+
+Others parse the template into an intermediate data structure and then iterate over that each time the template is used.
+
+Others convert the template into equivalent Perl source code which can be compiled into a directly-executable subroutine and used repeatedly, including L<HTML::Mason|HTML::Mason> and L<Text::MicroMason|Text::MicroMason>.
+
+=back
+
+=head2 HTML::Mason
+
+See L<HTML::Mason> for a much more full-featured version of the
+capabilities provided by this module.
+
+If you've already got HTML::Mason installed, configured, and loaded
+into your process, you're probably better off using it rather than
+this package. HTML::Mason's C<$interp-E<gt>make_component()> method
+allows you to parse a text string without saving it to disk first.
+
+The level of Mason compatibility is described in L<Text::MicroMason::HTMLMason>.
+
+=head2 Compatibility with Other Templating Systems
+
+I've also recently added mixin classes that emulate the template syntax used
+by L<Apache::ASP|Apache::ASP>, L<Embperl|Embperl>,
+L<HTML::Template|HTML::Template> and L<Text::Template|Text::Template>.
+
+Because these mixins share the underlying implementation of compiling a
+custom Perl subroutine, they theoretically could execute faster than the
+run-time evaluation mechanisms used by the originals, although no
+benchmarking has been performed yet.
+
+
+=head1 SEE ALSO
+
+For distribution, installation, support, copyright and license 
+information, see L<Text::MicroMason::Docs::ReadMe>.
+
+=cut

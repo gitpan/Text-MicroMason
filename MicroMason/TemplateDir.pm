@@ -12,11 +12,11 @@ $Defaults{ strict_root } = '';
 
 ######################################################################
 
-sub resolve {
+sub prepare {
   my ( $self, $src_type, $src_data ) = @_;
-
+  
   if ( $src_type ne 'file' ) {
-    return $self->NEXT('resolve', $src_type, $src_data );
+    return $self->NEXT('prepare', $src_type, $src_data );
   }
   
   my $current = $self->{source_file};
@@ -28,15 +28,13 @@ sub resolve {
   
   my $path = File::Spec->catfile( $base, $src_data );
   
-  $self->{debug} and $self->debug_msg( "MicroMason resolved '$src_data': $path" );
-
   if ( $self->{ strict_root } ) {
     $path = File::Spec->canonpath( $path );
     $path =~ /^\Q$self->{ strict_root }\E/ 
       or $self->croak_msg("Not in required base path '$self->{ strict_root }'");
   }
   
-  return ( 'file' => $path );
+  return $self->NEXT('prepare', 'file' => $path, source_file => $path );
 }
 
 ######################################################################
@@ -80,7 +78,7 @@ Base directory from which to find templates.
 
 =over 4
 
-=item resolve
+=item prepare
 
 Intercepts uses of file templates and applies the base-path adjustment.
 

@@ -3,7 +3,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 30 }
+BEGIN { plan tests => 32 }
 
 use Text::MicroMason;
 my $m = Text::MicroMason->new();
@@ -11,27 +11,38 @@ my $m = Text::MicroMason->new();
 ######################################################################
 
 {
-
-my $scr_hello = <<'ENDSCRIPT';
+  my $scr_hello = <<'ENDSCRIPT';
 % my $noun = 'World';
 Hello <% $noun %>!
 How are ya?
 ENDSCRIPT
-
-my $res_hello = <<'ENDSCRIPT';
+  
+  my $res_hello = <<'ENDSCRIPT';
 Hello World!
 How are ya?
 ENDSCRIPT
+  
+  ok( $m->execute( text => $scr_hello), $res_hello );
+  
+  ok( $m->compile( text => $scr_hello)->(), $res_hello );
+  
+  my $scriptlet;
+  ok( ( $scriptlet = $m->compile( text => $scr_hello) ) and 1 );
+  ok( $scriptlet->(), $res_hello );
+  ok( $scriptlet->(), $res_hello );
+  ok( $scriptlet->(), $res_hello );
+}
 
-ok( $m->execute( text => $scr_hello), $res_hello );
+######################################################################
 
-ok( $m->compile( text => $scr_hello)->(), $res_hello );
-
-my $scriptlet;
-ok( ( $scriptlet = $m->compile( text => $scr_hello) ) and 1 );
-ok( $scriptlet->(), $res_hello );
-ok( $scriptlet->(), $res_hello );
-ok( $scriptlet->(), $res_hello );
+{
+  my $scr_hello = "Hello <% shift(@_) %>!";
+  
+  my $res_hello = "Hello World!";
+  
+  ok( $m->execute( text => $scr_hello, 'World' ), $res_hello );
+  
+  ok( $m->compile( text => $scr_hello)->( 'World' ), $res_hello );
 }
 
 ######################################################################

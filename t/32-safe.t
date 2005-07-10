@@ -74,7 +74,7 @@ ok( $loaded = 1 );
 ######################################################################
 
 {
-  my $script = qq| <& 'examples/test.msn', %ARGS &> |;
+  my $script = qq| <& 'samples/test.msn', %ARGS &> |;
   
   my ($output, $err) = try_safe_execute($script, name => 'Sam', hour => 9);
   ok( ! defined $output );
@@ -83,7 +83,7 @@ ok( $loaded = 1 );
 
 my $safe_mason = Text::MicroMason->class( 'Safe' );
 {
-  my $script = qq| <& 'examples/test.msn', %ARGS &> |;
+  my $script = qq| <& 'samples/test.msn', %ARGS &> |;
   my $m = $safe_mason->new();
   
   my $output = eval{ $m->execute( text => $script, name => 'Sam', hour => 9)};
@@ -92,7 +92,7 @@ my $safe_mason = Text::MicroMason->class( 'Safe' );
 }
 
 {
-  my $script = qq| <& 'examples/test.msn', %ARGS &> |;
+  my $script = qq| <& 'samples/test.msn', %ARGS &> |;
   my $m = $safe_mason->new( safe_methods => 'execute' );
   
   my $output = eval{ $m->execute( text => $script, name => 'Sam', hour => 9)};

@@ -5,7 +5,9 @@ use Test;
 
 BEGIN { 
   eval "require Text::Balanced; 1" or do {
+    plan( tests => 1 );
     print "Skipping test (Text::Template emulator requires Text::Balanced).\n";
+    skip( 1, 1 );
     exit 0;
   }
 }

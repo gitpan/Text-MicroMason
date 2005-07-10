@@ -18,23 +18,19 @@ sub lex {
 ######################################################################
 
 # Text elements used for subroutine assembly
-use vars qw( %Assembler );
-
-$Assembler{template} = [ qw( $eval_start $sub_start $init_errs $init_output 
-			      $init_args @perl $return_output $sub_end ) ];
-$Assembler{ eval_start } = 'package __PACKAGE__; no strict; ';
-
-$Assembler{init_args} = 'local %__PACKAGE__:: = %__PACKAGE__::;' . "\n" .
-			  'my %ARGS = @_;' . "\n" .
-			  '$m->install_args_hash( "__PACKAGE__", \%ARGS );';
-
-$Assembler{init_output} = 'my $OUT = ""; my $_out = sub {$OUT .= join "", @_};';
-$Assembler{add_output} = '  $OUT .= join "", ';
-$Assembler{return_output} = '$OUT;';
-
 sub assembler_rules {
-  my $self = shift;
-  $self->NEXT('assembler_rules', @_), %Assembler;
+  (shift)->NEXT('assembler_rules', @_), 
+  template => [ qw( $eval_start $sub_start $init_errs $init_output 
+			      $init_args @perl $return_output $sub_end ) ],
+  eval_start => 'package __PACKAGE__; no strict; ',
+
+  init_args => 'local %__PACKAGE__:: = %__PACKAGE__::;' . "\n" .
+			  'my %ARGS = @_;' . "\n" .
+			  '$m->install_args_hash( "__PACKAGE__", \%ARGS );',
+
+  init_output => 'my $OUT = ""; my $_out = sub {$OUT .= join "", @_};',
+  add_output => '  $OUT .= join "", ',
+  return_output => '$OUT;',
 }
 
 sub assemble {
@@ -48,10 +44,11 @@ sub assemble {
 ######################################################################
 
 my $seqno = 0;
-sub resolve {
+sub prepare {
   my $self = shift;
-  $self->NEXT('resolve', @_), 
+  $self->NEXT('prepare', @_,
 	$self->{package} ? () : ( package => __PACKAGE__ . '::GEN' . $seqno++ )
+  )
 }
 
 ######################################################################
@@ -189,7 +186,7 @@ Target package namespace.
 
 =over 4
 
-=item resolve()
+=item prepare()
 
 If a package has not been specified, this method generates a new package namespace to use only for compilation of a single template.
 

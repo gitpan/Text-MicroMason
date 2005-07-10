@@ -1,3 +1,0 @@
-% # Begin mason file
-Test greeting:
-<& 'examples/test.msn', hour => 15, name => $ARGS{name} &>

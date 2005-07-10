@@ -1,7 +1,4 @@
-package Text::MicroMason::Mason;
-
-require Text::MicroMason::Base;
-@ISA = 'Text::MicroMason::Base';
+package Text::MicroMason::HTMLMason;
 
 use strict;
 
@@ -40,8 +37,8 @@ sub lex_token {
 # Text elements used for subroutine assembly
 sub assembler_rules {
   my $self = shift;
-  $self->NEXT('assembler_rules', @_), 
-    template => [ qw( @once $sub_start $init_errs $init_output $init_args
+  $self->NEXT('assembler_rules'), 
+    template => [ qw( $source_file @once $sub_start $init_errs $init_output $init_args
 		    @init @perl !@cleanup $return_output $sub_end -@doc ) ]
 }
 
@@ -66,7 +63,7 @@ __END__
 
 =head1 NAME
 
-Text::MicroMason::Mason - Simple Compiler for Mason-style Templating 
+Text::MicroMason::HTMLMason - Simple Compiler for Mason-style Templating 
 
 
 =head1 SYNOPSIS
@@ -93,7 +90,7 @@ Mason syntax provides several ways to mix Perl into a text template:
       Here's a private developr comment describing this template. 
     </%doc>
 
-Create a Mason object to interpret the templates:
+Create a MicroMason object to interpret the templates:
 
     use Text::MicroMason;
     my $mason = Text::MicroMason->new();
@@ -108,7 +105,7 @@ You can compile and execute templates using the standard MicroMason methods:
 
 =head1 DESCRIPTION
 
-The Text::MicroMason::Mason class provides lexer and assembler methods that allow Text::MicroMason to handle most elements of HTML::Mason's template syntax.
+The Text::MicroMason::HTMLMason class provides lexer and assembler methods that allow Text::MicroMason to handle most elements of HTML::Mason's template syntax.
 
 
 =head2 Compatibility with HTML::Mason
@@ -159,9 +156,9 @@ No $r request object. No mod_perl integration or configuration capability.
 
 =back
 
-Contributed patches to add these features of HTML::Mason 
-would be welcomed by the author.
-
+Contributed patches to add these features of HTML::Mason would be
+welcomed by the author. Possible implemenations are described in
+L<Text::MicroMason::ToDo>.
 
 =head2 Private Methods
 
@@ -203,7 +200,7 @@ Interpreting this template with Text::MicroMason produces the same output as it 
     Hello World!
     How are ya?
 
-Text::MicroMason::Mason supports a syntax that is mostly a subset of that used by HTML::Mason.
+Text::MicroMason::HTMLMason supports a syntax that is mostly a subset of that used by HTML::Mason.
 
 =head2 Template Markup
 

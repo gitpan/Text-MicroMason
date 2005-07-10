@@ -3,8 +3,44 @@ NAME
     Distribution
 
 VERSION 2 HISTORY
-  Version 1.98
+  Version 1.99
+    2005-07-09
+        Added AllowGlobals mixin based on suggestion and patch from Jonas
+        Alves. Reviewed similar functionality in HTML::Mason and added docs
+        and tests.
 
+        Extracted debug options to separate Debug mixin class.
+
+        Changed name of internal new() method to create(), while propogating
+        the mixin finding behavior from the Text::MicroMason facade up to
+        Text::MicroMason::Base.
+
+        Renamed examples directory to samples.
+
+        Added read_handle method and output_sub attribute.
+
+        Added assembler_vars method and removed %Assembler global.
+
+    2004-12-01
+        Fixed early exit of t/42-text_template.t to skip test if missing
+        Text::Balanced.
+
+    2004-11-30
+        Renamed the Mason compatibilty class to HTMLMason to match other
+        syntax classes. Changed it to be a mixin like the other classes,
+        instead of a subclass.
+
+        Switched to use of Class::MixinFactory and removed old class() and
+        NEXT() methods.
+
+        Extracted new interpret() method from inside of compile().
+
+        Adjusted setting of options and attributes so that this doesn't
+        happen within interpret().
+
+        Extracted list of related modules to new Docs::Related POD file.
+
+  Version 1.98
     2004-11-29
         Fixed unprotected test dependency on Text::Balanced for TextTemplate
         emulation.
@@ -15,7 +51,6 @@ VERSION 2 HISTORY
         Minor adjustments to POD documentation.
 
   Version 1.97
-
     2004-11-28
         Moved to do list into new pod file. Moved extra pod files into Docs
         namespace.
@@ -38,7 +73,6 @@ VERSION 2 HISTORY
         Adjustments to documentation in top-level package.
 
   Version 1.96
-
     2004-10-19
         Added PostProcess mixin class at the suggestion of Alan Ferrency.
 
@@ -47,7 +81,6 @@ VERSION 2 HISTORY
         Moved syntax documentation to Mason subclass.
 
   Version 1.95
-
     2004-10-19
         Fixed problem with extra semicolons breaking code statements broken
         onto multiple % code lines; thanks to Alan Ferrency for test code to
@@ -57,7 +90,6 @@ VERSION 2 HISTORY
         Documentation updates.
 
   Version 1.94
-
     2004-10-17
         Factored subclass-specific lex_token() method out from superclass
         lex() method.
@@ -81,7 +113,6 @@ VERSION 2 HISTORY
         Added TextTemplate mixin class with emulation for Text::Template.
 
   Version 1.93
-
     2004-10-12
         Instead of run-time eval of @MIXIN to fix SUPER resolution, now
         using a new SUPER method.
@@ -90,12 +121,10 @@ VERSION 2 HISTORY
         Documentation updates.
 
   Version 1.92
-
     2004-10-11
         Uploaded to CPAN to fix packaging issue with 1.9_1.
 
   Version 1.91
-
     2004-10-10
         Posted description of mixin mechanism to PerlMonks for discussion.
 
@@ -111,7 +140,6 @@ VERSION 2 HISTORY
         Reorganized t/ directory.
 
   Version 1.90
-
     2004-10-08
         Documentation updates.
 
@@ -119,12 +147,10 @@ VERSION 2 HISTORY
         Documentation updates.
 
   Version 1.55
-
     2004-09-23
         Documentation updates.
 
   Version 1.54
-
     2004-09-22
         Renamed "interpret" method to "execute" for consistency with
         function interface.
@@ -135,7 +161,6 @@ VERSION 2 HISTORY
         into %Assembly hash.
 
   Version 1.53
-
     2004-09-22
         Moved Safe functionality to new Safe mixin.
 
@@ -146,7 +171,6 @@ VERSION 2 HISTORY
         DBIx::SQLEngine::Record::Class.
 
   Version 1.52
-
     2004-09-19
         Extracted Changes to separate POD document.
 
@@ -154,7 +178,6 @@ VERSION 2 HISTORY
         Additional work.
 
   Version 1.51
-
     2004-09-17
         Refactoring of method interface to merge compie and interpretation
         into single subroutines with parameters to indicate whether we're
@@ -188,7 +211,6 @@ VERSION 2 HISTORY
 
 VERSION 1 HISTORY
   Version 1.07
-
     2003-09-26
         Discard line break after <%perl> block as suggested by Tommi
         Maekitalo. Note that removing these line breaks may affect the
@@ -205,7 +227,6 @@ VERSION 1 HISTORY
         Released as Text-MicroMason-1.07.tar.gz.
 
   Version 1.06
-
     2003-09-04
         Changed the way that subroutines were scoped into the
         Text::MicroMason::Commands namespace so that Safe compartments with
@@ -227,7 +248,6 @@ VERSION 1 HISTORY
         Released as Text-MicroMason-1.06.tar.gz.
 
   Version 1.05
-
     2003-08-11
         Adjusted regular expression based on parsing problems reported by
         Philip King and Daniel J. Wright, related to newlines and EOF. Added
@@ -246,7 +266,6 @@ VERSION 1 HISTORY
         Released as Text-MicroMason-1.05.tar.gz.
 
   Version 1.04
-
     2002-06-23
         Adjusted regular expression based on parsing problems reported by
         Mark Hampton.
@@ -261,20 +280,17 @@ VERSION 1 HISTORY
         author's contact information.
 
   Version 1.0.3
-
     2001-07-01
         Renamed from HTML::MicroMason to Text::MicroMason. Documentation
         tweaks. Released as Text-MicroMason-1.0.3.tar.gz.
 
   Version 1.0.2
-
     2001-04-10
         Munged interface for clarity. Added Safe support. Adjusted docs to
         reflect feedback from mason-users. Released as
         HTML-MicroMason-1.0.2.tar.gz.
 
   Version 1.0.1
-
     2001-03-28
         Parser tweakage; additional documentation. Added Exporter support.
         Released as HTML-MicroMason-1.0.1.tar.gz.
@@ -283,7 +299,6 @@ VERSION 1 HISTORY
         Added try_interpret; documented error messages.
 
   Version 1.0.0
-
     2001-03-23
         Extended documentation; added makefile, test script. Renamed
         accumulator to $OUT to match Text::Template. Released as
@@ -294,5 +309,5 @@ VERSION 1 HISTORY
 
 SEE ALSO
     For distribution, installation, support, copyright and license
-    information, see the Text::MicroMason::Docs::ReadMe manpage.
+    information, see Text::MicroMason::Docs::ReadMe.
 

@@ -137,7 +137,7 @@ ANGLE_PERCENT_BLOCK_AT_EOF: {
 ######################################################################
 
 FILE_BLOCK_AT_EOF: {
-  my $scr_hello = "<& 'examples/test-recur.msn', name => 'Dave' &>";
+  my $scr_hello = "<& 'samples/test-recur.msn', name => 'Dave' &>";
   
   my $res_hello = "Test greeting:\n" . 'Good afternoon, Dave!' . "\n";
   

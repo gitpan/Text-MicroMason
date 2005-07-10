@@ -14,7 +14,7 @@ $Defaults{ compile_cache_text } = Text::MicroMason::Cache::Simple->new();
 $Defaults{ compile_cache_file } = Text::MicroMason::Cache::File->new();
 
 sub defaults {
-  (shift)->NEXT('defaults'), %Text::MicroMason::CompileCache::Defaults
+  (shift)->NEXT('defaults'), %Defaults
 }
 
 ######################################################################

@@ -8,58 +8,43 @@ TO DO
 
     The priority and schedule for these items are not well defined; if you
     are interested in a specific feature please contact the author as
-    described in the Text::MicroMason::Docs::ReadMe manpage.
+    described in Text::MicroMason::Docs::ReadMe.
 
   Distribution
-
     *   Stabilize interface for 2.0 release.
 
-  Internals
+  Interfaces
+    *   Add an ApacheHandler class that acts as an Apache interface. Map
+        Apache config directives to mixin and initialization options. Expose
+        request object to all templates. Return template results to client.
 
-    *   Clarify and document the clone-on-change behavior of compile and its
-        effects when making changes to a mason object after compiling a
-        template. Perhaps we should ensure that we clone every time, or at
-        least every time that it matters?
-
-    *   Remove Base's class() and NEXT() in favor of use of
-        Class::MixinFactory.
-
-    *   Think about how to best stack lex_token() methods so that named
-        blocks parsing can be moved into a separate mixin.
-
-  Testing
-
-    *   Set up a benchmarking tool to compare subclasses with other
-        templating solutions. Take an example from
-        http://www.chamas.com/bench/ but execute templates directly. Store
-        the expected output in a text file for comparison.
-
-    *   Set up a compliance test tool that compares the output of the
-        various MicroMason mixins with the other modules they emulate. This
-        should be able to use many of the same data files as the
-        benchmarking tool.
-
-    *   Add more templates to examples directory and test them.
+    *   Review integration with Inline::Mason. Facilitate use of mixins so
+        this can also do inline ServerPages and other syntaxes.
 
   Syntax Classes
-
     *   Extend Embperl module to support dynamic HTML tags.
 
-    *   Extend HTMLTemplate module to support loop_context_vars.
-
-    *   Extend HTMLTemplate with a hash mapping options that could be passed
-        to HTML::Template's new() into the equivalent behavior, or croak if
-        they're unsupported.
+    *   Extend HTMLTemplate module with a hash mapping options that could be
+        passed to HTML::Template's new() into the equivalent behavior, or
+        croak if they're unsupported.
 
   Mixins
+    *   Consider moving output_sub to a new OutputHandle mixin which accepts
+        a handle as an attribute, then prints output to it rather than
+        returning the results as a string.
 
-    *   Improve TemplateDir and/or add related file-search mixin classes.
+    *   Improve TemplateDir and/or add related file-search mixin classes:
+
         Perhaps optionally accept a search path listing multiple directories
-        to search for templates? Perhaps optionally chdir() during the
-        execution of each template? Perhaps refuse to access any file that
-        isn't under the template directory? Perhaps add methods to search
-        for all files matching a given regex to facilitate tree searches and
-        cache pre-fetching?
+        to search for templates?
+
+        Perhaps optionally chdir() during the execution of each template?
+
+        Perhaps refuse to access any file that isn't under the template
+        directory?
+
+        Perhaps add methods to search for all files matching a given regex
+        to facilitate tree searches and cache pre-fetching?
 
     *   Add a DHandlers mixin that supports default files. On file requests,
         if file not found, look for default file. (Attribute dhandler_name
@@ -73,11 +58,27 @@ TO DO
 
     *   Add a DataCache mixin that provides a pre-configured cache object
         for use within template code. Requires cache() method and
-        configuration attributes.
+        configuration attributes. Cache namespace should be based on source
+        file name or arbitrary instance for text compilation.
 
-    *   Add an OutputHandle mixin that accepts a handle as an attribute,
-        then prints output to it rather than returning the results as a
-        string.
+    *   Add an InterpretCache mixin that allows caching of the parsed and
+        assembled Perl code for a template file, akin to Mason's var/obj/
+        directory. (This would also allow visual review when debugging the
+        converted code.)
+
+    *   The InterpretCache and CompileCache benefit from using a cache
+        object that checks the keys as filenames to see if the source file
+        has been updated and forces cache expiration; find a way to extract
+        and reuse this capability from Text::MicroMason::Cache::File.
+
+    *   Add a TemplateDB mixin which shows how to retrieve templates from a
+        database table. Provides a read_db() method. Accept a DBI connection
+        as an attribute -- or a reference to a function which will return
+        rows from a sql statement.
+
+        Consider how to support caching for templates drawn from a
+        TemplateDB. Perhaps in addition to the source_file there can be some
+        kind of opaque cache key returned by the prepare method?
 
     *   Add a BlessSub mixin that blesses the compiled subroutine. This
         would let us add support for template-specific behaviors and
@@ -86,7 +87,7 @@ TO DO
         BlessedSub class. BlessedSub class is base class for blessed
         template objects. Provides execute() method.
 
-    *   BlessedSub classes may need their own mixin factory... To avoid
+        BlessedSub classes may need their own mixin factory... To avoid
         having to define separate mixins for both packages, perhaps the
         methods should be delegated from the coderef to the Mason instance?
         (This becomes particularly attractive if each sub is automatically
@@ -100,16 +101,29 @@ TO DO
         parse <%method> blocks. Stores method definitions in a %once block.
         Hooks AUTOLOAD to catch method calls.
 
-  Interfaces
+  Internals
+    *   Clarify and document the clone-on-change behavior of prepare() and
+        its effects when making changes to a mason object after compiling a
+        template. Perhaps we should ensure that we clone every time, or at
+        least every time that it matters?
 
-    *   Add an ApacheHandler class that acts as an Apache interface. Map
-        Apache config directives to mixin and initialization options. Expose
-        request object to all templates. Return template results to client.
+    *   Document how to best stack lex_token() methods so that named blocks
+        parsing can be moved into a separate mixin.
 
-    *   Review integration with Inline::Mason. Facilitate use of mixins so
-        this can also do inline ServerPages and other syntaxes.
+  Testing
+    *   Set up a benchmarking tool to compare subclasses with other
+        templating solutions. Take an example from
+        http://www.chamas.com/bench/ but execute templates directly. Store
+        the expected output in a text file for comparison.
+
+    *   Set up a compliance test tool that compares the output of the
+        various MicroMason mixins with the other modules they emulate. This
+        should be able to use many of the same data files as the
+        benchmarking tool.
+
+    *   Add more templates to samples directory and test them.
 
 SEE ALSO
     For distribution, installation, support, copyright and license
-    information, see the Text::MicroMason::Docs::ReadMe manpage.
+    information, see Text::MicroMason::Docs::ReadMe.
 

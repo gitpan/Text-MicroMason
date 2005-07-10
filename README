@@ -18,49 +18,22 @@ MOTIVATION
     "$_out->()"), and omits the features that are web specific (like
     autohandlers) or are less widely used (like "<%method>" blocks).
 
-RELATED MODULES
     You may well be thinking "yet another dynamic templating module?
     Sheesh!" And you'd have a good point. There certainly are a variety of
-    templating toolkits on CPAN already; even restricting ourselves to those
-    which use Perl syntax for both interpolated expressions and flow control
-    (as opposed to "little languages") there's a fairly crowded field,
-    including Template::Toolkit, Template::Perl, Text::Template, and
-    Text::ScriptTemplate, as well as those that are part of full-blown web
-    application frameworks like Apache::ASP, ePerl, HTML::Embperl, and
-    HTML::Mason.
+    templating toolkits on CPAN already. (For a brief list see
+    Text::MicroMason::Docs::Related.)
 
     Nonetheless, I think this module occupies a useful niche: it provides a
     reasonable subset of HTML::Mason syntax in a very light-weight fashion.
     In comparison to the other modules listed, MicroMason aims to be fairly
     lightweight, using one eval per parse, converting the template to an
     cacheable unblessed subroutine ref, eschewing method calls, and
-    containing less than a thousand lines of Perl code.
-
-  Compatibility with HTML::Mason
-
-    See the HTML::Mason manpage for a much more full-featured version of the
-    capabilities provided by this module.
-
-    If you've already got HTML::Mason installed, configured, and loaded into
-    your process, you're probably better off using it rather than this
-    package. HTML::Mason's "$interp->make_component()" method allows you to
-    parse a text string without saving it to disk first.
-
-    The level of Mason compatibility is described in the
-    Text::MicroMason::Mason manpage.
-
-  Compatibility with Other Templating Systems
-
-    I've also recently added mixin classes that emulate the template syntax
-    used by Apache::ASP, Embperl, HTML::Template and Text::Template.
-
-    Because these mixins share the underlying implementation of compiling a
-    custom Perl subroutine, they theoretically could execute faster than the
-    run-time evaluation mechanisms used by the originals, although no
-    benchmarking has been performed yet.
+    containing less than a thousand lines of Perl code. It is also highly
+    modular, allowing users to select and enable the combination of features
+    they desire.
 
 DISTRIBUTION STATUS
-    This is version 1.98 of Text::MicroMason.
+    This is version 1.99 of Text::MicroMason.
 
     This is an BETA version on a development track for a 2.0 release.
 
@@ -73,12 +46,13 @@ DISTRIBUTION STATUS
 
       Name            DSLIP  Description
       --------------  -----  ---------------------------------------------
-      Text::          Grp 11 Text Processing
+      Text::          Group 11: Text Processing
       ::MicroMason    Rdpfp  Simplified HTML::Mason Templating
 
     This release has been tested succesfully on the following platforms:
 
       5.6.1 on darwin
+      5.8.6 on darwin-thread-multi-2level
 
     Earlier releases have also tested OK on a wide variety of platforms. You
     may review the current test results from CPAN-Testers:
@@ -87,7 +61,10 @@ DISTRIBUTION STATUS
 
 INSTALLATION
     This module should work with any version of Perl 5, without platform
-    dependencies or additional modules beyond the core distribution.
+    dependencies.
+
+    There is one pre-requisite module not included with the core
+    distribution which must be installed from CPAN: Class::MixinFactory.
 
     You should be able to install this module using the CPAN shell
     interface:
@@ -156,9 +133,10 @@ THANKS
       William Kern
       Tommi Maekitalo
       Alan Ferrency
+      Jonas Alves
 
 SOURCE MATERIAL
-    Based on the superb HTML::Mason developed by Jonathan Swartz.
+    Originally based on the superb HTML::Mason developed by Jonathan Swartz.
 
     Portions based on Text::Template developed by Mark Jason Dominus.
 

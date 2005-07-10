@@ -5,6 +5,42 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =head1 VERSION 2 HISTORY
 
+=head2 Version 1.99
+
+=over 4
+
+=item 2005-07-09
+
+Added AllowGlobals mixin based on suggestion and patch from Jonas Alves. Reviewed similar functionality in HTML::Mason and added docs and tests.
+
+Extracted debug options to separate Debug mixin class.
+
+Changed name of internal new() method to create(), while propogating the mixin finding behavior from the Text::MicroMason facade up to Text::MicroMason::Base.
+
+Renamed examples directory to samples.
+
+Added read_handle method and output_sub attribute.
+
+Added assembler_vars method and removed %Assembler global.
+
+=item 2004-12-01
+
+Fixed early exit of t/42-text_template.t to skip test if missing Text::Balanced.
+
+=item 2004-11-30
+
+Renamed the Mason compatibilty class to HTMLMason to match other syntax classes. Changed it to be a mixin like the other classes, instead of a subclass.
+
+Switched to use of Class::MixinFactory and removed old class() and NEXT() methods. 
+
+Extracted new interpret() method from inside of compile().
+
+Adjusted setting of options and attributes so that this doesn't happen within interpret().
+
+Extracted list of related modules to new Docs::Related POD file.
+
+=back
+
 =head2 Version 1.98
 
 =over 4
