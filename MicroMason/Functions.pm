@@ -98,6 +98,8 @@ All above functions are available in an error-catching "try_*" form:
 
 As an alternative to the object-oriented interface, text containing MicroMason markup code can be compiled and executed by calling the following functions. 
 
+Please note that this interface is maintained primarily for backward compatibility with version 1 of Text::MicroMason, and it does not provide access to some of the newer features.
+
 Each function creates a new MicroMason object, including any necessary traits such as Safe compilation or CatchErrors for exceptions, and then passes its arguments to an appropriate method on that object.
 
 You may import any of these functions by including their names in your 

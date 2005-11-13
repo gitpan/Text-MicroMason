@@ -49,6 +49,16 @@ Text::MicroMason::ServerPages - Alternate Syntax like ASP/JSP Templates
 
 =head1 SYNOPSIS
 
+Instead of using this class directly, pass its name to be mixed in:
+
+    use Text::MicroMason;
+    my $mason = Text::MicroMason::Base->new( -ServerPages );
+
+Use the standard compile and execute methods to parse and evalute templates:
+
+  print $mason->compile( text=>$template )->( @%args );
+  print $mason->execute( text=>$template, @args );
+
 Server Pages syntax provides another way to mix Perl into a text template:
 
     <% my $name = $ARGS{name};
@@ -61,24 +71,44 @@ Server Pages syntax provides another way to mix Perl into a text template:
       Good <%= $daypart %>, <%= $name %>!
     <% } %>
 
-Instead of using this class directly, pass its name to be mixed in:
-
-    use Text::MicroMason;
-    my $mason = Text::MicroMason->new( -ServerPages );
-
-Use the execute method to parse and evalute a template:
-
-    print $mason->execute( text=>$template, 'name'=>'Dave' );
-
-Or compile it into a subroutine, and evaluate repeatedly:
-
-    $coderef = $mason->compile( text=>$template );
-    print $coderef->('name'=>'Dave');
-
 
 =head1 DESCRIPTION
 
 This subclass replaces MicroMason's normal lexer with one that supports a syntax similar to Active Server Pages and Java Server Pages.
+
+=head2 Compatibility with Apache::ASP
+
+Apache::ASP is a full-featured application server toolkit with many fatures, of which only the templating functionality is emulated.
+
+This is not a drop-in replacement for Apache::ASP, as the implementation is quite different, but it should be able to process some existing templates without major changes.
+
+The following features of EmbPerl syntax are supported:
+
+=over 4
+
+=item *
+
+Angle-bracket markup tags
+
+=back
+
+The following syntax features of are B<not> supported:
+
+=over 4
+
+=item *
+
+Dynamic XML/XSL processing.
+
+=item *
+
+Web server objects such as $Session, $Request, $Response, and $Application.
+
+=item *
+
+Application events such as Application_OnStart, Script_OnStart, and other gloga.asa features.
+
+=back
 
 =head2 Template Syntax
 

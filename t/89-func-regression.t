@@ -155,6 +155,7 @@ LOOKS_LIKE_HTML: {
 ######################################################################
 
 STRICT_VARS: {
+  local $^W; # Try to avoid an unecessary warning on 5.005_04
   my $scr_re = '% $foo ++; ';
   ok( ! eval { execute($scr_re); 1 } );
 }

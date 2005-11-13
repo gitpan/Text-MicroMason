@@ -39,19 +39,15 @@ Instead of using this class directly, pass its name to be mixed in:
     use Text::MicroMason;
     my $mason = Text::MicroMason->new( -CatchErrors );
 
-Use the execute method to parse and evalute a template:
+Use the standard compile and execute methods to parse and evalute templates:
 
-    print $mason->execute( text=>$template, 'name'=>'Dave' );
-
-Or compile it into a subroutine, and evaluate repeatedly:
-
-    $coderef = $mason->compile( text=>$template );
-    print $coderef->('name'=>'Dave');
+  print scalar $mason->compile( text=>$template )->( @%args );
+  print scalar $mason->execute( text=>$template, @args );
 
 Result is undef on exception, plus an error message if in list context:
 
-    ($coderef, $error) = $mason->compile( text=>$template );
-    ($result,  $error) = $mason->execute( text=>$template, 'name'=>'Dave' );
+  ($coderef, $error) = $mason->compile( text=>$template );
+  ($result,  $error) = $mason->execute( text=>$template, 'name'=>'Dave' );
 
 
 =head1 DESCRIPTION

@@ -1,5 +1,5 @@
 package Text::MicroMason;
-$VERSION = 1.99;
+$VERSION = 1.992;
 
 require 5.0; # The tests use the new subref->() syntax, but the module doesn't
 use strict;
@@ -104,16 +104,15 @@ Use the new() method to create a Text::MicroMason object with the appropriate mi
 
   $mason = Text::MicroMason->new( %attribs );
 
-Arguments pairs are added to a hash of attributes for this object. 
-You may pass attributes as key-value pairs to the new() method for persistant
-use, or to the compile() or execute() methods to temporarily override the
-persistant attributes for that template only.
+You may pass attributes as key-value pairs to the new() method to save various options for later use by the compile() method. 
 
 =head2 Template Compilation
 
 To compile a text template, pass it to the compile() method to produce a new Perl subroutine to be returned as a code reference:
 
   $code_ref = $mason->compile( $type => $source, %attribs );
+
+Any attributes provided to compile() will temporarily override the persistant options defined by new(), for that template only.
 
 You can provide the template as a text string, as an array of text lines, or as a file name or handle:
 
@@ -163,22 +162,25 @@ Arguments passed to new() that begin with a dash will be added as mixin classes.
 
 Every MicroMason object inherits from an abstract Base class and some set of mixin classes. By combining mixins you can create subclasses with the desired combination of features. See L<Text::MicroMason::Base> for documentation of the base class, including private methods and extension mechanisms.
 
-If you call the new method on Text::MicroMason, it automatically includes the HTMLMason mixin, which provides the standard template syntax, described in L</"TEMPLATE SYNTAX">. If you want to create an object without the default HTMLMason functionality, call Text::MicroMason::Base->new() instead. 
+If you call the new method on Text::MicroMason, it automatically includes the HTMLMason mixin, which provides the standard template syntax. If you want to create an object without the default HTMLMason functionality, call Text::MicroMason::Base->new() instead. 
 
-Other mixins provide optional functionality. Those mixins may define additional public methods, and may support or require values for various additional attributes. For a list of available mixin classes, see L</"SYNTAX MIXINS"> and L</"MIXIN FEATURES">.
+Some mixins define the syntax for a particular template format. You will generally need to select one, and only one, of the mixins listed in L</"TEMPLATE SYNTAXES">.
+
+Other mixins provide optional functionality. Those mixins may define additional public methods, and may support or require values for various additional attributes. For a list of such mixin classes, see L</"MIXIN FEATURES">.
 
 
-=head1 TEMPLATE SYNTAX
+=head1 TEMPLATE SYNTAXES
 
 Templates contain a mix of literal text to be output with some type of markup syntax which specifies more complex behaviors.
 
-The Text::MicroMason::HTMLMason mixin is selected by default. You can also layer on the Filters syntax if your templates use that feature.
+The Text::MicroMason::HTMLMason mixin is selected by default. To enable an alternative, pass its name to Text::MicroMason::Base->new( -MixinName ). 
 
-=head2 HTML::Mason
+=head2 HTMLMason
 
 The HTMLMason mixin provides lexer and assembler methods that handle most elements of HTML::Mason's template syntax.
 
-  Text::MicroMason->new()->compile( text => $template );
+  my $mason = Text::MicroMason::Base->new( -HTMLMason );
+  my $output = $mason->execute( text => $template, name => 'Bob' );
 
     <%args>
       $name => 'Guest' 
@@ -202,34 +204,26 @@ The HTMLMason mixin provides lexer and assembler methods that handle most elemen
 
 For a definition of the template syntax, see L<Text::MicroMason::HTMLMason>.
 
-=head2 Filters
+=head2 DoubleQuote
 
-HTML::Mason provides an expression filtering mechanism which is typically used for applying HTML and URL escaping functions to output. 
+The DoubleQuote mixin uses Perl's double-quoting interpolation as a minimalist syntax for templating.
 
-  Text::MicroMason->new(-Filters)->compile( text => $template );
+  my $mason = Text::MicroMason::Base->new( -DoubleQuote );
+  my $output = $mason->execute( text => $template, name => 'Bob' );
 
-  <p> Hello <% $name |h %>!
+    ${ $::hour = (localtime)[2];
+      $::daypart = ( $::hour > 11 ) ? 'afternoon' : 'morning'; 
+    \'' }
+    Good $::daypart, $ARGS{name}!
 
-The Filters mixin provides this capability for Text::MicroMason templates. To select it, add its name to your Mason initialization call:
-
-  my $mason = Text::MicroMason->new( -Filters );
-
-Output expressions may then be followed by "|h" or "|u" escapes; for example this line would convert any ampersands in the output to the equivalent HTML entity:
-
-  Welcome to <% $company_name |h %>
-
-For more information see L<Text::MicroMason::Filters>.
-
-
-=head1 SYNTAX MIXINS
-
-The Text::MicroMason::HTMLMason mixin is selected by default, but you can enable the alternatives by calling Text::MicroMason::Base->new(). 
+For more information see L<Text::MicroMason::DoubleQuote>.
 
 =head2 Embperl
 
 The Embperl mixin support a template syntax similar to that used by the HTML::Embperl module.
 
-  Text::MicroMason::Base->new(-Embperl)->compile( text => $template );
+  my $mason = Text::MicroMason::Base->new( -Embperl );
+  my $output = $mason->execute( text => $template, name => 'Bob' );
 
     [- my $name = $ARGS{name}; -]
     [$ if $name eq 'Dave' $]
@@ -244,11 +238,12 @@ The Embperl mixin support a template syntax similar to that used by the HTML::Em
 
 For more information see L<Text::MicroMason::Embperl>.
 
-=head2 HTML::Template
+=head2 HTMLTemplate
 
-The HTMLTemplate mixin replaces the Mason template syntax with one similar to that used by the HTML::Template module.
+The HTMLTemplate mixin supports a syntax similar to that used by the HTML::Template module.
 
-  Text::MicroMason::Base->new(-HTMLTemplate)->compile( text => $template );
+  my $mason = Text::MicroMason::Base->new( -HTMLTemplate );
+  my $output = $mason->execute( text => $template, name => 'Bob' );
 
     <TMPL_IF NAME="user_is_dave">
       I'm sorry <TMPLVAR NAME="name">, I'm afraid I can't do that right now.
@@ -264,9 +259,10 @@ For more information see L<Text::MicroMason::HTMLTemplate>.
 
 =head2 ServerPages
 
-The ServerPages mixin replaces the Mason template syntax with one similar to that used by the Apache::ASP module.
+The ServerPages mixin supports a syntax similar to that used by the Apache::ASP module.
 
-  Text::MicroMason::Base->new(-ServerPages)->compile( text => $template );
+  my $mason = Text::MicroMason::Base->new( -ServerPages );
+  my $output = $mason->execute( text => $template, name => 'Bob' );
 
     <% my $name = $ARGS{name};
       if ( $name eq 'Dave' ) {  %>
@@ -280,11 +276,23 @@ The ServerPages mixin replaces the Mason template syntax with one similar to tha
 
 For more information see L<Text::MicroMason::ServerPages>.
 
-=head2 Text::Template
+=head2 Sprintf
 
-The TextTemplate mixin replaces the Mason template syntax with one similar to that used by the Text::Template module.
+The Sprintf mixin uses Perl's sprintf formatting syntax for templating.
 
-  Text::MicroMason::Base->new(-TextTemplate)->compile( text => $template );
+  my $mason = Text::MicroMason::Base->new( -Sprintf );
+  my $output = $mason->execute( text => $template, 'morning', 'Bob' );
+
+    Good %s, %s!
+
+For more information see L<Text::MicroMason::Sprintf>.
+
+=head2 TextTemplate
+
+The TextTemplate mixin supports a syntax similar to that used by the Text::Template module.
+
+  my $mason = Text::MicroMason::Base->new( -TextTemplate );
+  my $output = $mason->execute( text => $template, name => 'Bob' );
 
     { $hour = (localtime)[2];
       $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
@@ -339,6 +347,30 @@ For details see L<Text::MicroMason::Debug>.
 Each time you execute the template all of the logic will be re-evaluated, unless you enable execution caching, which stores the output of each template for each given set of arguments. 
 
 For details see L<Text::MicroMason::ExecuteCache>.
+
+=head2 Filters
+
+HTML::Mason provides an expression filtering mechanism which is typically used for applying HTML and URL escaping functions to output. 
+
+  Text::MicroMason->new(-Filters)->compile( text => $template );
+
+  <p> Hello <% $name |h %>!
+
+The Filters mixin provides this capability for Text::MicroMason templates. To select it, add its name to your Mason initialization call:
+
+  my $mason = Text::MicroMason->new( -Filters );
+
+Output expressions may then be followed by "|h" or "|u" escapes; for example this line would convert any ampersands in the output to the equivalent HTML entity:
+
+  Welcome to <% $company_name |h %>
+
+For more information see L<Text::MicroMason::Filters>.
+
+=head2 PassVariables
+
+Allows you to pass arguments to templates as variables instead of the basic argument list. 
+
+For details see L<Text::MicroMason::PostProcess>.
 
 =head2 PostProcess
 

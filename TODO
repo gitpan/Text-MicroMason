@@ -11,40 +11,68 @@ TO DO
     described in Text::MicroMason::Docs::ReadMe.
 
   Distribution
-    *   Stabilize interface for 2.0 release.
+    *   Consider reorganizing the Text::MicroMason::* modules into a number
+        of subdirectories. There are currently over two dozen of them, and
+        it's bound to get worse as time goes on. Perhaps separate them by
+        intent: Cache::*, Errors::*, Syntax::*, Features::*, etc.
+
+    *   Finish and test the ParseInfo module to facilitate template
+        introspection.
+
+    *   Rewrite the MOTIVATION section of the ReadMe pod to reflect the
+        shift from an HTML::Mason clone to a more general templating engine
+        that has at least partial compatibilty with quite a few other
+        modules.
 
   Interfaces
-    *   Add an ApacheHandler class that acts as an Apache interface. Map
-        Apache config directives to mixin and initialization options. Expose
-        request object to all templates. Return template results to client.
+    *   Test and improve the ApacheHandler interface.
+
+        Map user-friendly Apache config directives to mixin and
+        initialization options. Review HTML::Mason::ApacheHandler,
+        HTML::Mason::Params, and HTML::Mason::Admin.
+
+        Headers need to be constructed as per
+        http://modperlbook.org/html/ch06_11.html and not sent until our
+        first print statement; see PLP::Tie::Print.
 
     *   Review integration with Inline::Mason. Facilitate use of mixins so
         this can also do inline ServerPages and other syntaxes.
 
-  Syntax Classes
-    *   Extend Embperl module to support dynamic HTML tags.
+  Core Syntax
+    *   Determine how to best stack lex_token() method so that multiple
+        syntax plugins can work together.
+
+    *   Extract named blocks parsing from HTMLMason to form a separate
+        mixin.
+
+    *   Extract variable interpolation syntax to allow it to be stacked with
+        other lexers.
+
+  Syntax Emulations
+    *   Add TemplateToolkit module with support for the basic TT syntax. The
+        key syntax definition is in Parser.yp, which is used to build
+        Template::Grammar.
+        (<http://search.cpan.org/src/ABW/Template-Toolkit-2.14/parser/Parser
+        .yp>) The Template::Stash dot notation can be handled by Data::DRef.
 
     *   Extend HTMLTemplate module with a hash mapping options that could be
         passed to HTML::Template's new() into the equivalent behavior, or
         croak if they're unsupported.
 
-  Mixins
-    *   Consider moving output_sub to a new OutputHandle mixin which accepts
-        a handle as an attribute, then prints output to it rather than
-        returning the results as a string.
+    *   Consider extending Embperl module to support dynamic HTML tags.
 
+    *   Consider extending ServerPages module to support dynamic XML tags.
+
+  Template Sources
     *   Improve TemplateDir and/or add related file-search mixin classes:
 
         Perhaps optionally accept a search path listing multiple directories
         to search for templates?
 
-        Perhaps optionally chdir() during the execution of each template?
-
-        Perhaps refuse to access any file that isn't under the template
-        directory?
-
         Perhaps add methods to search for all files matching a given regex
         to facilitate tree searches and cache pre-fetching?
+
+        Perhaps optionally chdir() during the execution of each template?
 
     *   Add a DHandlers mixin that supports default files. On file requests,
         if file not found, look for default file. (Attribute dhandler_name
@@ -56,6 +84,19 @@ TO DO
         of autohandlers and store it in a mason attribute. Support
         ->call_next() to work through the chain.
 
+        (I've also gotten a user request for "decorator files" which turns
+        out to be roughly equivalent to the AutoHandler system.)
+
+    *   Add a TemplateDB mixin which shows how to retrieve templates from a
+        database table. Provides a read_db() method. Accept a DBI connection
+        as an attribute -- or a reference to a function which will return
+        rows from a sql statement.
+
+        Consider how to support caching for templates drawn from a
+        TemplateDB. Perhaps in addition to the source_file there can be some
+        kind of opaque cache key returned by the prepare method?
+
+  Caching
     *   Add a DataCache mixin that provides a pre-configured cache object
         for use within template code. Requires cache() method and
         configuration attributes. Cache namespace should be based on source
@@ -71,15 +112,7 @@ TO DO
         has been updated and forces cache expiration; find a way to extract
         and reuse this capability from Text::MicroMason::Cache::File.
 
-    *   Add a TemplateDB mixin which shows how to retrieve templates from a
-        database table. Provides a read_db() method. Accept a DBI connection
-        as an attribute -- or a reference to a function which will return
-        rows from a sql statement.
-
-        Consider how to support caching for templates drawn from a
-        TemplateDB. Perhaps in addition to the source_file there can be some
-        kind of opaque cache key returned by the prepare method?
-
+  Blessing Templates
     *   Add a BlessSub mixin that blesses the compiled subroutine. This
         would let us add support for template-specific behaviors and
         attributes. Override eval_sub() to bless sub before returning.
@@ -102,19 +135,26 @@ TO DO
         Hooks AUTOLOAD to catch method calls.
 
   Internals
+    *   Consider moving output_sub to a new OutputHandle mixin which accepts
+        a handle as an attribute, then prints output to it rather than
+        returning the results as a string.
+
     *   Clarify and document the clone-on-change behavior of prepare() and
         its effects when making changes to a mason object after compiling a
         template. Perhaps we should ensure that we clone every time, or at
         least every time that it matters?
 
-    *   Document how to best stack lex_token() methods so that named blocks
-        parsing can be moved into a separate mixin.
-
   Testing
     *   Set up a benchmarking tool to compare subclasses with other
-        templating solutions. Take an example from
-        http://www.chamas.com/bench/ but execute templates directly. Store
-        the expected output in a text file for comparison.
+        templating solutions. Take an example from ApacheBench but execute
+        templates directly rather than via Apache. Store the expected output
+        in a text file for comparison.
+
+        Other links to consider when benchmarking:
+
+          http://www.chamas.com/bench/
+          http://use.perl.org/~hctif/journal/25211
+          http://www.gtchat.de/templateengines/templateengines_en.html
 
     *   Set up a compliance test tool that compares the output of the
         various MicroMason mixins with the other modules they emulate. This

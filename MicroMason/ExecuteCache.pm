@@ -51,7 +51,7 @@ Instead of using this class directly, pass its name to be mixed in:
     use Text::MicroMason;
     my $mason = Text::MicroMason->new( -ExecuteCache );
 
-Use the compile method to parse a template into a subroutine:
+Use the standard compile method to parse a template into a subroutine:
 
     my $subref = $mason->compile( text=>$template );
     print $subref->( 'name'=>'Dave' );

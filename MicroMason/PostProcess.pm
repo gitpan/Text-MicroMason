@@ -55,6 +55,11 @@ Instead of using this class directly, pass its name to be mixed in:
     use Text::MicroMason;
     my $mason = Text::MicroMason->new( -PostProcess );
 
+Use the standard compile and execute methods to parse and evalute templates:
+
+  print $mason->compile( text=>$template )->( @%args );
+  print $mason->execute( text=>$template, @args );
+
 You can define output filters at creation or subsequently:
 
     $mason = Text::MicroMason->new( -PostProcess, post_process => $func );
@@ -64,10 +69,6 @@ You can define output filters at creation or subsequently:
     $mason->compile( text => $template, post_process => $func );
 
     $mason->execute( text => $template, { post_process => $func }, @args );
-
-Then use the compile and execute methods as you normally would:
-
-    print $mason->execute( text=>$template, 'name'=>'Dave' );
 
 
 =head1 DESCRIPTION

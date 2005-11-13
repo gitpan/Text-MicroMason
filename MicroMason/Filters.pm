@@ -10,8 +10,12 @@ use Safe;
 # Output filtering
 use vars qw( %Filters );
 $Filters{p} = \&Text::MicroMason::Base::_printable;
-$Filters{h} = eval { require HTML::Entities; \&HTML::Entities::encode;  };
-$Filters{u} = eval { require URI::Escape;    \&URI::Escape::uri_escape };
+
+$Filters{h} = eval { 
+      require HTML::Entities; sub { HTML::Entities::encode( $_[0], q[<>&'"] ) } 
+    } || eval { require CGI; \&CGI::escapeHTML };
+
+$Filters{u} = eval { require URI::Escape; \&URI::Escape::uri_escape };
 
 sub defaults {
   (shift)->NEXT('defaults'), filters => \%Filters, default_filters => ''
@@ -112,6 +116,11 @@ Instead of using this class directly, pass its name to be mixed in:
 
     use Text::MicroMason;
     my $mason = Text::MicroMason->new( -Filters );
+
+Use the standard compile and execute methods to parse and evalute templates:
+
+  print $mason->compile( text=>$template )->( @%args );
+  print $mason->execute( text=>$template, @args );
 
 Enables filtering of template expressions using HTML::Mason's conventions:
 

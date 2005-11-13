@@ -29,7 +29,8 @@ sub get {
 
 sub set { 
   my ( $self, $file, $sub ) = @_;
-  $self->SUPER::set( $file => [ time(), -M $file, $sub ] )
+  $self->SUPER::set( $file => [ time(), -M $file, $sub ] ); 
+  return $sub 
 }
 
 ######################################################################

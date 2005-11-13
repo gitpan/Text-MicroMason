@@ -1,5 +1,8 @@
 package Text::MicroMason::TextTemplate;
 
+use Text::MicroMason::PassVariables;
+@ISA = 'Text::MicroMason::PassVariables';
+
 use strict;
 
 use Text::Balanced 'extract_multiple', 'extract_codeblock';
@@ -20,25 +23,10 @@ sub lex {
 # Text elements used for subroutine assembly
 sub assembler_rules {
   (shift)->NEXT('assembler_rules', @_), 
-  template => [ qw( $eval_start $sub_start $init_errs $init_output 
-			      $init_args @perl $return_output $sub_end ) ],
-  eval_start => 'package __PACKAGE__; no strict; ',
-
-  init_args => 'local %__PACKAGE__:: = %__PACKAGE__::;' . "\n" .
-			  'my %ARGS = @_;' . "\n" .
-			  '$m->install_args_hash( "__PACKAGE__", \%ARGS );',
 
   init_output => 'my $OUT = ""; my $_out = sub {$OUT .= join "", @_};',
   add_output => '  $OUT .= join "", ',
   return_output => '$OUT;',
-}
-
-sub assemble {
-  my $self = shift;
-  my $code = $self->NEXT('assemble', @_);
-  $code =~ s/(\S)__PACKAGE__/$1$self->{package}/g;
-  $code =~ s/__PACKAGE__(\S)/$self->{package}$1/g;
-  return $code;
 }
 
 ######################################################################
@@ -49,27 +37,6 @@ sub prepare {
   $self->NEXT('prepare', @_,
 	$self->{package} ? () : ( package => __PACKAGE__ . '::GEN' . $seqno++ )
   )
-}
-
-######################################################################
-
-# $mason->install_args_hash( $package, $hash_ref )
-sub install_args_hash {
-  my ($self, $dest, $hash) = @_;
-  foreach my $name (keys %$hash) {
-    my $val = $hash->{$name};
-    my $sym = $dest . "::" . $name;
-    no strict 'refs';
-    # This code is cloned from Text::Template
-    local *SYM = *{$sym};
-    if (! defined $val) {
-      delete ${"${dest}::"}{$name};
-    } elsif (ref $val) {
-      *SYM = $val;
-    } else {
-      *SYM = \$val;
-    }
-  }
 }
 
 ######################################################################
@@ -87,6 +54,16 @@ Text::MicroMason::TextTemplate - Alternate Syntax like Text::Template
 
 =head1 SYNOPSIS
 
+Instead of using this class directly, pass its name to be mixed in:
+
+  use Text::MicroMason;
+  my $mason = Text::MicroMason::Base->new( -TextTemplate );
+
+Use the standard compile and execute methods to parse and evalute templates:
+
+  print $mason->compile( text=>$template )->( @%args );
+  print $mason->execute( text=>$template, @args );
+
 Text::Template provides a syntax to mix Perl into a text template:
 
   { my $hour = (localtime)[2];
@@ -94,27 +71,13 @@ Text::Template provides a syntax to mix Perl into a text template:
   '' }
   Good { $daypart }, { $name }!
 
-Instead of using this class directly, pass its name to be mixed in:
-
-  use Text::MicroMason;
-  my $mason = Text::MicroMason->new( -TextTemplate );
-
-Use the execute method to parse and evalute a template:
-
-  print $mason->execute( text=>$template, %arguments );
-
-Or compile it into a subroutine, and evaluate repeatedly:
-
-  $coderef = $mason->compile( text=>$template );
-  print $coderef->(%arguments);
-
 
 =head1 DESCRIPTION
 
 This mixin class overrides several methods to allow MicroMason to emulate
 the template syntax and some of the other features of Text::Template.
 
-=head2 Compatibility
+=head2 Compatibility with Text::Template
 
 This is not a drop-in replacement for Text::Template, as the Perl calling
 interface is quite different, but it should be able to process most
@@ -172,6 +135,8 @@ Like Text::Template, this package clobbers a target namespace to pass in templat
 
 The strict pragma is disabled to facilitate these variable references. 
 
+Internally, this module inherits this functionality from the PassVariables mixin. If you are using the TextTemplate mixin, do not also specify the PassVariables mixin or it will be included twice. For more information, see L<Text::MicroMason::PassVariables>.
+
 =head2 Supported Attributes
 
 =over 4
@@ -193,14 +158,6 @@ If a package has not been specified, this method generates a new package namespa
 =item lex()
 
 Lexer for matched braces - produces only text and expr tokens. Uses Text::Balanced.
-
-=item assemble()
-
-Modifies Perl subroutine to handle package and symbol table munging.
-
-=item install_args_hash()
-
-Performs symbol table munging to transfer the contents of an arguments hash into variables in a target namespace. 
 
 =back
 

@@ -78,6 +78,11 @@ Share package variables:
 
     $mason->set_globals( '$name' => 'Bob' );
 
+Use the standard compile and execute methods to parse and evalute templates:
+
+  print $mason->compile( text=>$template )->();
+  print $mason->execute( text=>$template );
+
 Then, in a template, you can refer to those globals:
 
     Welcome, <% $name %>! 

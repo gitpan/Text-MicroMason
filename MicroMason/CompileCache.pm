@@ -28,7 +28,7 @@ sub compile {
     or return $self->NEXT('compile', $src_type, $src_data, %options);
   
   $cache->get( $src_data ) or $cache->set( $src_data, 
-	      $self->NEXT('compile', $src_type, $src_data, %options) )
+	      $self->NEXT('compile', $src_type, $src_data, %options) );
 }
 
 ######################################################################
@@ -49,7 +49,7 @@ Instead of using this class directly, pass its name to be mixed in:
     use Text::MicroMason;
     my $mason = Text::MicroMason->new( -CompileCache );
 
-Use the execute method to parse and evalute a template:
+Use the standard compile and execute methods to parse and evalute templates:
 
     print $mason->execute( text=>$template, 'name'=>'Dave' );
 

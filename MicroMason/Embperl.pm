@@ -60,6 +60,16 @@ Text::MicroMason::Embperl - Alternate Syntax like Embperl Templates
 
 =head1 SYNOPSIS
 
+Instead of using this class directly, pass its name to be mixed in:
+
+    use Text::MicroMason;
+    my $mason = Text::MicroMason::Base->new( -Embperl );
+
+Use the standard compile and execute methods to parse and evalute templates:
+
+  print $mason->compile( text=>$template )->( @%args );
+  print $mason->execute( text=>$template, @args );
+
 Embperl syntax provides several ways to mix Perl into a text template:
 
     [- my $name = $ARGS{name}; -]
@@ -73,20 +83,6 @@ Embperl syntax provides several ways to mix Perl into a text template:
       Good [+ $daypart +], [+ $name +]!
     [$ endif $]
 
-Instead of using this class directly, pass its name to be mixed in:
-
-    use Text::MicroMason;
-    my $mason = Text::MicroMason->new( -Embperl );
-
-Use the execute method to parse and evalute a template:
-
-    print $mason->execute( text=>$template, 'name'=>'Dave' );
-
-Or compile it into a subroutine, and evaluate repeatedly:
-
-    $coderef = $mason->compile( text=>$template );
-    print $coderef->('name'=>'Dave');
-
 
 =head1 DESCRIPTION
 
@@ -98,7 +94,7 @@ Embperl is a full-featured application server toolkit with many fatures, of whic
 
 This is not a drop-in replacement for Embperl, as the implementation is quite different, but it should be able to process some existing templates without major changes.
 
-The following features of HTML::Template syntax are supported:
+The following features of EmbPerl syntax are supported:
 
 =over 4
 

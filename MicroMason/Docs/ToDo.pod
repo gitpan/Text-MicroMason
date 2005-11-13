@@ -14,7 +14,15 @@ The priority and schedule for these items are not well defined; if you are inter
 
 =item *
 
-Stabilize interface for 2.0 release. 
+Consider reorganizing the Text::MicroMason::* modules into a number of subdirectories. There are currently over two dozen of them, and it's bound to get worse as time goes on. Perhaps separate them by intent: Cache::*, Errors::*, Syntax::*, Features::*, etc.
+
+=item *
+
+Finish and test the ParseInfo module to facilitate template introspection.
+
+=item *
+
+Rewrite the MOTIVATION section of the ReadMe pod to reflect the shift from an HTML::Mason clone to a more general templating engine that has at least partial compatibilty with quite a few other modules.
 
 =back
 
@@ -24,7 +32,12 @@ Stabilize interface for 2.0 release.
 
 =item *
 
-Add an ApacheHandler class that acts as an Apache interface. Map Apache config directives to mixin and initialization options. Expose request object to all templates. Return template results to client.
+Test and improve the ApacheHandler interface. 
+
+Map user-friendly Apache config directives to mixin and initialization options. 
+Review HTML::Mason::ApacheHandler, HTML::Mason::Params, and HTML::Mason::Admin.
+
+Headers need to be constructed as per http://modperlbook.org/html/ch06_11.html and not sent until our first print statement; see PLP::Tie::Print.
 
 =item *
 
@@ -32,27 +45,49 @@ Review integration with Inline::Mason. Facilitate use of mixins so this can also
 
 =back
 
-=head2 Syntax Classes
+=head2 Core Syntax
 
 =over 4
 
 =item *
 
-Extend Embperl module to support dynamic HTML tags.
+Determine how to best stack lex_token() method so that multiple syntax plugins can work together. 
+
+=item *
+
+Extract named blocks parsing from HTMLMason to form a separate mixin.
+
+=item *
+
+Extract variable interpolation syntax to allow it to be stacked with other lexers.
+
+=back
+
+=head2 Syntax Emulations
+
+=over 4
+
+=item *
+
+Add TemplateToolkit module with support for the basic TT syntax. The key syntax definition is in Parser.yp, which is used to build Template::Grammar. (L<http://search.cpan.org/src/ABW/Template-Toolkit-2.14/parser/Parser.yp>)  The Template::Stash dot notation can be handled by Data::DRef.
 
 =item *
 
 Extend HTMLTemplate module with a hash mapping options that could be passed to HTML::Template's new() into the equivalent behavior, or croak if they're unsupported.
 
-=back
+=item *
 
-=head2 Mixins
-
-=over 4
+Consider extending Embperl module to support dynamic HTML tags.
 
 =item *
 
-Consider moving output_sub to a new OutputHandle mixin which accepts a handle as an attribute, then prints output to it rather than returning the results as a string.
+Consider extending ServerPages module to support dynamic XML tags.
+
+=back
+
+=head2 Template Sources
+
+=over 4
 
 =item *
 
@@ -60,11 +95,9 @@ Improve TemplateDir and/or add related file-search mixin classes:
 
 Perhaps optionally accept a search path listing multiple directories to search for templates?
 
-Perhaps optionally chdir() during the execution of each template?
-
-Perhaps refuse to access any file that isn't under the template directory?
-
 Perhaps add methods to search for all files matching a given regex to facilitate tree searches and cache pre-fetching?  
+
+Perhaps optionally chdir() during the execution of each template?
 
 =item *
 
@@ -73,6 +106,20 @@ Add a DHandlers mixin that supports default files. On file requests, if file not
 =item *
 
 Add an AutoHandlers mixin that supports wrapper files. On file requests, also search hierarchy for autohandler files. (Attribute autohandler_name controls name of file to look for.) Build a stack of autohandlers and store it in a mason attribute. Support ->call_next() to work through the chain.
+
+(I've also gotten a user request for "decorator files" which turns out to be roughly equivalent to the AutoHandler system.)
+
+=item *
+
+Add a TemplateDB mixin which shows how to retrieve templates from a database table. Provides a read_db() method. Accept a DBI connection as an attribute -- or a reference to a function which will return rows from a sql statement.
+
+Consider how to support caching for templates drawn from a TemplateDB. Perhaps in addition to the source_file there can be some kind of opaque cache key returned by the prepare method?
+
+=back
+
+=head2 Caching
+
+=over 4
 
 =item *
 
@@ -86,11 +133,11 @@ Add an InterpretCache mixin that allows caching of the parsed and assembled Perl
 
 The InterpretCache and CompileCache benefit from using a cache object that checks the keys as filenames to see if the source file has been updated and forces cache expiration; find a way to extract and reuse this capability from Text::MicroMason::Cache::File.
 
-=item *
+=back
 
-Add a TemplateDB mixin which shows how to retrieve templates from a database table. Provides a read_db() method. Accept a DBI connection as an attribute -- or a reference to a function which will return rows from a sql statement.
+=head2 Blessing Templates
 
-Consider how to support caching for templates drawn from a TemplateDB. Perhaps in addition to the source_file there can be some kind of opaque cache key returned by the prepare method?
+=over 4
 
 =item *
 
@@ -115,11 +162,11 @@ Add a MethodBlock mixin, using BlessedSub. Override lexer methods to parse <%met
 
 =item *
 
-Clarify and document the clone-on-change behavior of prepare() and its effects when making changes to a mason object after compiling a template. Perhaps we should ensure that we clone every time, or at least every time that it matters?
+Consider moving output_sub to a new OutputHandle mixin which accepts a handle as an attribute, then prints output to it rather than returning the results as a string.
 
 =item *
 
-Document how to best stack lex_token() methods so that named blocks parsing can be moved into a separate mixin.
+Clarify and document the clone-on-change behavior of prepare() and its effects when making changes to a mason object after compiling a template. Perhaps we should ensure that we clone every time, or at least every time that it matters?
 
 =back
 
@@ -129,7 +176,13 @@ Document how to best stack lex_token() methods so that named blocks parsing can 
 
 =item *
 
-Set up a benchmarking tool to compare subclasses with other templating solutions. Take an example from http://www.chamas.com/bench/ but execute templates directly. Store the expected output in a text file for comparison.
+Set up a benchmarking tool to compare subclasses with other templating solutions. Take an example from ApacheBench but execute templates directly rather than via Apache. Store the expected output in a text file for comparison.
+
+Other links to considerÊwhen benchmarking:
+
+  http://www.chamas.com/bench/
+  http://use.perl.org/~hctif/journal/25211
+  http://www.gtchat.de/templateengines/templateengines_en.html
 
 =item *
 

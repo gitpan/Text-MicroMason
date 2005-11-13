@@ -38,19 +38,19 @@ sub lex_token {
 sub assembler_rules {
   my $self = shift;
   $self->NEXT('assembler_rules'), 
-    template => [ qw( $source_file @once $sub_start $init_errs $init_output $init_args
+    template => [ qw( @once $sub_start $init_errs $init_output $init_args
 		    @init @perl !@cleanup $return_output $sub_end -@doc ) ]
 }
 
 sub assemble_args {
   my ( $self, $token ) = @_;
     $token =~ s/^\s*([\$\@\%])(\w+) (?:\s* => \s* ([^\r\n]+))?/
-      "my $1$2 = exists \$ARGS{$2} ? " . 
-	      ( ($1 eq '$') ? "\$ARGS{$2}" : "$1\{ \$ARGS{$2} }" ) . 
-      " : " . ( defined($3) ? "(\$ARGS{$2} = $3)" : 
+      my $argvar = ($1 eq '$') ? "\$ARGS{$2}" : "$1\{ \$ARGS{$2} }";
+      "my $1$2 = exists \$ARGS{$2} ? $argvar : " . 
+	    ( defined($3) ? "($argvar = $3)" : 
 	      qq{Carp::croak("no value sent for required parameter '$2'")} ) .
       ";"/gexm;
-  return ( 'init' => '($#_ % 2) or Carp::croak("Odd number of parameters passed to sub expecting name/value pairs"); ' . $token );
+  return ( 'init' => '($#_ % 2) or Carp::croak("Odd number of parameters passed to sub expecting name/value pairs"); ' . "\n" . $token );
 }
 
 ######################################################################
@@ -68,39 +68,37 @@ Text::MicroMason::HTMLMason - Simple Compiler for Mason-style Templating
 
 =head1 SYNOPSIS
 
-Mason syntax provides several ways to mix Perl into a text template:
-
-    <%args>
-      $name
-    </%args>
-
-    % if ( $name eq 'Dave' ) {
-      I'm sorry <% $name %>, I'm afraid I can't do that right now.
-    % } else {
-      <%perl>
-	my $hour = (localtime)[2];
-	my $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
-      </%perl>
-      Good <% $daypart %>, <% $name %>!
-    % }
-
-    <& "includes/standard_footer.msn" &>
-
-    <%doc>
-      Here's a private developr comment describing this template. 
-    </%doc>
-
 Create a MicroMason object to interpret the templates:
 
-    use Text::MicroMason;
-    my $mason = Text::MicroMason->new();
+  use Text::MicroMason;
+  my $mason = Text::MicroMason->new();
 
-You can compile and execute templates using the standard MicroMason methods:
+Use the standard compile and execute methods to parse and evalute templates:
 
-    $coderef = $mason->compile( file => 'simple.tmpl' );
-    print $coderef->( %arguments );
- 
-    print $mason->execute( file => 'simple.tmpl', %arguments );
+  print $mason->compile( text=>$template )->( @%args );
+  print $mason->execute( text=>$template, @args );
+
+Mason syntax provides several ways to mix Perl into a text template:
+
+  <%args>
+    $name
+  </%args>
+
+  % if ( $name eq 'Dave' ) {
+    I'm sorry <% $name %>, I'm afraid I can't do that right now.
+  % } else {
+    <%perl>
+      my $hour = (localtime)[2];
+      my $daypart = ( $hour > 11 ) ? 'afternoon' : 'morning'; 
+    </%perl>
+    Good <% $daypart %>, <% $name %>!
+  % }
+
+  <& "includes/standard_footer.msn" &>
+
+  <%doc>
+    Here's a private developr comment describing this template. 
+  </%doc>
 
 
 =head1 DESCRIPTION

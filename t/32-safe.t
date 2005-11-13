@@ -3,7 +3,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 19 }
+BEGIN { plan tests => 23 }
 
 my $loaded;
 END { ok(0) unless $loaded; }
@@ -43,7 +43,7 @@ ok( $loaded = 1 );
 ######################################################################
 
 {
-  local $^W;
+  local $^W; 
   my $variable = 'secret';
   my $scr_hidden = '<% $variable %>';
   ok( ! try_safe_execute( $scr_hidden ) !~ /secret/ );
@@ -68,7 +68,7 @@ ok( $loaded = 1 );
 {
   my $scr_mobj = 'You\'ve been compiled by <% ref $m %>.';
   
-  ok( safe_execute( $scr_mobj ) =~ /Text::MicroMason::SafeFacade/ );
+  ok( safe_execute( $scr_mobj ) =~ /Text::MicroMason::Safe::Facade/ );
 }
 
 ######################################################################
@@ -81,10 +81,9 @@ ok( $loaded = 1 );
   ok( $err =~ /Can't call .*?execute/ );
 }
 
-my $safe_mason = Text::MicroMason->class( 'Safe' );
 {
+  my $m = Text::MicroMason->new( '-Safe' );
   my $script = qq| <& 'samples/test.msn', %ARGS &> |;
-  my $m = $safe_mason->new();
   
   my $output = eval{ $m->execute( text => $script, name => 'Sam', hour => 9)};
   ok( ! defined $output );
@@ -92,12 +91,33 @@ my $safe_mason = Text::MicroMason->class( 'Safe' );
 }
 
 {
+  my $m = Text::MicroMason->new( '-Safe', safe_methods => 'execute' );
   my $script = qq| <& 'samples/test.msn', %ARGS &> |;
-  my $m = $safe_mason->new( safe_methods => 'execute' );
   
   my $output = eval{ $m->execute( text => $script, name => 'Sam', hour => 9)};
   ok( length $output );
   ok( ! $@ );
+}
+
+my $safe_dir_mason = Text::MicroMason->class( 'Safe', 'TemplateDir' );
+{
+  my $m = Text::MicroMason->new( '-Safe', safe_methods => 'execute',
+		  -TemplateDir, template_root => 'samples', strict_root => 1 );
+  my $script = qq| <& 'test.msn', %ARGS &> |;
+
+  my $output = eval{ $m->execute( text => $script, name => 'Sam', hour => 9)};
+  ok( length $output );
+  ok( ! $@ );
+}
+
+{
+  my $m = Text::MicroMason->new( '-Safe', safe_methods => 'execute',
+		  -TemplateDir, template_root => 'samples', strict_root => 1 );
+  my $script = qq| <& '../MicroMason.pm', %ARGS &> |;
+
+  my $output = eval{ $m->execute( text => $script, name => 'Sam', hour => 9)};
+  ok( ! defined $output );
+  ok( $@ =~ /required base path/ );
 }
 
 ######################################################################

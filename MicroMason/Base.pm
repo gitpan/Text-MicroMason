@@ -82,7 +82,7 @@ sub execute {
   my $self = shift;
   my $sub = ( $_[0] eq 'code' ) ? do { shift; shift } : 
 	$self->compile( shift, shift, ref($_[0]) ? %{ shift() } : () )
-    or $self->croak_msg("Couldn't compile: $@");
+    or $self->croak_msg("MicroMason compilation failed: $@");
   &$sub( @_ );
 }
 
@@ -105,16 +105,36 @@ sub interpret {
   my $template = $self->read( $src_type, $src_data );
   my @tokens = $self->lex( $template );
   my $code = $self->assemble( @tokens );
-  return $code;
+
+  # Source file and line number
+  my $source_line = $self->source_file_line_label( $src_type, $src_data );
+  
+  return $source_line . "\n" . $code;
+}
+
+# $line_number_comment = $mason->source_file_line_label( $src_type, $src_data );
+sub source_file_line_label {
+  my ( $self, $src_type, $src_data ) = @_;
+
+  if ( $src_type eq 'file' ) {
+    return '# line 0 "' . $src_data . '"' 
+  }
+  
+  my @caller; 
+  my $call_level ;
+  do { @caller = caller( ++ $call_level ) }
+      while ( $caller[0] =~ /^Text::MicroMason/ or $self->isa($caller[0]) );
+  my $package = ( $caller[1] || $0 );
+  qq{# line 0 "text template (compiled at $package line $caller[2])"}
 }
 
 ######################################################################
 
 # $code_ref = $mason->eval_sub( $perl_code );
 sub eval_sub {
-  my ( $m, $code ) = @_;
+  my $m = shift;
   package Text::MicroMason::Commands; 
-  eval( $code )
+  eval( shift )
 }
 
 ######################################################################
@@ -163,12 +183,12 @@ sub lex {
   local $_ = "$_[0]";
   my @tokens;
   my $lexer = $self->can('lex_token') 
-	or $self->croak_msg('No lex_token method');
+    or $self->croak_msg('Unable to lex_token(); must select a syntax mixin');
   # warn "Lexing: " . pos($_) . " of " . length($_) . "\n";
   until ( /\G\z/gc ) {
     my @parsed = &$lexer( $self ) or      
 	/\G ( .{0,20} ) /gcxs 
-	  && die "Couldn't find applicable parsing rule at '$1'\n";
+	  && die "MicroMason parsing halted at '$1'\n";
     push @tokens, @parsed;
   }
   return @tokens;
@@ -185,19 +205,8 @@ sub lex_token {
 
 # Text elements used for subroutine assembly
 sub assembler_rules {
-  template => [ qw( $source_file $sub_start $init_errs $init_output
+  template => [ qw( $sub_start $init_errs $init_output
 		    $init_args @perl $return_output $sub_end ) ],
-
-  # Source file and line number
-  source_file => sub {
-    my $m = shift;
-    my @caller; 
-    my $call_level ;
-    do { @caller = caller( ++ $call_level ) }
-	while ( $caller[0] =~ /^Text::MicroMason/ or $m->isa($caller[0]) );
-    my $template_source = ( $caller[1] || 'unknown' ) . " template";
-    join(' ', '#', 'line', 1, '"' .  $template_source . '"' . "\n" )
-  },
 
   # Subroutine scafolding
   sub_start  => 'sub { ',
@@ -215,8 +224,9 @@ sub assembler_rules {
 
   # Mapping between token types
   text_token => 'perl OUT( QUOTED );',
-  expr_token => 'perl OUT( do{ TOKEN } );',
-  file_token => 'perl OUT( $m->execute( file => do { TOKEN } ) );',
+  expr_token => "perl OUT( do{\nTOKEN\n} );", 
+  file_token => "perl OUT( \$m->execute( file => do {\nTOKEN\n} ) );",
+    # Note that we need newline after TOKEN here in case it ends with a comment.
 }
 
 sub assembler_vars {
@@ -341,7 +351,8 @@ Templates stored in files can be run directly or included in others:
 
 =head1 DESCRIPTION
 
-The Text::MicroMason::Base class provides a parser and execution environment for an extensible templating system.
+Text::MicroMason::Base is an abstract superclass that provides a parser 
+and execution environment for an extensible templating system.
 
 =head2 Public Methods
 

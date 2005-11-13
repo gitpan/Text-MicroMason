@@ -2,17 +2,11 @@ package Text::MicroMason::HTMLTemplate;
 
 require Text::MicroMason::Base;
 require Text::MicroMason::TemplateDir;
-@ISA = 'Text::MicroMason::TemplateDir';
+require Text::MicroMason::StoreOne;
+require Text::MicroMason::HasParams;
+push @ISA, map "Text::MicroMason::$_", qw( TemplateDir StoreOne HasParams );
 
 use strict;
-
-######################################################################
-
-use vars qw( %Filters );
-
-sub defaults {
-  (shift)->NEXT('defaults'), filters => \%Filters, params => [ {} ]
-}
 
 ######################################################################
 
@@ -22,89 +16,9 @@ my %param_mapping = (    		### <<== INCOMPLETE ###
   path => '-TemplatePaths',
 );
 
-sub create {
-  my ( $class, %options ) = @_;
-  my @compile; 
-  if ( my $file = delete $options{filename} ) {
-    @compile = ( 'file' => $file );
-  } 
-  my $self = $class->NEXT('create', %options);
-  $self->compile( @compile ) if @compile;
-  $self;
-}
-
-sub compile {
-  my $self = shift;
-  my $sub = $self->NEXT('compile', @_);
-  $self->{last_compile} = $sub;
-}
-
-sub output {
-  my ( $self, %options ) = shift;
-  my $sub = $self->{last_compile} 
-	or $self->croak_msg("No template has been compiled yet");
-  if ( my $handle = delete $options{print_to} ) {
-    print $handle ( &$sub( @_ ) );
-  } else {
-    &$sub( @_ );
-  }
-}
-
 ######################################################################
 
-sub assembler_rules {
-  my $self = shift;
-  $self->NEXT('assembler_rules', @_),
-    init_args => 'local $m->{params} = [ scalar(@_) ? { @_ } : (), $m->{params} ? @{$m->{params}} : () ];';
-}
-
-sub param {
-  my $self = shift;
-
-  my @params = $self->{params} ? @{$self->{params}} : ();
-  
-  if ( scalar @_ == 0 ) {
-    return map( keys(%$_), @params ),
-	    $self->{associate} ? $self->{associate}->param() : ()
-
-  } elsif ( scalar @_ > 1 ) {
-    if ( my $associate = $self->{associate} ) {
-      return $associate->param( @_ );
-    }
-    $self->{params} ||= [ {} ];
-    $self->{params}[0] ||= {};
-    my $target = $self->{params}[0];
-    if ( $self->{case_sensitive} ) { 
-      %$target = ( %$target, @_ );
-    } else {
-      my %hash = @_;
-      %$target = ( %$target, map { lc($_) => $hash{$_} } keys %hash );
-      # warn "set params $self->{params}[0]: " , %{ $self->{params}[0] };
-    }
-
-  } elsif ( scalar @_ == 1 and ref( $_[0] ) ) {
-    push @{$self->{params}}, shift();
-
-  } else {
-    my $key = $self->{case_sensitive} ? shift : lc( shift );
-    # warn "get params $key: $#params\n";
-    foreach my $param ( @params ) {
-      # warn "get params $param: $key\n";
-      my $case_key = ( exists $param->{ $key } ) ? $key : 
-	( ! $self->{case_sensitive} ) ? ( grep { lc eq $key } keys %$param )[0] : undef;
-      next unless defined $case_key;
-      my $value = $param->{ $case_key };
-      # warn "get params $param: $key ($case_key) = $value\n";
-      return( ref($value) ? @$value : $value )
-    }
-    if ( my $associate = $self->{associate} ) {
-      my $case_key = ( $self->{case_sensitive} ) ? $key : 
-		( grep { lc eq $key } $associate->param() )[0];
-      return $associate->param( $case_key );
-    }
-    return undef;
-  }
-}
+sub output { (shift)->execute_again( @_ ) }
 
 ######################################################################
 
@@ -201,6 +115,12 @@ sub assemble_tmpl_end {
 
 ######################################################################
 
+use vars qw( %Filters );
+
+sub defaults {
+  (shift)->NEXT('defaults'), filters => \%Filters,
+}
+
 # Output filtering
 $Filters{1} = $Filters{html} = \&HTML::Entities::encode 
 					if eval { require HTML::Entities};
@@ -235,6 +155,22 @@ Text::MicroMason::HTMLTemplate - Alternate Syntax like HTML::Template
 
 =head1 SYNOPSIS
 
+Instead of using this class directly, pass its name to be mixed in:
+
+  use Text::MicroMason;
+  my $mason = Text::MicroMason::Base->new( -HTMLTemplate );
+
+Use the standard compile and execute methods to parse and evalute templates:
+
+  print $mason->compile( text=>$template )->( @%args );
+  print $mason->execute( text=>$template, @args );
+
+Or use HTML::Template's calling conventions:
+
+    $template = Text::MicroMason->new( -HTMLTemplate, filename=>'simple.tmpl' );
+    $template->param( %arguments );
+    print $template->output();
+
 HTML::Template provides a syntax to embed values into a text template:
 
     <TMPL_IF NAME="user_is_dave">
@@ -247,29 +183,13 @@ HTML::Template provides a syntax to embed values into a text template:
       </TMPL_IF>
     </TMPL_IF>
 
-Instead of using this class directly, pass its name to be mixed in:
-
-    use Text::MicroMason;
-    my $mason = Text::MicroMason->new( -HTMLTemplate );
-
-You can compile and execute templates using the standard MicroMason methods:
- 
-    print $mason->execute( file => 'simple.tmpl', %arguments );
-
-    $coderef = $mason->compile( file => 'simple.tmpl' );
-    print $coderef->( %arguments );
-
-Or use HTML::Template's calling conventions:
-
-    $template = Text::MicroMason->new( -HTMLTemplate, filename=>'simple.tmpl' );
-    $template->param( %arguments );
-    print $template->output();
-
 
 =head1 DESCRIPTION
 
 This mixin class overrides several methods to allow MicroMason to emulate
 the template syntax and some of the other features of HTML::Template.
+
+This class automatically includes the following other mixins: TemplateDir, HasParams, and StoreOne.
 
 =head2 Compatibility with HTML::Template
 
@@ -404,10 +324,6 @@ Creates a new Mason object. If a filename parameter is supplied, the correspondi
 
 Gets and sets parameter arguments. Similar to the param() method provied by HTML::Template and the CGI module.
 
-=item compile()
-
-Caches a reference to the most-recently compiled subroutine in the Mason object.
-
 =item output()
 
 Executes the most-recently compiled template and returns the results.
@@ -433,10 +349,6 @@ Attempts to parse a token from the template text stored in the global $_ and ret
 =item parse_args()
 
 Lexer for arguments within a tag.
-
-=item assembler_rules()
-
-Adds initialization for param() at the begining of each subroutine to be compiled.
 
 =item assemble_tmpl_*()
 

@@ -51,7 +51,7 @@ sub prepare {
 
 sub interpret {
   my $self = shift;
-  $self->debug_msg( 'read', @_ );
+  $self->debug_msg( 'interpret', @_ );
   $self->NEXT( 'interpret', @_ )
 }
 
@@ -99,10 +99,10 @@ Instead of using this class directly, pass its name to be mixed in:
   use Text::MicroMason;
   my $mason = Text::MicroMason->new( -Debug );
 
-Use the compile and execute methods to parse and evalute a template:
+Use the standard compile and execute methods to parse and evalute templates:
 
-    print $mason->compile( text=>$template )->( 'name'=>'Dave' );
-    print $mason->execute( text=>$template, 'name'=>'Dave' );
+  print $mason->compile( text=>$template )->( @%args );
+  print $mason->execute( text=>$template, @args );
 
 You'll see lots of warning output on STDERR:
 

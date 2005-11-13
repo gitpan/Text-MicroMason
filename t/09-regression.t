@@ -3,7 +3,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 21 }
+BEGIN { plan tests => 23 }
 
 my $loaded;
 END { ok(0) unless $loaded; }
@@ -25,8 +25,24 @@ MINIMAL_CASES: {
 
 ######################################################################
 
+COMMENT_EXPR: {
+  my $scr_re = 'Hello <% # foo %> World!';
+  my $res_re = "Hello  World!";
+  ok( $m->execute( text => $scr_re), $res_re );
+}
+
+######################################################################
+
 EMPTY_PERL_LINE: {
   my $scr_re = "x\n%\nx";
+  my $res_re = "x\nx";
+  ok( $m->execute( text => $scr_re), $res_re );
+}
+
+######################################################################
+
+COMMENT_PERL_LINE: {
+  my $scr_re = "x\n% # \nx";
   my $res_re = "x\nx";
   ok( $m->execute( text => $scr_re), $res_re );
 }
@@ -157,6 +173,7 @@ LOOKS_LIKE_HTML: {
 ######################################################################
 
 STRICT_VARS: {
+  local $^W; # Try to avoid an unecessary warning on 5.005_04
   my $scr_re = '% $foo ++; ';
   ok( ! eval { $m->execute( text => $scr_re); 1 } );
 }
