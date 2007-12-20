@@ -3,6 +3,14 @@ NAME
     Distribution
 
 VERSION 2 HISTORY
+  Version 1.992_01
+    2007-12-20
+        Updated pod and makefiles for maintenance transition from Simon to
+        Alan. Thanks for the wonderful module, Simon! I hope I can keep
+        things under control.
+
+        Bumped version number.
+
   Version 1.992
     2005-11-13
         Updated ToDo.pod with a few ideas for upcoming releases.

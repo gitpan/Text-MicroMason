@@ -3,18 +3,15 @@ use ExtUtils::MakeMaker;
 ########################################################################
 
 WriteMakefile(
-    'NAME'         => 'Text::MicroMason',
-    'VERSION_FROM' => 'MicroMason.pm',
-    'PREREQ_PM'    => {
-      'Class::MixinFactory' => 0.9,
-    }, 
+              NAME         => 'Text::MicroMason',
+              VERSION_FROM => 'MicroMason.pm',
+              PREREQ_PM    => {
+                                 'Class::MixinFactory' => 0.9,
+                              },
 
-    test => { TESTS => undef },
-
-    ($] >= 5.005 ? (
-      ABSTRACT_FROM     => 'MicroMason.pm', 
-      AUTHOR            => 'Matthew Simon Cavalletto <simonm@cavalletto.org>',
-    ) : ()),
+              ABSTRACT_FROM     => 'MicroMason.pm', 
+              AUTHOR            => 'Alan Ferrency <ferrency@cpan.org>',
+              LICENSE           => 'perl',
 );
 
 ########################################################################
@@ -28,7 +25,7 @@ again: realclean FORCE
 	perl Makefile.PL; make pm_to_blib
 
 cleanmanifest: realclean FORCE
-	rm MANIFEST ; perl Makefile.PL; touch MANIFEST; make manifest
+	touch MANIFEST ; rm MANIFEST ; perl Makefile.PL; touch MANIFEST; make manifest
 
 %.t: pm_to_blib FORCE
 	make; perl -Iblib/lib $@
@@ -48,3 +45,12 @@ TODO: MicroMason/Docs/ToDo.pod
 	pod2text MicroMason/Docs/ToDo.pod > TODO
 
 }; }
+
+####
+# Notes, building a distribution
+#
+#   perl Makefile.PL
+#   make docs
+#   make cleanmanifest
+#   make disttest
+#   make dist

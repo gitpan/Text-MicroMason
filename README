@@ -45,14 +45,14 @@ MOTIVATION
     Text::QuickTemplate.
 
 DISTRIBUTION STATUS
-    This is version 1.992 of Text::MicroMason.
+    This is version 1.992_01 of Text::MicroMason.
 
     This is a BETA version on a development track for a 2.0 release.
 
     This module has been available on CPAN for over four years.
 
-    If you encounter any problems, please inform the author and I'll
-    endeavor to patch them promptly.
+    If you encounter any problems, please inform the current maintainer and
+    I'll endeavor to patch them promptly.
 
     This module's CPAN registration should read:
 
@@ -65,9 +65,12 @@ DISTRIBUTION STATUS
 
       5.6.1 on darwin
       5.8.6 on darwin-thread-multi-2level
+      5.8.8 and 5.10 on FreeBSD 6.1
+      5.8.3 on FreeBSD 4.8
 
-    Earlier releases have also tested OK on a wide variety of platforms. You
-    may review the current test results from CPAN-Testers:
+    Earlier releases have also tested OK on a wide variety of platforms.
+
+    You may review the current test results from CPAN-Testers:
 
       http://testers.cpan.org/show/Text-MicroMason.html
 
@@ -88,8 +91,7 @@ INSTALLATION
       perl -MCPAN -e 'install Text::MicroMason'
 
     Alternately, you may retrieve this package from CPAN
-    ("http://search.cpan.org/~evo/") or from the author's site
-    ("http://www.evoscript.org/Text-MicroMason").
+    ("http://search.cpan.org/~ferrency/").
 
     After downloading the distribution, follow the normal procedure to
     unpack and install it, using the commands shown below or their local
@@ -102,8 +104,9 @@ INSTALLATION
 
 SUPPORT
     If you have questions or feedback about this module, please feel free to
-    contact the author at the below address. Although there is no formal
-    support program, I do attempt to answer email promptly.
+    contact the maintainer or original author at the e-mail address listed
+    below. Although there is no formal support program, I do attempt to
+    answer email promptly.
 
     I would be particularly interested in any suggestions towards improving
     the documentation, correcting any Perl-version or platform dependencies,
@@ -114,7 +117,7 @@ SUPPORT
     future releases.
 
     You can report bugs via the CPAN web tracking system, or send mail to
-    "Dist=Text-MicroMason#rt.cpan.org", replacing "#" with "@".
+    "bug-Text-MicroMason#rt.cpan.org", replacing "#" with "@".
 
       http://rt.cpan.org/NoAuth/Bugs.html?Dist=Text-MicroMason
 
@@ -127,13 +130,16 @@ COMMUNITY
 
     For more general discussion, you may wish to post a message on the
     CPAN::Forum, on PerlMonks, or on the comp.lang.perl.modules newsgroup.
+    These are not all monitored by the current maintainer, so if you want a
+    response, please contact me directly.
 
       http://www.cpanforum.com/dist/Text-MicroMason
       http://perlmonks.org/?node=Seekers%20of%20Perl%20Wisdom
       http://groups.google.com/groups?group=comp.lang.perl.modules
 
 THANKS
-    My sincere thanks to the following users for their feedback:
+    My sincere thanks to the following people for their feedback and
+    contributions:
 
       Pascal Barbedor
       Mark Hampton
@@ -144,6 +150,7 @@ THANKS
       Alan Ferrency
       Jonas Alves
       Alexander
+      Matthew Simon Cavalletto
 
 SOURCE MATERIAL
     Portions based on HTML::Mason by Jonathan Swartz.
@@ -163,9 +170,8 @@ AUTHOR
     contact the author directly at "evo#cpan.org" or
     "simonm#cavalletto.org", replacing "#" with "@".
 
-    Custom development and technical consulting are available at
-    "www.evolutionsoftworks.com". More free Perl software is available at
-    "www.evoscript.org".
+    Currently maintained by Alan Ferrency <ferrency#cpan.org> at pair
+    Networks, Inc.
 
 LICENSE
     Copyright 2002, 2003, 2004, 2005 Matthew Simon Cavalletto.

@@ -5,6 +5,20 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =head1 VERSION 2 HISTORY
 
+=head2 Version 1.992_01
+
+=over 4
+
+=item 2007-12-20
+
+Updated pod and makefiles for maintenance transition from Simon to
+Alan. Thanks for the wonderful module, Simon! I hope I can keep things
+under control.
+
+Bumped version number.
+
+=back
+
 =head2 Version 1.992
 
 =over 4

@@ -2,7 +2,6 @@ CHANGES
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
-META.yml
 MicroMason.pm
 MicroMason/AllowGlobals.pm
 MicroMason/ApacheHandler.pm
@@ -83,3 +82,4 @@ t/85-func-file.t
 t/86-func-safe.t
 t/89-func-regression.t
 TODO
+META.yml                                 Module meta-data (added by MakeMaker)
