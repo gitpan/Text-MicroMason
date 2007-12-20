@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Text-MicroMason
-version:             1.992_01
+version:             1.993
 abstract:            Simple and Extensible Templating
 license:             perl
 author:              

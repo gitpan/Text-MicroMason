@@ -3,6 +3,22 @@ NAME
     Distribution
 
 VERSION 2 HISTORY
+  Version 1.993
+    2007-12-20
+        Merge changes from pair Networks local branch, which have been in
+        testing and production since Q1 2007; bump version to 1.993.
+
+        This includes:
+
+        TemplatePath mixin
+          Template lookups on a search path
+
+        TemplateDir/ Cache patch
+           fix interaction of caching and TemplateDir/TemplatePath
+
+        Additional test files
+        Stop creating cache objects unless/until they're used
+
   Version 1.992_01
     2007-12-20
         Updated pod and makefiles for maintenance transition from Simon to

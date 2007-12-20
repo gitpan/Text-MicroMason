@@ -5,6 +5,35 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =head1 VERSION 2 HISTORY
 
+=head2 Version 1.993
+
+=over 4
+
+=item 2007-12-20
+
+Merge changes from pair Networks local branch, which have been in
+testing and production since Q1 2007; bump version to 1.993.
+
+This includes:
+
+=over 2
+
+=item TemplatePath mixin
+
+Template lookups on a search path
+
+=item TemplateDir/ Cache patch
+
+ fix interaction of caching and TemplateDir/TemplatePath
+
+=item Additional test files
+
+=item Stop creating cache objects unless/until they're used
+
+=back
+
+=back
+
 =head2 Version 1.992_01
 
 =over 4

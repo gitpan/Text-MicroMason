@@ -7,29 +7,49 @@ use File::Spec;
 
 sub prepare {
   my ( $self, $src_type, $src_data ) = @_;
-  
-  if ( $src_type ne 'file' ) {
-    return $self->NEXT('prepare', $src_type, $src_data );
-  }
-  
+
+  return $self->NEXT('prepare', $src_type, $src_data ) 
+    unless $src_type eq 'file';
+
+  my $path = $self->resolve_path($src_data);
+  return $self->NEXT('prepare', 'file' => $path, source_file => $path );
+}
+
+sub resolve_path {
+  my ($self, $src_data) = @_;
+
   my $current = $self->{source_file};
-  my $rootdir = $self->{template_root} || '.';
-  
+  my $rootdir = $self->template_root();
+
   my $base = File::Spec->file_name_is_absolute($src_data) || ! $current 
 			      ? $rootdir 
 			      : ( File::Spec->splitpath( $current ) )[1];
-  
-  my $path = File::Spec->catfile( $base, $src_data );
-  
-  return $self->NEXT('prepare', 'file' => $path, source_file => $path );
+
+  return File::Spec->catfile( $base, $src_data );
 }
+
+sub template_root {
+    my $self = shift;
+    return $self->{template_root} || '.' unless @_;
+    
+    $self->{template_root} = shift;
+}
+
+sub cache_key {
+    my $self = shift;
+    my ($src_type, $src_data, %options) = @_;
+    return $self->NEXT('cache_key', @_) unless $src_type eq 'file';
+    return  $self->resolve_path($src_data);
+}
+
 
 # $contents = $mason->read_file( $filename );
 sub read_file {
   my ( $self, $file ) = @_;
   
   if ( my $root = $self->{strict_root} ) {
-    if ( $root eq '1' ) { $root = $self->{template_root} || '.' }
+
+    $root = $self->template_root if $root eq '1';
     my $path = File::Spec->canonpath( $file );
     # warn "Checking for '$root' in '$path'\n";
     ( $path =~ /\A\Q$root\E(\/|(?<=\/))(?!\.\.)/ )

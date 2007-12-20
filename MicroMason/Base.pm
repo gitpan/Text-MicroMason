@@ -316,6 +316,15 @@ sub _printable {
 
 ######################################################################
 
+
+sub cache_key {
+    my $self = shift;
+    my ($src_type, $src_data, %options) = @_;
+
+    return $src_data;
+}
+
+
 1;
 
 __END__

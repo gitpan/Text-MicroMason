@@ -8,29 +8,25 @@ require Text::MicroMason::Cache::Simple;
 
 ######################################################################
 
-use vars qw( %Defaults );
-
-$Defaults{ execute_cache } = Text::MicroMason::Cache::Simple->new();
-
-sub defaults {
-  (shift)->NEXT('defaults'), %Defaults
-}
-
-######################################################################
-
 # $code_ref = compile( text => $template );
 sub compile {
-  my $self = shift;
-  
-  my $code_ref = $self->NEXT('compile', @_);
-  
-  my $cache = $self->{ 'execute_cache' }
-    or return $code_ref;
-  
-  sub {
-    my $key = join("|", $code_ref, @_);
-    $cache->get( $key ) or $cache->set( $key, &$code_ref( @_ ) );
-  }
+    my $self = shift;
+    
+    my $code_ref = $self->NEXT('compile', @_);
+    
+    my $cache = $self->_execute_cache()
+        or return $code_ref;
+    
+    sub {
+        my $key = join("|", $code_ref, @_);
+        $cache->get( $key ) or $cache->set( $key, $code_ref->( @_ ) );
+    }
+}
+
+sub _execute_cache {
+    my $self = shift;
+    
+    $self->{execute_cache} ||= Text::MicroMason::Cache::Simple->new();
 }
 
 ######################################################################

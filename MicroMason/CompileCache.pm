@@ -7,31 +7,36 @@ require Text::MicroMason::Cache::Simple;
 require Text::MicroMason::Cache::File;
 
 ######################################################################
+# What cache class should we use for each src_type?
 
-use vars qw( %Defaults );
-
-$Defaults{ compile_cache_text } = Text::MicroMason::Cache::Simple->new();
-$Defaults{ compile_cache_file } = Text::MicroMason::Cache::File->new();
-
-sub defaults {
-  (shift)->NEXT('defaults'), %Defaults
-}
+my %CACHE_CLASS = (
+                   file => 'Text::MicroMason::Cache::File',
+                   text => 'Text::MicroMason::Cache::Simple',
+                  );
 
 ######################################################################
 
 # $code_ref = compile( file => $filename );
 sub compile {
-  my ( $self, $src_type, $src_data, %options ) = @_;
-  
-  my $cache_type = 'compile_cache_' . $src_type;
-  my $cache = $self->{ $cache_type }
-    or return $self->NEXT('compile', $src_type, $src_data, %options);
-  
-  $cache->get( $src_data ) or $cache->set( $src_data, 
-	      $self->NEXT('compile', $src_type, $src_data, %options) );
+    my $self = shift;
+    my ( $src_type, $src_data, %options ) = @_;
+    my $cache = $self->_compile_cache( $src_type )
+        or return $self->NEXT('compile', @_);
+    my $key = $self->cache_key(@_);
+    $cache->get( $key ) or $cache->set( $key,
+                                        $self->NEXT('compile', @_),
+                                      );
+}
+
+sub _compile_cache {
+    my ($self, $type) = @_;
+    $CACHE_CLASS{$type} or return;
+    
+    $self->{compile_cache}{$type} ||= $CACHE_CLASS{$type}->new();
 }
 
 ######################################################################
+
 
 1;
 
