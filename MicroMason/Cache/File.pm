@@ -3,34 +3,39 @@ package Text::MicroMason::Cache::File;
 
 use strict;
 
+# Array field names
+use constant LAST_CHECK => 0;
+use constant AGE        => 1;
+use constant VALUE      => 2;
+
 ######################################################################
 
 sub get { 
-  my ( $self, $file ) = @_;
-  my $entry = $self->SUPER::get( $file ) 
-      or return;
-  unless ( ref( $entry) eq 'ARRAY' and $#$entry == 2 ) {
-    Carp::croak("MicroMason: cache '$self' data corrupted; " . 
-			    "value for '$file' should not be '$entry'");
-  }
-  
-  my $time = time();
-  if ( $entry->[0] < $time ) { # don't check more than once per second
-    my $mtime = -M $file;
-    if ( $entry->[1] < $mtime ) {
-      @$entry = ( 0, 0, undef ); # file has changed; cache invalid
-      return;
-    } else {
-      $entry->[0] = $time;
+    my ( $self, $file ) = @_;
+    my $entry = $self->SUPER::get( $file ) 
+        or return;
+    unless (ref($entry) eq 'ARRAY' and @$entry == 3 ) {
+        Carp::croak("MicroMason: cache '$self' data corrupted; " . 
+                    "value for '$file' should not be '$entry'");
     }
-  }
-  return $entry->[2];
+    
+    my $time = time();
+    if ( $entry->[LAST_CHECK] < $time ) { # don't check more than once per second
+        my $current_age = -M $file;
+        if ( $entry->[AGE] > $current_age ) {
+            @$entry = ( 0, 0, undef ); # file has changed; cache invalid
+            return;
+        } else {
+            $entry->[LAST_CHECK] = $time;
+        }
+    }
+    return $entry->[VALUE];
 }
 
 sub set { 
-  my ( $self, $file, $sub ) = @_;
-  $self->SUPER::set( $file => [ time(), -M $file, $sub ] ); 
-  return $sub 
+    my ($self, $file, $sub) = @_;
+    $self->SUPER::set( $file => [ time(), -M $file, $sub ] ); 
+    return $sub; 
 }
 
 ######################################################################
@@ -48,9 +53,12 @@ Text::MicroMason::Cache::File - Basic Cache with File-Based Expiration
 
 =head1 DESCRIPTION
 
-This simple cache class expects the keys provided to it to be file pathnames, and considers the cached value to have expired if the corresponding file is changed.
+This simple cache class expects the keys provided to it to be file
+pathnames, and considers the cached value to have expired if the
+corresponding file is changed.
 
-It does not perform the following functions: cache size limiting, or deep copying of complex values.
+It does not perform the following functions: cache size limiting, or
+deep copying of complex values.
 
 =head2 Public Methods
 
@@ -85,7 +93,9 @@ Removes all data from the cache.
 
 For uses of this cache class, see L<Text::MicroMason::CompileCache>.
 
-Additional cache classes are available in the Text::MicroMason::Cache:: namespace, or select other caching modules on CPAN that support the interface described in L<Cache::Cache>.
+Additional cache classes are available in the Text::MicroMason::Cache::
+namespace, or select other caching modules on CPAN that support the
+interface described in L<Cache::Cache>.
 
 For distribution, installation, support, copyright and license 
 information, see L<Text::MicroMason::Docs::ReadMe>.

@@ -25,6 +25,7 @@ MicroMason/Functions.pm
 MicroMason/HasParams.pm
 MicroMason/HTMLMason.pm
 MicroMason/HTMLTemplate.pm
+MicroMason/LineNumbers.pm
 MicroMason/ParseInfo.pm
 MicroMason/PassVariables.pm
 MicroMason/PLP.pm
@@ -70,6 +71,7 @@ t/37-post_process.t
 t/38-allow_globals.t
 t/39-debug.t
 t/40-pass_variables.t
+t/41-line_numbers.t
 t/51-server_pages.t
 t/52-text_template.t
 t/53-html_template.t

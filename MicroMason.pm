@@ -1,7 +1,9 @@
 package Text::MicroMason;
-$VERSION = '1.993';
+$VERSION = '1.993_01';
 
-require 5.0; # The tests use the new subref->() syntax, but the module doesn't
+# The #line directive requires Perl 5.6 to work correctly the way we use
+# it in Base.
+require 5.006;
 use strict;
 
 require Text::MicroMason::Base;
@@ -382,6 +384,13 @@ internal processes of template compilation. This mixin adds controllable
 warning messages that show the intermediate parse information.
 
 For details see L<Text::MicroMason::Debug>.
+
+=head2 LineNumbers
+
+Provide better line numbers when compilation fails, at the cost of
+potentially slower compilation and execution.
+
+For details see L<Text::MicroMason::LineNumbers>.
 
 =head2 ExecuteCache
 

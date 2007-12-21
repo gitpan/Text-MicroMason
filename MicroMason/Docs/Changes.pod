@@ -5,6 +5,36 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =head1 VERSION 2 HISTORY
 
+=head2 Version 1.993_01
+
+=over 4
+
+=item 2007-12-21
+
+Add LineNumbers mixin and associated tests.
+
+=item 2007-12-21
+
+Update TODO: move almost everything into a WISH LIST with a request for
+contributions, and make the main TODO list bug fixes and a few likely
+developments.
+
+=item 2007-12-21
+
+Merge test and patch from RT bug #21802: cache expiration bug. 
+
+=item 2007-12-21
+
+Merge changes from RT bug #18435: filter problem with 
+<% $thing || "default" %>
+
+=item 2007-12-21
+
+Bump version to 1.993_01
+
+=back
+
+
 =head2 Version 1.993
 
 =over 4

@@ -51,7 +51,7 @@ Text::QuickTemplate.
 
 =head1 DISTRIBUTION STATUS
 
-This is version 1.993 of Text::MicroMason. 
+This is version 1.993_01 of Text::MicroMason. 
 
 This is a BETA version on a development track for a 2.0 release.
 
@@ -83,8 +83,14 @@ You may review the current test results from CPAN-Testers:
 
 =head1 PREREQUISITES
 
-This module should work with any version of Perl 5 on any
-standard platform.
+The required version of perl has been increased to 5.6 as of version
+1.993_01. It should work with on any standard platform which runs Perl.
+
+Although almost all currently existing features work on versions of Perl
+reaching back to 5.0, it will benefit Text::MicroMason in the long run
+if supporting legacy versions of Perl was not necessary. Please contact
+the new maintainer to gripe, if you absolutely need Text::MicroMason on
+an older version of Perl.  
 
 There is one pre-requisite module not included with the core
 distribution which must be installed from CPAN:
@@ -92,7 +98,6 @@ L<Class::MixinFactory|Class::MixinFactory>.
 
 If you want to use the Text::Template compatibility mode, you will also
 need to install L<Text::Balanced|Text::Balanced>.
-
 
 =head1 INSTALLATION
 
@@ -167,6 +172,7 @@ contributions:
   Jonas Alves
   Alexander
   Matthew Simon Cavalletto
+  Jon Warbrick
 
 
 =head1 SOURCE MATERIAL

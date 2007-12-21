@@ -40,6 +40,11 @@ sub assemble {
 
 package Text::MicroMason::Commands;
 
+# Trick PAUSE into indexing us properly: this package used to be in
+# MicroMason.pm, so it gained version 1.07 on PAUSE, and the new ones
+# won't be reindexed unless they have a greater version.
+our $VERSION = "1.9";
+
 use vars qw( $m );
 sub include {
   $m->execute( file => @_ )

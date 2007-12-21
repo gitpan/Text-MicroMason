@@ -3,6 +3,25 @@ NAME
     Distribution
 
 VERSION 2 HISTORY
+  Version 1.993_01
+    2007-12-21
+        Add LineNumbers mixin and associated tests.
+
+    2007-12-21
+        Update TODO: move almost everything into a WISH LIST with a request
+        for contributions, and make the main TODO list bug fixes and a few
+        likely developments.
+
+    2007-12-21
+        Merge test and patch from RT bug #21802: cache expiration bug.
+
+    2007-12-21
+        Merge changes from RT bug #18435: filter problem with <% $thing ||
+        "default" %>
+
+    2007-12-21
+        Bump version to 1.993_01
+
   Version 1.993
     2007-12-20
         Merge changes from pair Networks local branch, which have been in

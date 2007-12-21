@@ -31,7 +31,7 @@ sub assemble {
   foreach my $position ( 0 .. int( $#tokens / 2 ) ) {
     if ( $tokens[$position * 2] eq 'expr' ) {
       my $token = $tokens[$position * 2 + 1];
-      my $filt_flags = ($token =~ s/\|\s*(\w+(?:[\s\,]+\w+)*)\s*\z//) ? $1 : '';
+      my $filt_flags = ($token =~ s/[^\|]\|\s*(\w+(?:[\s\,]+\w+)*)\s*\z//) ? $1 : '';
       my @filters = $self->parse_filters($self->{default_filters}, $filt_flags);
       if ( @filters ) {
 	$token = '$m->filter( ' . join(', ', map "'$_'", @filters ) . ', ' . 

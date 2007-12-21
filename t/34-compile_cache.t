@@ -1,100 +1,95 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test;
+use Text::MicroMason;
 
-BEGIN { plan tests => 16 }
-
+use Test::More tests => 20;
+use File::Copy;
 use Carp;
 $SIG{__DIE__} = \&Carp::confess;
 
-use Text::MicroMason;
-
 ######################################################################
 
 { 
-  my $m = Text::MicroMason->new();
-
-  use vars qw( $count_sub $sub_count $local_count );
-  $sub_count = 0;
-  $local_count = 0;
-  my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count; </%perl><% ++ $count; %>};
-  for ( 1 .. 3 ) { 
-    $count_sub = $m->compile( text => $count_scr );
+    my $m = Text::MicroMason->new();
+    
+    use vars qw( $count_sub $sub_count $local_count );
+    $sub_count = 0;
+    $local_count = 0;
+    my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count; </%perl><% ++ $count; %>};
     for ( 1 .. 3 ) { 
-      &$count_sub($_);
+        $count_sub = $m->compile( text => $count_scr );
+        for ( 1 .. 3 ) { 
+            &$count_sub($_);
+        }
     }
-  }
-
-  ok( $sub_count, 3 );
-  ok( $local_count, 9 );
-  ok( &$count_sub(), 4 );
+    
+    is $sub_count, 3;
+    is $local_count, 9;
+    is &$count_sub(), 4;
 }
 
 ######################################################################
 
 { 
-  my $m = Text::MicroMason->new( -CompileCache );
-  foreach ( grep $_, map $m->{$_}, qw( compile_cache_text compile_cache_file execute_cache ) ) { $_->clear() }
-
-  use vars qw( $count_sub $sub_count $local_count );
-  $sub_count = 0;
-  $local_count = 0;
-  my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count; </%perl><% ++ $count; %>};
-  for ( 1 .. 3 ) { 
-    $count_sub = $m->compile( text => $count_scr );
+    my $m = Text::MicroMason->new( -CompileCache );
+    
+    use vars qw( $count_sub $sub_count $local_count );
+    $sub_count = 0;
+    $local_count = 0;
+    my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count; </%perl><% ++ $count; %>};
     for ( 1 .. 3 ) { 
-      &$count_sub($_);
+        $count_sub = $m->compile( text => $count_scr );
+        for ( 1 .. 3 ) { 
+            &$count_sub($_);
+        }
     }
-  }
-
-  ok( $sub_count, 1 );
-  ok( $local_count, 9 );
-  ok( &$count_sub(), 10 );
+    
+    is $sub_count, 1;
+    is $local_count, 9;
+    is &$count_sub(), 10;
 }
 
 ######################################################################
 
 { 
-  my $m = Text::MicroMason->new( -CompileCache, -ExecuteCache );
-  foreach ( grep $_, map $m->{$_}, qw( compile_cache_text compile_cache_file execute_cache ) ) { $_->clear() }
-
-  use vars qw( $count_sub $sub_count $local_count );
-  $sub_count = 0;
-  $local_count = 0;
-  my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count; </%perl><% ++ $count; %>};
-  for ( 1 .. 3 ) { 
-    $count_sub = $m->compile( text => $count_scr );
+    my $m = Text::MicroMason->new( -CompileCache, -ExecuteCache );
+    
+    use vars qw( $count_sub $sub_count $local_count );
+    $sub_count = 0;
+    $local_count = 0;
+    my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count; </%perl><% ++ $count; %>};
     for ( 1 .. 3 ) { 
-      &$count_sub($_);
+        $count_sub = $m->compile( text => $count_scr );
+        for ( 1 .. 3 ) { 
+            &$count_sub($_);
+        }
     }
-  }
-
-  ok( $sub_count, 1 );
-  ok( $local_count, 3 );
-  ok( &$count_sub(), 4 );
+    
+    is $sub_count, 1;
+    is $local_count, 3;
+    is &$count_sub(), 4;
 }
 
 ######################################################################
 
 { 
-  my $m = Text::MicroMason->new( -ExecuteCache, -CompileCache );
-  foreach ( grep $_, map $m->{$_}, qw( compile_cache_text compile_cache_file execute_cache ) ) { $_->clear() }
-
-  use vars qw( $count_sub $sub_count $local_count );
-  $sub_count = 0;
-  $local_count = 0;
-  my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count; </%perl><% ++ $count; %>};
-  for ( 1 .. 3 ) { 
-    $count_sub = $m->compile( text => $count_scr );
+    my $m = Text::MicroMason->new( -ExecuteCache, -CompileCache );
+    
+    use vars qw( $count_sub $sub_count $local_count );
+    $sub_count = 0;
+    $local_count = 0;
+    my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count; </%perl><% ++ $count; %>};
     for ( 1 .. 3 ) { 
-      &$count_sub($_);
+        $count_sub = $m->compile( text => $count_scr );
+        for ( 1 .. 3 ) { 
+            &$count_sub($_);
+        }
     }
-  }
-
-  ok( $sub_count, 1 );
-  ok( $local_count, 3 );
-  ok( &$count_sub(), 4 );
+    
+    is $sub_count, 1;
+    is $local_count, 3;
+    is &$count_sub(), 4;
 }
 
 ######################################################################
@@ -104,19 +99,18 @@ use Text::MicroMason;
 # then calling the resulting sub 10 times.
 
 {
-  my $m = Text::MicroMason->new( -CompileCache );
-  foreach ( grep $_, map $m->{$_}, qw( compile_cache_text compile_cache_file execute_cache ) ) { $_->clear() }
-
-  use vars qw( $count_sub $sub_count $local_count );
-  $sub_count = 0;
-  $local_count = 0;
-  my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count; </%perl><% ++ $count; %>};
-  for ( 1 .. 10 ) {
-      $m->execute( text => $count_scr );
-  }
-
-  ok( $sub_count, 1 );
-  ok( $local_count, 10 );
+    my $m = Text::MicroMason->new( -CompileCache );
+    
+    use vars qw( $count_sub $sub_count $local_count );
+    $sub_count = 0;
+    $local_count = 0;
+    my $count_scr = q{<%once> ++ $::sub_count; my $count; </%once><%perl> ++ $::local_count; </%perl><% ++ $count; %>};
+    for ( 1 .. 10 ) {
+        $m->execute( text => $count_scr );
+    }
+    
+    is $sub_count, 1;
+    is $local_count, 10;
 }
 
 ######################################################################
@@ -124,22 +118,83 @@ use Text::MicroMason;
 # Test using $m->execute directly, on a file.
 
 {
-  my $m = Text::MicroMason->new( -CompileCache );
-  foreach ( grep $_, map $m->{$_}, qw( compile_cache_text compile_cache_file execute_cache ) ) { $_->clear() }
-
-  use vars qw( $count_sub $sub_count $local_count );
-  $sub_count = 0;
-  $local_count = 0;
-
-  for ( 1 .. 10 ) {
-      $m->execute( file => "samples/t-counter.msn" );
-  }
-
-  ok( $sub_count, 1 );
-  ok( $local_count, 10 );
-
-  unlink "t34.txt";
+    my $m = Text::MicroMason->new( -CompileCache );
+    
+    use vars qw( $count_sub $sub_count $local_count );
+    $sub_count = 0;
+    $local_count = 0;
+    
+    for ( 1 .. 10 ) {
+        $m->execute( file => "samples/t-counter.msn" );
+    }
+    
+    is $sub_count, 1;
+    is $local_count, 10;
 }
 
 
 ######################################################################
+
+# Testss submitted via rt.cpan.org by Jon Warbrick on #21802
+
+copy('samples/t-counter.msn','samples/t34a.msn');
+
+######################################################################
+
+# Test cache expiration using $m->execute directly on a file
+
+{
+    my $m = Text::MicroMason->new( -CompileCache );
+    
+    use vars qw( $count_sub $sub_count $local_count );
+    $sub_count = 0;
+    $local_count = 0;
+    
+    my $time = time-5;
+    utime $time, $time, "samples/t34a.msn";
+    for ( 1 .. 2 ) {
+        $m->execute( file => "samples/t34a.msn" );
+    }
+    $time = time;
+    utime $time, $time, "samples/t34a.msn";
+    sleep(1); # to defeat not checking less than once per second
+    for ( 1 .. 2 ) {
+        $m->execute( file => "samples/t34a.msn" );
+    }
+    
+    is $sub_count, 2;
+    is $local_count, 4;
+    
+}
+
+######################################################################
+
+# Test cache expiration using $m->execute directly on a file, using -TemplateDir
+
+{
+    my $m = Text::MicroMason->new( -CompileCache, 
+                                   -TemplateDir, template_root=>'samples'  );
+    
+    use vars qw( $count_sub $sub_count $local_count );
+    $sub_count = 0;
+    $local_count = 0;
+    
+    my $time = time-5;
+    utime $time, $time, "samples/t34a.msn";
+    for ( 1 .. 2 ) {
+        $m->execute( file => "t34a.msn" );
+    }
+    $time = time;
+    utime $time, $time, "samples/t34a.msn";
+    sleep(1); # to defeat not checking less than once per second
+    for ( 1 .. 2 ) {
+        $m->execute( file => "t34a.msn" );
+    }
+    
+    is $sub_count, 2;
+    is $local_count, 4;
+}
+
+######################################################################
+
+unlink('samples/t34a.msn');

@@ -2,15 +2,37 @@ NAME
     Text::MicroMason::Docs::ToDo - Development Plans for the MicroMason
     Distribution
 
-TO DO
+DESCRIPTION
     This document outlines various development plans and ideas for
     Text::MicroMason.
 
-    The priority and schedule for these items are not well defined; if you
-    are interested in a specific feature please contact the author as
-    described in Text::MicroMason::Docs::ReadMe.
+    The TO DO section describes plans which are likely to happen.
+
+    The WISH LIST section describes a variety of ideas which are likely to
+    be accepted as patches, but which will most likely not be developed with
+    any priority any time soon.
+
+    If you are interested in a specific feature, whether it is listed here
+    or not, please contact the current maintainer as described in
+    Text::MicroMason::Docs::ReadMe.
+
+TO DO
+  Fix all known bugs
+    So, please report them.
 
   Distribution
+    *   Move the module files into a lib/ directory as expected in modern
+        CPAN distributions.
+
+  New Mixins
+    *   AutoLoad mixin. Using this mixin adds an AUTOLOADER to the mason
+        object, which interprets all unknown method calls as template names,
+        which will be interpreted as the object is compiled.
+
+WISH LIST
+  Distribution
+    *   Use Module::Build instead of ExtUtils::MakeMaker.
+
     *   Consider reorganizing the Text::MicroMason::* modules into a number
         of subdirectories. There are currently over two dozen of them, and
         it's bound to get worse as time goes on. Perhaps separate them by
@@ -51,9 +73,9 @@ TO DO
   Syntax Emulations
     *   Add TemplateToolkit module with support for the basic TT syntax. The
         key syntax definition is in Parser.yp, which is used to build
-        Template::Grammar.
-        (<http://search.cpan.org/src/ABW/Template-Toolkit-2.14/parser/Parser
-        .yp>) The Template::Stash dot notation can be handled by Data::DRef.
+        Template::Grammar. ("/search.cpan.org/src/ABW/Template-Toolkit-
+        2.14/parser/Parser.yp" in http:) The Template::Stash dot notation
+        can be handled by Data::DRef.
 
     *   Extend HTMLTemplate module with a hash mapping options that could be
         passed to HTML::Template's new() into the equivalent behavior, or
@@ -64,15 +86,11 @@ TO DO
     *   Consider extending ServerPages module to support dynamic XML tags.
 
   Template Sources
-    *   Improve TemplateDir and/or add related file-search mixin classes:
+    *   Provide a mixin to search for all files matching a given regex to
+        facilitate tree searches and cache pre-fetching.
 
-        Perhaps optionally accept a search path listing multiple directories
-        to search for templates?
-
-        Perhaps add methods to search for all files matching a given regex
-        to facilitate tree searches and cache pre-fetching?
-
-        Perhaps optionally chdir() during the execution of each template?
+    *   Ensure template inclusion is always handled correctly. Possibly
+        provide the current template's location in %ENV.
 
     *   Add a DHandlers mixin that supports default files. On file requests,
         if file not found, look for default file. (Attribute dhandler_name
@@ -96,11 +114,20 @@ TO DO
         TemplateDB. Perhaps in addition to the source_file there can be some
         kind of opaque cache key returned by the prepare method?
 
+        Maybe cache values for db templates can be abstracted into closures
+        which are run to retrieve the cached value.
+
   Caching
     *   Add a DataCache mixin that provides a pre-configured cache object
         for use within template code. Requires cache() method and
         configuration attributes. Cache namespace should be based on source
         file name or arbitrary instance for text compilation.
+
+        Alan says: I believe this is intended for use to cache contextual
+        data across template runs? Is this intended to be persistent across
+        multiple templates (in memory/singleton), or across multiple process
+        invocations (in a file)? I use mod_perl, and this sounds at best not
+        useful and at worst, dangerous.
 
     *   Add an InterpretCache mixin that allows caching of the parsed and
         assembled Perl code for a template file, akin to Mason's var/obj/
@@ -150,7 +177,7 @@ TO DO
         templates directly rather than via Apache. Store the expected output
         in a text file for comparison.
 
-        Other links to consider when benchmarking:
+        Other links to consider when benchmarking:
 
           http://www.chamas.com/bench/
           http://use.perl.org/~hctif/journal/25211

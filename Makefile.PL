@@ -1,3 +1,5 @@
+# $Id: Makefile.PL,v 1.5 2007/12/21 20:29:11 alan Exp $
+
 use ExtUtils::MakeMaker;
 
 ########################################################################
@@ -6,7 +8,8 @@ WriteMakefile(
               NAME         => 'Text::MicroMason',
               VERSION_FROM => 'MicroMason.pm',
               PREREQ_PM    => {
-                                 'Class::MixinFactory' => 0.9,
+                               'Class::MixinFactory' => 0.9,
+                               'File::Spec' => 0.9,
                               },
 
               ABSTRACT_FROM     => 'MicroMason.pm', 
@@ -49,8 +52,13 @@ TODO: MicroMason/Docs/ToDo.pod
 ####
 # Notes, building a distribution
 #
+# Update version in: MicroMason.pm, MicroMason/Docs/ReadMe.pod
+# Update pod in: MicroMason/Docs/Changes.pod
+#
 #   perl Makefile.PL
 #   make docs
 #   make cleanmanifest
 #   make disttest
 #   make dist
+#
+

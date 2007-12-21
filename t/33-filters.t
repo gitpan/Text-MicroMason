@@ -12,6 +12,15 @@ my $m = Text::MicroMason->new( -Filters );
 my $res_nofilter = 'Hello <"world">!';
 
 ######################################################################
+# Test an expression inside a template using logical or.
+
+{
+    my $src = q(Var is <% $ARGS{foo} || 0 %>);
+
+    $m->execute( text => $src );
+}
+
+######################################################################
 # Test default h encoding flag if we have HTML::Entities
 my $h = HTML::Entities->can('encode');
 my $src_h = q(Hello <% '<"world">' |h %>!);
