@@ -1,9 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test;
-
-BEGIN { plan tests => 14 }
+use Test::More tests => 19;
 
 use Text::MicroMason;
 
@@ -14,65 +12,75 @@ my $res_nofilter = 'Hello <"world">!';
 ######################################################################
 # Test an expression inside a template using logical or.
 
-{
-    my $src = q(Var is <% $ARGS{foo} || 0 %>);
-
-    $m->execute( text => $src );
-}
+is $m->execute( text => q(Var is <% $ARGS{foo} || 0 %>) ), "Var is 0";
 
 ######################################################################
-# Test default h encoding flag if we have HTML::Entities
-my $h = HTML::Entities->can('encode');
-my $src_h = q(Hello <% '<"world">' |h %>!);
-my $res_h = 'Hello &lt;&quot;world&quot;&gt;!';
+# Test h encoding flag if we have HTML::Entities
+SKIP: {
+    skip "HTML::Entities is not installed", 3 
+        unless HTML::Entities->can('encode');
 
-skip ( $h ? 0 : "Test uses HTML::Entities", sub { $m->execute( text=> $src_h) }, $res_h);
+    my $src_h = q(Hello <% '<"world">' |h %>!);
+    my $res_h = 'Hello &lt;&quot;world&quot;&gt;!';
 
-# Test h as a default filter
-{
-    local $m->{default_filters} = 'h';
-    my $src_h2 = q(Hello <% '<"world">' %>!);
-    skip ( $h ? 0 : "Test uses HTML::Entities", sub { $m->execute( text => $src_h2) }, $res_h);
+    is $m->execute(text => $src_h), $res_h, "Execute text with HTML::Entity filter";
 
-# Explicitly disable the default filters
-    my $src_h3 = q(Hello <% '<"world">' | n %>!);
-    skip ( $h ? 0 : "Test uses HTML::Entities", sub { $m->execute( text => $src_h3) }, $res_nofilter);
-}
+    # Test h as a default filter
+    {
+        local $m->{default_filters} = 'h';
+        my $src_h2 = q(Hello <% '<"world">' %>!);
+        
+        is $m->execute( text => $src_h2), $res_h, "Execute text with HTML::Entity default filter";
+        
+        # Explicitly disable the default filters
+        my $src_h3 = q(Hello <% '<"world">' | n %>!);
+        is $m->execute( text => $src_h3), $res_nofilter, "Execute text with HTML::Entity default turned off";
+    }
+
+    my $src_unh = qq(Hello <% '<"world">' |unh %>!);
+    my $res_unh = 'Hello &lt;&quot;world&quot;&gt;!';
+    is $m->execute( text => $src_unh), $res_unh, "Execute text with stacking h filter";
+
+} # SKIP
 
 ######################################################################
 # Test default u encoding flag if we have URI::Escape
-my $u = URI::Escape->can('uri_escape');
+SKIP: {
+    skip "URI::Escape is not installed", 6
+        unless URI::Escape->can('uri_escape');
 
-my $res_u = 'Hello %3C%22world%22%3E!';
+    my $res_u = 'Hello %3C%22world%22%3E!';
 
-my $src_u1 = qq(Hello <% '<"world">' |u %>!);
-skip ( $u ? 0 : "Test uses URI::Escape", sub { $m->execute( text=> $src_u1) }, $res_u);
+    is $m->execute(text => qq(Hello <% '<"world">' |u %>!)), $res_u,
+        "Execute text with URI::Escape filter";
 
-# Test u as a default filter
-{
-    local $m->{default_filters} = 'u';
-    my $src_u2 = qq(Hello <% '<"world">' %>!);
-    skip ( $u ? 0 : "Test uses URI::Escape", sub { $m->execute( text => $src_u2) }, $res_u);
+    ok my $res = eval {$m->execute(text => qq(Hello <% '<"world">'|u %>!))},
+        "Execute text with URI::Escape filter and no space";
+    is $res, $res_u;
+        
+    # Test |u encoding flag in a file
+    ok $res = eval {$m->execute(file => 'samples/test-filter.msn', msg => "foo")},
+        "Execute text from file with URI::Escape filter and no space";
+    is $res, "foo", "Filter execution error: $@";
 
-# Explicitly disable the default filters
-    my $src_u3 = qq(Hello <% '<"world">' | n %>!);
-    my $res_u3 = 'Hello <"world">!';
-    skip ( $u ? 0 : "Test uses URI::Escape", sub { $m->execute( text => $src_u3) }, $res_nofilter);
+    # Test u as a default filter
+    {
+        local $m->{default_filters} = 'u';
+        my $src_u2 = qq(Hello <% '<"world">' %>!);
+        is $m->execute( text => $src_u2), $res_u, "Execute text with URI::Escape default filter";
+        
+        # Explicitly disable the default filters
+        my $src_u3 = qq(Hello <% '<"world">' | n %>!);
+        my $res_u3 = 'Hello <"world">!';
+        is $m->execute( text => $src_u3), $res_nofilter, "Execute text with URI::Escape default turned off";
+    }
+
+    # Test stacking and canceling with n
+    my $res_hnu = 'Hello %3C%22world%22%3E!';  
+    my $src_hnu = qq(Hello <% '<"world">' |hnu %>!);
+    is $m->execute( text => $src_hnu), $res_hnu, "Execute text with stacking u filter";
 }
 
-
-######################################################################
-
-# Test stacking and canceling with n
-{
-  my $src_unh = qq(Hello <% '<"world">' |unh %>!);
-  my $res_unh = 'Hello &lt;&quot;world&quot;&gt;!';
-  skip ( $h ? 0 : "Test uses HTML::Entities", sub { $m->execute( text => $src_unh) }, $res_unh);
-
-  my $res_hnu = 'Hello %3C%22world%22%3E!';  
-  my $src_hnu = qq(Hello <% '<"world">' |hnu %>!);
-  skip ( $u ? 0 : "Test uses URI::Escape", sub { $m->execute( text => $src_hnu) }, $res_hnu);
-}
 
 
 ######################################################################
@@ -97,25 +105,25 @@ $m->filter_functions( f2 => \&f2 );
 
 my $src_custom1 = qq(<% 'hello <"world">' | f1 %>);
 my $res_custom1 = qq(happy <"wyrpd">);
-ok ($m->execute( text => $src_custom1), $res_custom1);
+is $m->execute( text => $src_custom1), $res_custom1;
 
 # Try two filters in order: they're order dependant, so this will fail
 # if they execute in the wrong order.
 
 my $src_custom2 = qq(<% 'hello <"world">' | f1 , f2 %>);
 my $res_custom2 = qq(happy <"birthday">);
-ok ($m->execute( text => $src_custom2), $res_custom2);
+is $m->execute( text => $src_custom2), $res_custom2;
 
 
 # Try both filters as defaults
 {
     local $m->{default_filters} = 'f1, f2';
     my $src_custom3 = qq(<% 'hello <"world">' %>);
-    ok ($m->execute( text => $src_custom3), $res_custom2);
+    is $m->execute( text => $src_custom3), $res_custom2;
 
-# Override default filters
+    # Override default filters
     my $src_custom4 = qq(<% 'hello <"world">' |n, f1 %>);
-    ok ($m->execute( text => $src_custom4), $res_custom1);
+    is $m->execute( text => $src_custom4), $res_custom1;
 }
 
 
@@ -123,9 +131,9 @@ ok ($m->execute( text => $src_custom2), $res_custom2);
 {
     local $m->{default_filters} = 'f1';
     my $src_custom3 = qq(<% 'hello <"world">' %>);
-    ok ($m->execute( text => $src_custom3), $res_custom1);
+    is $m->execute( text => $src_custom3), $res_custom1;
 
     my $src_custom4 = qq(<% 'hello <"world">' | f2 %>);
-    ok ($m->execute( text => $src_custom4), $res_custom2);
+    is $m->execute( text => $src_custom4), $res_custom2;
 }
 

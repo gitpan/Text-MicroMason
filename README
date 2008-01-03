@@ -45,11 +45,9 @@ MOTIVATION
     Text::QuickTemplate.
 
 DISTRIBUTION STATUS
-    This is version 1.993_01 of Text::MicroMason.
+    This is version 2.0 of Text::MicroMason.
 
-    This is a BETA version on a development track for a 2.0 release.
-
-    This module has been available on CPAN for over four years.
+    This module has been available on CPAN for over six years.
 
     If you encounter any problems, please inform the current maintainer and
     I'll endeavor to patch them promptly.
@@ -61,18 +59,10 @@ DISTRIBUTION STATUS
       Text::          Group 11: Text Processing
       ::MicroMason    Rdpfp  Simplified HTML::Mason Templating
 
-    This release has been tested succesfully on the following platforms:
+    Please see the CPAN Testers report for a sample of systems this module
+    has been tested successfully on:
 
-      5.6.1 on darwin
-      5.8.6 on darwin-thread-multi-2level
-      5.8.8 and 5.10 on FreeBSD 6.1
-      5.8.3 on FreeBSD 4.8
-
-    Earlier releases have also tested OK on a wide variety of platforms.
-
-    You may review the current test results from CPAN-Testers:
-
-      http://testers.cpan.org/show/Text-MicroMason.html
+     http://testers.cpan.org/show/Text-MicroMason.html
 
 PREREQUISITES
     The required version of perl has been increased to 5.6 as of version
@@ -89,6 +79,10 @@ PREREQUISITES
 
     If you want to use the Text::Template compatibility mode, you will also
     need to install Text::Balanced.
+
+    Various other mixins included in MicroMason require other modules in
+    order to be useful, but MicroMason installs and tests without them. (I
+    should be more specific here in the future.)
 
 INSTALLATION
     You should be able to install this module using the CPAN shell

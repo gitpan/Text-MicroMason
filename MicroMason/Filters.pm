@@ -25,22 +25,26 @@ sub defaults {
 
 # $perl_code = $mason->assemble( @tokens );
 sub assemble {
-  my $self = shift;
-  my @tokens = @_;
-  # warn "Filter assemble";
-  foreach my $position ( 0 .. int( $#tokens / 2 ) ) {
-    if ( $tokens[$position * 2] eq 'expr' ) {
-      my $token = $tokens[$position * 2 + 1];
-      my $filt_flags = ($token =~ s/[^\|]\|\s*(\w+(?:[\s\,]+\w+)*)\s*\z//) ? $1 : '';
-      my @filters = $self->parse_filters($self->{default_filters}, $filt_flags);
-      if ( @filters ) {
-	$token = '$m->filter( ' . join(', ', map "'$_'", @filters ) . ', ' . 
-				  'join "", do { ' . $token . '} )';
-      }
-      $tokens[$position * 2 + 1] = $token;
+    my $self = shift;
+    my @tokens = @_;
+    # warn "Filter assemble";
+    foreach my $position ( 0 .. int( $#tokens / 2 ) ) {
+        if ( $tokens[$position * 2] eq 'expr' ) {
+            my $token = $tokens[$position * 2 + 1];
+            my $filt_flags = ($token =~ s/(?<!\|)\| # starts with a pipe preceded by not-a-pipe
+                                          \s*       # optional white space
+                                          (\w+(?:[\s\,]+\w+)*) # \w+ optionally delimited by spaces andor commas
+                                          \s*\z     # optional whitespace and the end of string
+                                         //x) ? $1 : '';
+            
+            if (my @filters = $self->parse_filters($self->{default_filters}, $filt_flags)) {
+                $token = '$m->filter( ' . join(', ', map "'$_'", @filters ) . ', ' . 
+                    'join "", do { ' . $token . '} )';
+            }
+            $tokens[$position * 2 + 1] = $token;
+        }
     }
-  }
-  $self->NEXT('assemble', @tokens );
+    $self->NEXT('assemble', @tokens );
 }
 
 # @flags = $mason->parse_filters( @filter_strings );

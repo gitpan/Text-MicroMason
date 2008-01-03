@@ -47,6 +47,7 @@ samples/loop-simple.tmpl
 samples/simple.tmpl
 samples/subdir/test.msn
 samples/t-counter.msn
+samples/test-filter.msn
 samples/test-recur.msn
 samples/test-relative.msn
 samples/test.msn

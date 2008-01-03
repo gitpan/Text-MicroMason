@@ -5,6 +5,18 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =head1 VERSION 2 HISTORY
 
+=head2 Version 2.0
+
+=over 4
+
+=item 2008-01-02
+
+Fix bug with || filter patch: it was erroneously removing the last
+character of the filtered token, which made it fail if there was no
+space before the |.
+
+Bump version to 2.0
+
 =head2 Version 1.993_01
 
 =over 4

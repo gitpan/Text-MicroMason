@@ -3,6 +3,14 @@ NAME
     Distribution
 
 VERSION 2 HISTORY
+  Version 2.0
+    2008-01-02
+        Fix bug with || filter patch: it was erroneously removing the last
+        character of the filtered token, which made it fail if there was no
+        space before the |.
+
+        Bump version to 2.0
+
   Version 1.993_01
     2007-12-21
         Add LineNumbers mixin and associated tests.
@@ -419,4 +427,11 @@ VERSION 1 HISTORY
 SEE ALSO
     For distribution, installation, support, copyright and license
     information, see Text::MicroMason::Docs::ReadMe.
+
+POD ERRORS
+    Hey! The above document had some coding errors, which are explained
+    below:
+
+    Around line 20:
+        You forgot a '=back' before '=head2'
 
