@@ -1,6 +1,5 @@
-CHANGES
 Makefile.PL
-MANIFEST
+MANIFEST			This list of files
 MANIFEST.SKIP
 MicroMason.pm
 MicroMason/AllowGlobals.pm
@@ -20,7 +19,6 @@ MicroMason/DoubleQuote.pm
 MicroMason/Embperl.pm
 MicroMason/ExecuteCache.pm
 MicroMason/Filters.pm
-MicroMason/Filters.pm.orig
 MicroMason/Functions.pm
 MicroMason/HasParams.pm
 MicroMason/HTMLMason.pm
@@ -38,7 +36,6 @@ MicroMason/StoreOne.pm
 MicroMason/TemplateDir.pm
 MicroMason/TemplatePath.pm
 MicroMason/TextTemplate.pm
-README
 samples/die.msn
 samples/hello_world.msp
 samples/if.tmpl
@@ -64,7 +61,6 @@ t/09-regression.t
 t/31-catch_errors.t
 t/32-safe.t
 t/33-filters.t
-t/33-filters.t.orig
 t/34-compile_cache.t
 t/35-execute_cache.t
 t/36-template_dir.t
@@ -91,5 +87,4 @@ t/89-func-regression.t
 t/90-cache-dir-conflict.t
 t/91-template_path.t
 t/92-template_path-cache.t
-TODO
 META.yml                                 Module meta-data (added by MakeMaker)

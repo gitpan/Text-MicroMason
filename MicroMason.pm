@@ -1,5 +1,5 @@
 package Text::MicroMason;
-$VERSION = '2.0';
+$VERSION = '2.01';
 
 # The #line directive requires Perl 5.6 to work correctly the way we use
 # it in Base.
@@ -491,10 +491,12 @@ MicroMason templates can be embbeded within your source code using Inline.
 For more information, see L<Inline::Mason>.
 
 
-=head1 DIAGNOSTICS
+=head1 EXCEPTIONS
 
-The following diagnostic messages are produced for the indicated error
-conditions (where %s indicates variable message text):
+Text::MicroMason croaks on error, with an appropriate error string. Some
+commonly occurring error messages are described below (where %s
+indicates variable message text). See also the pod for each mixin class,
+for additional exception strings that may be thrown.
 
 =over 4
 

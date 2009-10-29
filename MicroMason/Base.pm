@@ -508,7 +508,7 @@ Called by compile(). Compiles the Perl source code for a template using eval(), 
 
 =item croak_msg 
 
-Called when a fatal exception has occured.
+Called when a fatal exception has occurred.
 
 =item NEXT
 
