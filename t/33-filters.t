@@ -17,7 +17,7 @@ is $m->execute( text => q(Var is <% $ARGS{foo} || 0 %>) ), "Var is 0";
 ######################################################################
 # Test h encoding flag if we have HTML::Entities
 SKIP: {
-    skip "HTML::Entities is not installed", 3 
+    skip "HTML::Entities is not installed", 4 
         unless HTML::Entities->can('encode');
 
     my $src_h = q(Hello <% '<"world">' |h %>!);
