@@ -5,6 +5,21 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =head1 VERSION 2 HISTORY
 
+=head2 Version 2.03
+
+=over 4
+
+=item 2009-10-30
+
+Happy Halloween.
+
+Updated tests to use Test::More for better diagnostics via CPAN testers.
+
+Tweaked t/34 with a longer sleep() since some linux hosts seemed to be
+sleeping for less than a second with sleep(1).
+
+=back
+
 =head2 Version 2.02
 
 =over 4

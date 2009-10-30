@@ -1,13 +1,10 @@
 #!/usr/bin/perl -w
-
 use strict;
-use Test;
+use Test::More tests => 9;
+
+use_ok 'Text::MicroMason';
 
 # Test TemplatePath with CompileCache
-
-BEGIN { plan tests => 8 }
-
-use Text::MicroMason;
 
 ######################################################################
 #
@@ -19,8 +16,8 @@ my $m1 = Text::MicroMason->new( -CompileCache,
 PATH1: {
     ok (my $scr_hello = $m1->execute( file => 'test-relative.msn', name => 'Dave'));
     ok (my $res_hello = "Test greeting:\nGuten Tag, Dave!\n");
-    ok ($scr_hello =~ /\Q$res_hello\E/);
-    ok ($m1->execute(text => $scr_hello) =~ /\Q$res_hello\E/);
+    like ($scr_hello, qr/\Q$res_hello\E/);
+    like ($m1->execute(text => $scr_hello), qr/\Q$res_hello\E/);
 }
 
 my $m2 = Text::MicroMason->new( -CompileCache,
@@ -29,8 +26,8 @@ my $m2 = Text::MicroMason->new( -CompileCache,
 PATH2: {
     ok (my $scr_hello = $m2->execute( file => 'test-relative.msn', name => 'Dave'));
     ok (my $res_hello = "Test greeting:\nGood afternoon, Dave!\n");
-    ok ($scr_hello =~ /\Q$res_hello\E/);
-    ok ($m2->execute(text => $scr_hello) =~ /\Q$res_hello\E/);
+    like ($scr_hello, qr/\Q$res_hello\E/);
+    like ($m2->execute(text => $scr_hello), qr/\Q$res_hello\E/);
 }
 
 

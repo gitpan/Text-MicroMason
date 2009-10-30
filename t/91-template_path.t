@@ -1,13 +1,10 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test;
+use Test::More tests => 12;
 
 # Test TemplatePath
-
-BEGIN { plan tests => 11 }
-
-use Text::MicroMason;
+use_ok 'Text::MicroMason';
 
 ######################################################################
 
@@ -18,10 +15,10 @@ my $m1 = Text::MicroMason->new( -TemplatePath, template_path => [ qw(samples/sub
 
 SUBDIR: {
     ok (my $output = $m1->execute( file => 'test.msn', name => 'Sam', hour => 14));
-    ok ($output =~ /\QGuten Tag, Sam!\E/);
+    like ($output, qr/\QGuten Tag, Sam!\E/);
     
     ok ($output = $m1->execute( file => 'test.msn', name=>'Sam', hour=>10));
-    ok ($output =~ /\QGuten Morgen, Sam!\E/);
+    like ($output, qr/\QGuten Morgen, Sam!\E/);
 }
 
 # If we call a template that only exists in samples/ then that should
@@ -30,8 +27,8 @@ SUBDIR: {
 SAMPLE: {
     ok (my $scr_hello = $m1->execute( file => 'test-relative.msn', name => 'Dave'));
     ok (my $res_hello = "Test greeting:\nGuten Tag, Dave!\n");
-    ok ($scr_hello =~ /\Q$res_hello\E/);
-    ok ($m1->execute(text => $scr_hello) =~ /\Q$res_hello\E/);
+    like ($scr_hello, qr/\Q$res_hello\E/);
+    like ($m1->execute(text => $scr_hello), qr/\Q$res_hello\E/);
 }
 
 
@@ -42,10 +39,10 @@ my $m2 = Text::MicroMason->new( -TemplatePath, template_path => [ qw(samples/ sa
 
 SUBDIR: {
     my $output = $m2->execute( file=>'test.msn', name=>'Sam', hour=>14);
-    ok( $output =~ /\QGood afternoon, Sam!\E/ );
+    like ($output, qr/\QGood afternoon, Sam!\E/ );
     
     $output = $m2->execute( file=>'test.msn', name=>'Sam', hour=>10);
-    ok( $output =~ /\QGood morning, Sam!\E/ );
+    like ($output, qr/\QGood morning, Sam!\E/ );
 }
 
 # If we call a template that only exists in samples/ then that should
@@ -54,7 +51,7 @@ SUBDIR: {
 SAMPLE: {
     my $scr_hello = $m2->execute( file => 'test-relative.msn', name => 'Dave');
     my $res_hello = "Test greeting:\nGood afternoon, Dave!\n";
-    ok( $m2->execute(text=>$scr_hello), $res_hello );
+    is ($m2->execute(text=>$scr_hello), $res_hello);
 }
 
 

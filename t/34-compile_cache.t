@@ -3,16 +3,16 @@
 use strict;
 use Text::MicroMason;
 
-use Test::More tests => 20;
+use Test::More tests => 46;
 use File::Copy;
 use Carp;
 $SIG{__DIE__} = \&Carp::confess;
 
 ######################################################################
 
-{ 
-    my $m = Text::MicroMason->new();
-    
+{
+    ok my $m = Text::MicroMason->new();
+
     use vars qw( $count_sub $sub_count $local_count );
     $sub_count = 0;
     $local_count = 0;
@@ -20,20 +20,20 @@ $SIG{__DIE__} = \&Carp::confess;
     for ( 1 .. 3 ) { 
         $count_sub = $m->compile( text => $count_scr );
         for ( 1 .. 3 ) { 
-            &$count_sub($_);
+            $count_sub->($_);
         }
     }
-    
+
     is $sub_count, 3;
     is $local_count, 9;
-    is &$count_sub(), 4;
+    is $count_sub->(), 4;
 }
 
 ######################################################################
 
-{ 
-    my $m = Text::MicroMason->new( -CompileCache );
-    
+{
+    ok my $m = Text::MicroMason->new( -CompileCache );
+
     use vars qw( $count_sub $sub_count $local_count );
     $sub_count = 0;
     $local_count = 0;
@@ -41,20 +41,20 @@ $SIG{__DIE__} = \&Carp::confess;
     for ( 1 .. 3 ) { 
         $count_sub = $m->compile( text => $count_scr );
         for ( 1 .. 3 ) { 
-            &$count_sub($_);
+            $count_sub->($_);
         }
     }
-    
+
     is $sub_count, 1;
     is $local_count, 9;
-    is &$count_sub(), 10;
+    is $count_sub->(), 10;
 }
 
 ######################################################################
 
-{ 
-    my $m = Text::MicroMason->new( -CompileCache, -ExecuteCache );
-    
+{
+    ok my $m = Text::MicroMason->new( -CompileCache, -ExecuteCache );
+
     use vars qw( $count_sub $sub_count $local_count );
     $sub_count = 0;
     $local_count = 0;
@@ -62,20 +62,20 @@ $SIG{__DIE__} = \&Carp::confess;
     for ( 1 .. 3 ) { 
         $count_sub = $m->compile( text => $count_scr );
         for ( 1 .. 3 ) { 
-            &$count_sub($_);
+            $count_sub->($_);
         }
     }
-    
+
     is $sub_count, 1;
     is $local_count, 3;
-    is &$count_sub(), 4;
+    is $count_sub->(), 4;
 }
 
 ######################################################################
 
-{ 
-    my $m = Text::MicroMason->new( -ExecuteCache, -CompileCache );
-    
+{
+    ok my $m = Text::MicroMason->new( -ExecuteCache, -CompileCache );
+
     use vars qw( $count_sub $sub_count $local_count );
     $sub_count = 0;
     $local_count = 0;
@@ -83,13 +83,13 @@ $SIG{__DIE__} = \&Carp::confess;
     for ( 1 .. 3 ) { 
         $count_sub = $m->compile( text => $count_scr );
         for ( 1 .. 3 ) { 
-            &$count_sub($_);
+            $count_sub->($_);
         }
     }
-    
+
     is $sub_count, 1;
     is $local_count, 3;
-    is &$count_sub(), 4;
+    is $count_sub->(), 4;
 }
 
 ######################################################################
@@ -99,8 +99,8 @@ $SIG{__DIE__} = \&Carp::confess;
 # then calling the resulting sub 10 times.
 
 {
-    my $m = Text::MicroMason->new( -CompileCache );
-    
+    ok my $m = Text::MicroMason->new( -CompileCache );
+
     use vars qw( $count_sub $sub_count $local_count );
     $sub_count = 0;
     $local_count = 0;
@@ -108,7 +108,7 @@ $SIG{__DIE__} = \&Carp::confess;
     for ( 1 .. 10 ) {
         $m->execute( text => $count_scr );
     }
-    
+
     is $sub_count, 1;
     is $local_count, 10;
 }
@@ -118,16 +118,16 @@ $SIG{__DIE__} = \&Carp::confess;
 # Test using $m->execute directly, on a file.
 
 {
-    my $m = Text::MicroMason->new( -CompileCache );
-    
+    ok my $m = Text::MicroMason->new( -CompileCache );
+
     use vars qw( $count_sub $sub_count $local_count );
     $sub_count = 0;
     $local_count = 0;
-    
+
     for ( 1 .. 10 ) {
-        $m->execute( file => "samples/t-counter.msn" );
+        ok $m->execute( file => "samples/t-counter.msn" );
     }
-    
+
     is $sub_count, 1;
     is $local_count, 10;
 }
@@ -144,27 +144,26 @@ copy('samples/t-counter.msn','samples/t34a.msn');
 # Test cache expiration using $m->execute directly on a file
 
 {
-    my $m = Text::MicroMason->new( -CompileCache );
-    
+    ok my $m = Text::MicroMason->new( -CompileCache );
+
     use vars qw( $count_sub $sub_count $local_count );
     $sub_count = 0;
     $local_count = 0;
-    
+
     my $time = time-5;
     utime $time, $time, "samples/t34a.msn";
     for ( 1 .. 2 ) {
-        $m->execute( file => "samples/t34a.msn" );
+        ok $m->execute( file => "samples/t34a.msn" );
     }
     $time = time;
     utime $time, $time, "samples/t34a.msn";
-    sleep(1); # to defeat not checking less than once per second
+    sleep 2; # to defeat not checking more than once per second
     for ( 1 .. 2 ) {
-        $m->execute( file => "samples/t34a.msn" );
+        ok $m->execute( file => "samples/t34a.msn" );
     }
-    
+
     is $sub_count, 2;
     is $local_count, 4;
-    
 }
 
 ######################################################################
@@ -172,25 +171,25 @@ copy('samples/t-counter.msn','samples/t34a.msn');
 # Test cache expiration using $m->execute directly on a file, using -TemplateDir
 
 {
-    my $m = Text::MicroMason->new( -CompileCache, 
-                                   -TemplateDir, template_root=>'samples'  );
-    
+    ok my $m = Text::MicroMason->new( -CompileCache, 
+                                      -TemplateDir, template_root => 'samples'  );
+
     use vars qw( $count_sub $sub_count $local_count );
     $sub_count = 0;
     $local_count = 0;
-    
+
     my $time = time-5;
     utime $time, $time, "samples/t34a.msn";
     for ( 1 .. 2 ) {
-        $m->execute( file => "t34a.msn" );
+        ok $m->execute( file => "t34a.msn" );
     }
     $time = time;
     utime $time, $time, "samples/t34a.msn";
-    sleep(1); # to defeat not checking less than once per second
+    sleep 2; # to defeat not checking more than once per second; sleep 1 triggered false cpants fail
     for ( 1 .. 2 ) {
-        $m->execute( file => "t34a.msn" );
+        ok $m->execute( file => "t34a.msn" );
     }
-    
+
     is $sub_count, 2;
     is $local_count, 4;
 }

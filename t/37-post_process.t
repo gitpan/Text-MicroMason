@@ -1,47 +1,40 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test;
+use Test::More tests => 26;
 
-BEGIN { plan tests => 10 }
-
-use Text::MicroMason;
+use_ok 'Text::MicroMason';
 
 ######################################################################
 
 LC: {
-  my $m = Text::MicroMason->new( -PostProcess );
-  $m->post_processors( sub { lc } );
-  my $output = $m->execute( text=>'Hello there!' );
-  ok( $output, 'hello there!' );
+    ok my $m = Text::MicroMason->new( -PostProcess );
+    ok $m->post_processors( sub { lc } );
+    is $m->execute( text=>'Hello there!'), 'hello there!';
 }
 
 ######################################################################
 
 UC_NEW: {
-  my $m = Text::MicroMason->new( -PostProcess, post_process => sub { uc } );
-  my $output = $m->execute( text=>'Hello there!' );
-  ok( $output, 'HELLO THERE!' );
+    ok my $m = Text::MicroMason->new( -PostProcess, post_process => sub { uc } );
+    is $m->execute( text=>'Hello there!' ), 'HELLO THERE!';
 }
 
 UC_PPMETH: {
-  my $m = Text::MicroMason->new( -PostProcess );
-  $m->post_processors( sub { uc } );
-  my $output = $m->execute( text=>'Hello there!' );
-  ok( $output, 'HELLO THERE!' );
+    ok   my $m = Text::MicroMason->new( -PostProcess );
+    ok $m->post_processors( sub { uc } );
+    is $m->execute( text=>'Hello there!' ), 'HELLO THERE!';
 }
 
 UC_COMPILE: {
-  my $m = Text::MicroMason->new( -PostProcess );
-  my $subdef = $m->compile( text=>'Hello there!', post_process => sub { uc } );
-  my $output = &$subdef();
-  ok( $output, 'HELLO THERE!' );
+    ok my $m = Text::MicroMason->new( -PostProcess );
+    ok my $subdef = $m->compile( text=>'Hello there!', post_process => sub { uc } );
+    is $subdef->(), 'HELLO THERE!';
 }
 
 UC_EXECUTE: {
-  my $m = Text::MicroMason->new( -PostProcess );
-  my $output = $m->execute( text=>'Hello there!', { post_process => sub { uc } } );
-  ok( $output, 'HELLO THERE!' );
+    ok my $m = Text::MicroMason->new( -PostProcess );
+    is $m->execute( text=>'Hello there!', { post_process => sub { uc } } ), 'HELLO THERE!';
 }
 
 ######################################################################
@@ -60,27 +53,23 @@ sub f2 {
 }
 
 ORDERED_F1: {
-  my $m = Text::MicroMason->new( -PostProcess, post_process => \&f1 );
-  my $output = $m->execute( text=>'Hello world!' );
-  ok( $output, 'Happy wyrpd!' );
+    ok my $m = Text::MicroMason->new( -PostProcess, post_process => \&f1 );
+    is $m->execute( text=>'Hello world!' ), 'Happy wyrpd!';
 }
 
 ORDERED_F2: {
-  my $m = Text::MicroMason->new( -PostProcess, post_process => \&f2 );
-  my $output = $m->execute( text=>'Hello world!' );
-  ok( $output, 'Hola world!' );
+    ok my $m = Text::MicroMason->new( -PostProcess, post_process => \&f2 );
+    is $m->execute( text=>'Hello world!' ), 'Hola world!';
 }
 
 ORDERED_F1F2: {
-  my $m = Text::MicroMason->new( -PostProcess, post_process => [ \&f1, \&f2 ] );
-  my $output = $m->execute( text=>'Hello world!' );
-  ok( $output, 'Happy birthday!' );
+    ok my $m = Text::MicroMason->new( -PostProcess, post_process => [ \&f1, \&f2 ] );
+    is $m->execute( text=>'Hello world!' ), 'Happy birthday!';
 }
 
 ORDERED_F2F1: {
-  my $m = Text::MicroMason->new( -PostProcess, post_process => [ \&f2, \&f1 ] );
-  my $output = $m->execute( text=>'Hello world!' );
-  ok( $output, 'Hypa wyrpd!' );
+    ok my $m = Text::MicroMason->new( -PostProcess, post_process => [ \&f2, \&f1 ] );
+    is $m->execute( text=>'Hello world!' ), 'Hypa wyrpd!';
 }
 
 ######################################################################
@@ -95,11 +84,10 @@ sub naf2 () {
 }
 
 EMPTY_PROTOTYPES: {
-  my $m = Text::MicroMason->new( -PostProcess );
-  $m->post_processors( \&naf1 );
-  $m->post_processors( \&naf2 );
-  my $output = $m->execute( text=>'Hello world!' );
-  ok( $output, 'Happy birthday!' );
+    ok my $m = Text::MicroMason->new( -PostProcess );
+    ok $m->post_processors( \&naf1 );
+    ok $m->post_processors( \&naf2 );
+    is $m->execute( text=>'Hello world!' ), 'Happy birthday!';
 }
 
 ######################################################################

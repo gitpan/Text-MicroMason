@@ -1,44 +1,38 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test;
+use Test::More tests => 9;
 
-BEGIN { plan tests => 4 }
-
-use Text::MicroMason;
+use_ok 'Text::MicroMason';
 
 ######################################################################
 
 {
-  my $m = Text::MicroMason->new( -PassVariables );
-  my $output = $m->execute( text=>'Hello <% $name || "" %>!' );
-  ok( $output, 'Hello !' );
+    ok my $m = Text::MicroMason->new( -PassVariables );
+    is $m->execute( text=>'Hello <% $name || "" %>!' ), 'Hello !';
 }
 
 ######################################################################
 
 {
-  my $m = Text::MicroMason->new( -PassVariables );
-  my $output = $m->execute( text=>'Hello <% $name %>!', 'name' => 'Bob' );
-  ok( $output, 'Hello Bob!' );
+    ok my $m = Text::MicroMason->new( -PassVariables );
+    is $m->execute( text=>'Hello <% $name %>!', 'name' => 'Bob' ), 'Hello Bob!';
 }
 
 ######################################################################
 
 {
-  my $m = Text::MicroMason->new( -PassVariables, package => 'foo' );
-  $foo::name = $foo::name = 'Bob';
-  my $output = $m->execute( text=>'Hello <% $name %>!' );
-  ok( $output, 'Hello Bob!' );
+    ok my $m = Text::MicroMason->new( -PassVariables, package => 'foo' );
+    $foo::name = $foo::name = 'Bob';
+    is $m->execute( text=>'Hello <% $name %>!' ), 'Hello Bob!';
 }
 
 ######################################################################
 
 {
-  my $m = Text::MicroMason->new( -PassVariables, package => 'main' );
-  local $::name; $::name = 'Bob';
-  my $output = $m->execute( text=>'Hello <% $name %>!' );
-  ok( $output, 'Hello Bob!' );
+    ok my $m = Text::MicroMason->new( -PassVariables, package => 'main' );
+    local $::name; $::name = 'Bob';
+    is $m->execute( text=>'Hello <% $name %>!' ), 'Hello Bob!';
 }
 
 ######################################################################

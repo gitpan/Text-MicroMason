@@ -1,41 +1,35 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test;
+use Test::More tests => 13;
 
-BEGIN { plan tests => 4 }
-
-use Text::MicroMason;
+use_ok 'Text::MicroMason';
 
 ######################################################################
 
 {
-  my $m = Text::MicroMason->new( -AllowGlobals );
-  $m->allow_globals( '$name' );
-  my $output = $m->execute( text=>'Hello <% $name || "" %>!' );
-  ok( $output, 'Hello !' );
+    ok my $m = Text::MicroMason->new( -AllowGlobals );
+    ok $m->allow_globals( '$name' );
+    is $m->execute( text=>'Hello <% $name || "" %>!' ), 'Hello !';
 }
 
 ######################################################################
 
 {
-  my $m = Text::MicroMason->new( -AllowGlobals );
-  $m->allow_globals( '$name' );
-  $m->set_globals( '$name' => 'Bob' );
-  my $output = $m->execute( text=>'Hello <% $name %>!' );
-  ok( $output, 'Hello Bob!' );
+    ok my $m = Text::MicroMason->new( -AllowGlobals );
+    ok $m->allow_globals( '$name' );
+    ok $m->set_globals( '$name' => 'Bob' );
+    is $m->execute( text=>'Hello <% $name %>!' ), 'Hello Bob!';
 }
 
 ######################################################################
 
 {
-  my $m = Text::MicroMason->new( -AllowGlobals );
-  $m->allow_globals( '$count' );
-  my $sub = $m->compile( text=>'Item <% ++ $count %>.' );
-  my $output = $sub->();
-  ok( $output, 'Item 1.' );
-  $output = $sub->();
-  ok( $output, 'Item 2.' );
+    ok my $m = Text::MicroMason->new( -AllowGlobals );
+    ok $m->allow_globals( '$count' );
+    ok my $sub = $m->compile( text=>'Item <% ++ $count %>.' );
+    is $sub->(), 'Item 1.';
+    is $sub->(), 'Item 2.';
 }
 
 ######################################################################

@@ -1,18 +1,13 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test;
+use Test::More tests => 22;
 
-BEGIN { plan tests => 16 }
+use Text::MicroMason::QuickTemplate; # to import $DONTSET
 
-my $loaded;
-END { ok(0) unless $loaded; }
+use_ok 'Text::MicroMason';
 
-use Text::MicroMason;
-
-my $m = Text::MicroMason->new( -QuickTemplate );
-
-ok( $loaded = 1 );
+ok my $m = Text::MicroMason->new( -QuickTemplate );
 
 ######################################################################
 
@@ -30,63 +25,62 @@ Your friend,
 Harry
 ENDSCRIPT
 
-my $scriptlet;
-ok( ( $scriptlet = $m->compile( text => $scr_hello) ) and 1 );
-ok( $scriptlet->(to       => 'Professor Dumbledore',
+ok my $scriptlet = $m->compile(text => $scr_hello);
+is $scriptlet->(to       => 'Professor Dumbledore',
+                relation => 'friend',
+                day_type => 'swell',
+                from     => 'Harry',), 
+    $res_hello;
+
+is $scriptlet->( { to       => 'Professor Dumbledore',
          relation => 'friend',
          day_type => 'swell',
-         from     => 'Harry',), $res_hello );
-
-ok( $scriptlet->( { to       => 'Professor Dumbledore',
-         relation => 'friend',
-         day_type => 'swell',
-         from     => 'Harry', } ), $res_hello );
+         from     => 'Harry', } ), 
+    $res_hello;
 
 ######################################################################
 
-my $emulator;
-ok( ( $emulator = $m->new( text => $scr_hello) ) and 1 );
-ok( $emulator->fill( { to       => 'Professor Dumbledore',
-         relation => 'friend',
-         day_type => 'swell',
-         from     => 'Harry', } ), $res_hello );
+ok my $emulator = $m->new(text => $scr_hello);
+is $emulator->fill( { to       => 'Professor Dumbledore',
+                      relation => 'friend',
+                      day_type => 'swell',
+                      from     => 'Harry', } ), 
+    $res_hello;
 
 ######################################################################
 
-my $book_t = $emulator->new( text => '<i>{{title}}</i>, by {{author}}' );
+ok my $book_t = $emulator->new( text => '<i>{{title}}</i>, by {{author}}' );
 
-my $bibl_1 = $book_t->fill({author => "Stephen Hawking",
-                          title  => "A Brief History of Time"});
-ok( $bibl_1 eq "<i>A Brief History of Time</i>, by Stephen Hawking" );
+ok my $bibl_1 = $book_t->fill({author => "Stephen Hawking",
+                               title  => "A Brief History of Time"});
+is $bibl_1, "<i>A Brief History of Time</i>, by Stephen Hawking";
 
-my $bibl_2 = $book_t->fill({author => "Dr. Seuss",
-			title  => "Green Eggs and Ham"});
-ok( $bibl_2, "<i>Green Eggs and Ham</i>, by Dr. Seuss" );
-
-######################################################################
-
-my $bibl_3 = eval { $book_t->fill({author => 'Isaac Asimov'}) };
-ok( ! defined $bibl_3 );
-ok( $@ =~ "could not resolve the following symbol: title" );
+ok my $bibl_2 = $book_t->fill({author => "Dr. Seuss",
+                               title  => "Green Eggs and Ham"});
+is $bibl_2, "<i>Green Eggs and Ham</i>, by Dr. Seuss";
 
 ######################################################################
 
-use Text::MicroMason::QuickTemplate;
-
-my $bibl_4 = $book_t->fill({author => 'Isaac Asimov',
-			title  => $DONTSET });
-ok( $bibl_4, "<i>{{title}}</i>, by Isaac Asimov" );
+is eval { $book_t->fill({author => 'Isaac Asimov'}) }, undef;
+like $@, qr/could not resolve the following symbol: title/;
 
 ######################################################################
 
-ok( ( $m->compile( text => $scr_hello) ) and 1 );
-ok( $m->pre_fill(to       => 'Professor Dumbledore',
-         relation => 'friend' ) );
+ok my $bibl_4 = $book_t->fill({author => 'Isaac Asimov',
+                               title  => $Text::MicroMason::QuickTemplate::DONTSET });
+is $bibl_4, "<i>{{title}}</i>, by Isaac Asimov";
 
-ok( ! eval { $m->fill(); 1 } );
+######################################################################
 
-ok( $m->pre_fill( day_type => 'swell',
-         from     => 'Harry') );
-ok( $m->fill(), $res_hello );
+ok $m->compile( text => $scr_hello);
+ok $m->pre_fill(to       => 'Professor Dumbledore',
+                relation => 'friend' );
+
+is eval { $m->fill(); 1 }, undef;
+ok $@;
+
+ok $m->pre_fill( day_type => 'swell',
+                  from     => 'Harry');
+is $m->fill(), $res_hello;
 
 ######################################################################

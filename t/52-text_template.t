@@ -1,27 +1,18 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test;
 
-BEGIN { 
-  eval "require Text::Balanced; 1" or do {
-    plan( tests => 1 );
-    print "Skipping test (Text::Template emulator requires Text::Balanced).\n";
-    skip( 1, 1 );
-    exit 0;
-  }
+use Test::More;
+
+if (eval { require Text::Balanced }) {
+    plan tests => 18;
+} else {
+    plan skip_all => 'Text::Template emulator requires Text::Balanced';
 }
 
-BEGIN { plan tests => 10 }
+use_ok 'Text::MicroMason';
 
-my $loaded;
-END { ok(0) unless $loaded; }
-
-use Text::MicroMason;
-
-my $m = Text::MicroMason->new( -TextTemplate );
-
-ok( $loaded = 1 );
+ok my $m = Text::MicroMason->new( -TextTemplate );
 
 ######################################################################
 
@@ -39,50 +30,50 @@ Pay me at once.
 	G.V.
 ENDSCRIPT
 
-ok( $m->execute( text => $scr_hello, recipient => 'King' ), $res_hello );
-
-ok( $m->compile( text => $scr_hello)->( recipient => 'King' ), $res_hello );
+is $m->execute( text => $scr_hello, recipient => 'King' ), $res_hello;
+is $m->compile( text => $scr_hello)->( recipient => 'King' ), $res_hello;
 
 ######################################################################
 
-{ no strict;
+{
+    no strict;
 
-$source = 'We will put value of $v (which is "good") here -> {$v}';
-$v = 'oops (main)';
-$Q::v = 'oops (Q)';
-$vars = { 'v' => \'good' };
+    $source = 'We will put value of $v (which is "good") here -> {$v}';
+    $v = 'oops (main)';
+    $Q::v = 'oops (Q)';
+    $vars = { 'v' => \'good' };
 
-# (1) Build template from string
-$template = $m->compile( 'text' => $source );
-ok( ref $template );
+    # (1) Build template from string
+    ok $template = $m->compile( 'text' => $source );
+    ok ref $template;
 
-# (2) Fill in template in anonymous package
-$result2 = 'We will put value of $v (which is "good") here -> good';
-$text = $template->(%$vars);
-ok($text, $result2);
+    # (2) Fill in template in anonymous package
+    $result2 = 'We will put value of $v (which is "good") here -> good';
+    ok $text = $template->(%$vars);
+    is $text, $result2;
 
-# (3) Did we clobber the main variable?
-ok($v, 'oops (main)');
+    # (3) Did we clobber the main variable?
+    ok($v, 'oops (main)');
 
-# (4) Fill in same template again
-$result4 = 'We will put value of $v (which is "good") here -> good';
-$text = $template->(%$vars);
-ok($text, $result4);
+    # (4) Fill in same template again
+    $result4 = 'We will put value of $v (which is "good") here -> good';
+    ok $text = $template->(%$vars);
+    is $text, $result4;
 
-# (5) Now with a package
-$result5 = 'We will put value of $v (which is "good") here -> good';
-$template = $m->new(package => 'Q')->compile( 'text' => $source );
-$text = $template->(%$vars);
-ok($text, $result5);
+    # (5) Now with a package
+    $result5 = 'We will put value of $v (which is "good") here -> good';
+    ok $template = $m->new(package => 'Q')->compile( 'text' => $source );
+    ok $text = $template->(%$vars);
+    is $text, $result5;
 
-# (6) We expect to have clobbered the Q variable.
-ok($Q::v, 'good');
+    # (6) We expect to have clobbered the Q variable.
+    is $Q::v, 'good';
 
-# (7) Now let's try it without a package
-$result7 = 'We will put value of $v (which is "good") here -> good';
-$template = $m->new()->compile( 'text' => $source );
-$text = $template->(%$vars);
-ok($text, $result7);
+    # (7) Now let's try it without a package
+    $result7 = 'We will put value of $v (which is "good") here -> good';
+    ok $template = $m->new()->compile( 'text' => $source );
+    ok $text = $template->(%$vars);
+    is $text, $result7;
 }
 
 ######################################################################

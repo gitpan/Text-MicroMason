@@ -1,28 +1,21 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test;
+use Test::More tests => 9;
 
-BEGIN { plan tests => 6 }
-
-my $loaded;
-END { ok(0) unless $loaded; }
-
-use Text::MicroMason qw( safe_compile safe_execute try_safe_compile try_safe_execute );
-
-ok( $loaded = 1 );
+use_ok 'Text::MicroMason', qw( safe_compile safe_execute try_safe_compile try_safe_execute );
 
 ######################################################################
 
 use Text::MicroMason qw( try_execute_file try_compile try_execute );
 
 FILE: {
-  my $output = try_execute_file('samples/test.msn', name=>'Sam', hour=>14);
-  ok( $output =~ /\QGood afternoon, Sam!\E/ );
+    my $output = try_execute_file('samples/test.msn', name=>'Sam', hour=>14);
+    like $output, qr/\QGood afternoon, Sam!\E/;
 }
 
 SYNTAX: {
-  my $script = <<'TEXT_END';
+    my $script = <<'TEXT_END';
 
 <%perl>
   my $hour = $ARGS{hour};
@@ -34,18 +27,18 @@ SYNTAX: {
 % }
 TEXT_END
 
-  my $code = try_compile($script);
-  my $output = try_execute($code, name => 'Sam', hour => 9);
-  ok( $output =~ /\QGood morning, Sam!\E/ );
-  $output = try_execute($code, name => 'Dave', hour => 23);
-  ok( $output =~ /\Qsorry Dave\E/ );
+    ok my $code = try_compile($script);
+    ok my $output = try_execute($code, name => 'Sam', hour => 9);
+    like $output, qr/\QGood morning, Sam!\E/;
+    ok $output = try_execute($code, name => 'Dave', hour => 23);
+    like $output, qr/\Qsorry Dave\E/;
 }
 
 FILE_IS_NOT_SAFE: {
-  my $script = qq| <& 'samples/test.msn', %ARGS &> |;
-  
-  my ($output, $err) = try_safe_execute($script, name => 'Sam', hour => 9);
-  ok( ! defined $output );
-  ok( $err =~ /in this compartment/ );
+    my $script = qq| <& 'samples/test.msn', %ARGS &> |;
+
+    my ($output, $err) = try_safe_execute($script, name => 'Sam', hour => 9);
+    is $output, undef;
+    like $err, qr/in this compartment/;
 }
 

@@ -1,18 +1,11 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test;
+use Test::More tests => 112;
 
-BEGIN { plan tests => 12 }
+use_ok 'Text::MicroMason';
 
-my $loaded;
-END { ok(0) unless $loaded; }
-
-use Text::MicroMason;
-
-my $m = Text::MicroMason->new( -ServerPages );
-
-ok( $loaded = 1 );
+ok my $m = Text::MicroMason->new( -ServerPages );
 
 ######################################################################
 
@@ -26,49 +19,44 @@ Hello World!
 How are ya?
 ENDSCRIPT
 
-ok( $m->execute( text => $scr_hello), $res_hello );
+is $m->execute( text => $scr_hello), $res_hello;
+is $m->compile( text => $scr_hello)->(), $res_hello;
 
-ok( $m->compile( text => $scr_hello)->(), $res_hello );
-
-my $scriptlet;
-ok( ( $scriptlet = $m->compile( text => $scr_hello) ) and 1 );
-ok( $scriptlet->(), $res_hello );
-ok( $scriptlet->(), $res_hello );
-ok( $scriptlet->(), $res_hello );
+ok my $scriptlet = $m->compile( text => $scr_hello);
+is $scriptlet->(), $res_hello;
+is $scriptlet->(), $res_hello;
+is $scriptlet->(), $res_hello;
 
 ######################################################################
 
 my $scr_bold = '<b><%= $ARGS{label} %></b>';
-ok( $m->execute( text => $scr_bold, label=>'Foo'), '<b>Foo</b>' );
-ok( $m->compile( text => $scr_bold)->(label=>'Foo'), '<b>Foo</b>' );
+is $m->execute( text => $scr_bold, label=>'Foo'), '<b>Foo</b>';
+is $m->compile( text => $scr_bold)->(label=>'Foo'), '<b>Foo</b>';
 
 ######################################################################
 
 FLOW_CONTROL: {
 
-  my $scr_rand = <<'ENDSCRIPT';
+    my $scr_rand = <<'ENDSCRIPT';
 <% if ( int rand 2 ) { %>
   Hello World!
 <% } else { %>
   Goodbye Cruel World!
 <% } %>
 ENDSCRIPT
-  
-  my $scriptlet = $m->compile( text => $scr_rand);
-  
-  my %results;
-  for ( 0 .. 99 ) {
-    $results{ &$scriptlet } ++;
-  }
 
-  ok( scalar keys %results, 2 );
+    my $scriptlet = $m->compile( text => $scr_rand);
+
+    for ( 0 .. 99 ) {
+        like $scriptlet->(), qr/^\n  (Hello World!|Goodbye Cruel World!)\n$/;
+    }
 }
 
 ######################################################################
 
 PERL_BLOCK: {
-  
-  my $scr_count = <<'ENDSCRIPT';
+
+    my $scr_count = <<'ENDSCRIPT';
 Counting...
 <%
   foreach ( 1 .. 9 ) {
@@ -78,25 +66,25 @@ Counting...
 Done!
 ENDSCRIPT
 
-  my $res_count = <<'ENDSCRIPT';
+    my $res_count = <<'ENDSCRIPT';
 Counting...
 123456789
 Done!
 ENDSCRIPT
-  
-  ok( $m->execute( text => $scr_count), $res_count );
+
+  is $m->execute( text => $scr_count), $res_count;
 
 }
 
 SPANNING_PERL: {
-  
-  my $scr_count = <<'ENDSCRIPT';
+
+    my $scr_count = <<'ENDSCRIPT';
 <table><tr>
 <% foreach ( 1 .. 9 ) { %>  <td><b><%= $_ %></b></td>
 <% } %></tr></table>
 ENDSCRIPT
 
-  my $res_count = <<'ENDSCRIPT';
+    my $res_count = <<'ENDSCRIPT';
 <table><tr>
   <td><b>1</b></td>
   <td><b>2</b></td>
@@ -110,6 +98,6 @@ ENDSCRIPT
 </tr></table>
 ENDSCRIPT
 
-  ok( $m->execute( text => $scr_count), $res_count );
+    is $m->execute( text => $scr_count), $res_count;
 
 }

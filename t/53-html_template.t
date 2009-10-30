@@ -1,58 +1,53 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test;
+use Test::More tests => 24;
 
-BEGIN { plan tests => 6 }
+use_ok 'Text::MicroMason';
 
-my $loaded;
-END { ok(0) unless $loaded; }
-
-use Text::MicroMason;
-
-my $m = Text::MicroMason->new( -HTMLTemplate, template_root => 'samples', 'debug' => 0 );
-ok( $loaded = 1 );
+ok my $m = Text::MicroMason->new( -HTMLTemplate, template_root => 'samples', 'debug' => 0 );
 
 ######################################################################
 
-my ($output, $template, $result);
-
 # test a simple template
-$template = $m->new( filename => 'simple.tmpl' );
+ok my $template = $m->new(filename => 'simple.tmpl');
 
-$template->param( 'ADJECTIVE', 'very' );
-$output = $template->output();
-ok($output !~ /ADJECTIVE/ and $template->param('ADJECTIVE') eq 'very');
+ok $template->param( 'ADJECTIVE', 'very' );
+ok my $output = $template->output();
+unlike $output, qr/ADJECTIVE/;
+is $template->param('ADJECTIVE'), 'very';
 
 ######################################################################
 
 # test a simple loop template
-$template = $m->new( filename => 'loop-simple.tmpl' );
+ok $template = $m->new( filename => 'loop-simple.tmpl' );
 
-$template->param('ADJECTIVE_LOOP', [ { ADJECTIVE => 'really' }, { ADJECTIVE => 'very' } ] );
-$output = $template->output();
-ok($output !~ /ADJECTIVE_LOOP/ and $output =~ /really.*very/s);
+ok $template->param('ADJECTIVE_LOOP', [ { ADJECTIVE => 'really' }, { ADJECTIVE => 'very' } ] );
+ok $output = $template->output();
+unlike $output, qr/ADJECTIVE_LOOP/;
+like $output, qr/really.*very/s;
 
 ######################################################################
 
 # test a loop template with context
-$template = $m->new( filename => 'loop-context.tmpl', loop_context_vars => 1 );
+ok $template = $m->new( filename => 'loop-context.tmpl', loop_context_vars => 1 );
 
-$template->param('ADJECTIVE_LOOP', [ { ADJECTIVE => 'really' }, { ADJECTIVE => 'very' } ] );
-$output = $template->output();
-ok($output !~ /ADJECTIVE_LOOP/ and $output =~ /really.*very/s);
+ok $template->param('ADJECTIVE_LOOP', [ { ADJECTIVE => 'really' }, { ADJECTIVE => 'very' } ] );
+ok $output = $template->output();
+unlike $output, qr/ADJECTIVE_LOOP/;
+like $output, qr/really.*very/s;
 
 ######################################################################
 
 # test a simple if template
-$template = $m->new( filename => 'if.tmpl' );
-$output = $template->output();
-ok($output !~ /INSIDE/);
+ok $template = $m->new( filename => 'if.tmpl' );
+ok $output = $template->output();
+unlike $output, qr/INSIDE/;
 
 # test a simple if template
-$template = $m->new( filename => 'if.tmpl' );
-$template->param(BOOL => 1);
-$output = $template->output();
-ok($output =~ /INSIDE/);
+ok $template = $m->new( filename => 'if.tmpl' );
+ok $template->param(BOOL => 1);
+ok $output = $template->output();
+like $output, qr/INSIDE/;
 
 ######################################################################

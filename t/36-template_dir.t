@@ -1,36 +1,34 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test;
+use Test::More tests => 6;
 
-BEGIN { plan tests => 3 }
+use_ok 'Text::MicroMason';
 
-use Text::MicroMason;
-my $m = Text::MicroMason->new( -CatchErrors, -TemplateDir, template_root => 'samples/' );
+ok my $m = Text::MicroMason->new( -CatchErrors, -TemplateDir, template_root => 'samples/' );
 
 ######################################################################
 
 FILE: {
-  my $output = $m->execute( file=>'test.msn', name=>'Sam', hour=>14);
-  ok( $output =~ /\QGood afternoon, Sam!\E/ );
+    like $m->execute( file=>'test.msn', name=>'Sam', hour => 14),
+        qr/\QGood afternoon, Sam!\E/;
 }
 
 ######################################################################
 
 TAG: {
-  my $scr_hello = "<& 'test-relative.msn', name => 'Dave' &>";
-  my $res_hello = "Test greeting:\n" . 'Good afternoon, Dave!' . "\n";
-  warn( ( $m->execute(text=>$scr_hello) )[1] ."\n" );
-  ok( $m->execute(text=>$scr_hello), $res_hello );
+    my $scr_hello = "<& 'test-relative.msn', name => 'Dave' &>";
+    my $res_hello = "Test greeting:\n" . 'Good afternoon, Dave!' . "\n";
+    is $m->execute(text=>$scr_hello), $res_hello;
 }
 
 ######################################################################
 
 BASE: {
-  my $m = Text::MicroMason->new( -CatchErrors, -TemplateDir );
-  my $scr_hello = "<& 'samples/test-relative.msn', name => 'Dave' &>";
-  my $res_hello = "Test greeting:\n" . 'Good afternoon, Dave!' . "\n";
-  ok( $m->execute(text=>$scr_hello), $res_hello );
+    ok my $m = Text::MicroMason->new( -CatchErrors, -TemplateDir );
+    my $scr_hello = "<& 'samples/test-relative.msn', name => 'Dave' &>";
+    my $res_hello = "Test greeting:\n" . 'Good afternoon, Dave!' . "\n";
+    is $m->execute(text=>$scr_hello), $res_hello;
 }
 
 ######################################################################

@@ -1,17 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test;
+use Test::More tests => 1;
 
-BEGIN { plan tests => 1 }
+use_ok 'Text::MicroMason', qw( compile execute );
 
-my $loaded;
-END { ok(0) unless $loaded; }
-
-use Text::MicroMason qw( compile execute );
-
-ok( $loaded = 1 );
-
-######################################################################
-
-1;

@@ -1,11 +1,11 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test::More tests => 19;
+use Test::More tests => 21;
 
-use Text::MicroMason;
+use_ok 'Text::MicroMason';
 
-my $m = Text::MicroMason->new( -Filters );
+ok my $m = Text::MicroMason->new( -Filters );
 
 my $res_nofilter = 'Hello <"world">!';
 
@@ -29,9 +29,9 @@ SKIP: {
     {
         local $m->{default_filters} = 'h';
         my $src_h2 = q(Hello <% '<"world">' %>!);
-        
+
         is $m->execute( text => $src_h2), $res_h, "Execute text with HTML::Entity default filter";
-        
+
         # Explicitly disable the default filters
         my $src_h3 = q(Hello <% '<"world">' | n %>!);
         is $m->execute( text => $src_h3), $res_nofilter, "Execute text with HTML::Entity default turned off";
@@ -40,7 +40,6 @@ SKIP: {
     my $src_unh = qq(Hello <% '<"world">' |unh %>!);
     my $res_unh = 'Hello &lt;&quot;world&quot;&gt;!';
     is $m->execute( text => $src_unh), $res_unh, "Execute text with stacking h filter";
-
 } # SKIP
 
 ######################################################################
@@ -57,7 +56,7 @@ SKIP: {
     ok my $res = eval {$m->execute(text => qq(Hello <% '<"world">'|u %>!))},
         "Execute text with URI::Escape filter and no space";
     is $res, $res_u;
-        
+
     # Test |u encoding flag in a file
     ok $res = eval {$m->execute(file => 'samples/test-filter.msn', msg => "foo")},
         "Execute text from file with URI::Escape filter and no space";
@@ -68,7 +67,7 @@ SKIP: {
         local $m->{default_filters} = 'u';
         my $src_u2 = qq(Hello <% '<"world">' %>!);
         is $m->execute( text => $src_u2), $res_u, "Execute text with URI::Escape default filter";
-        
+
         # Explicitly disable the default filters
         my $src_u3 = qq(Hello <% '<"world">' | n %>!);
         my $res_u3 = 'Hello <"world">!';
