@@ -45,7 +45,7 @@ SKIP: {
 ######################################################################
 # Test default u encoding flag if we have URI::Escape
 SKIP: {
-    skip "URI::Escape is not installed", 6
+    skip "URI::Escape is not installed", 8
         unless URI::Escape->can('uri_escape');
 
     my $res_u = 'Hello %3C%22world%22%3E!';

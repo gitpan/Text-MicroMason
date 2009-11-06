@@ -5,6 +5,17 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =head1 VERSION 2 HISTORY
 
+=head2 Version 2.04
+
+=over 4
+
+=item 2009-11-06
+
+Fixed SKIP count in t/33_filters.t to prevent test failures when
+URI::Escape isn't installed.
+
+=back
+
 =head2 Version 2.03
 
 =over 4

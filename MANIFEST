@@ -87,4 +87,5 @@ t/89-func-regression.t
 t/90-cache-dir-conflict.t
 t/91-template_path.t
 t/92-template_path-cache.t
+Text-MicroMason-2.03.tar
 META.yml                                 Module meta-data (added by MakeMaker)
