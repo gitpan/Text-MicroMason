@@ -2,30 +2,30 @@ package Text::MicroMason::TemplateDir;
 
 use strict;
 use File::Spec;
+use Cwd;
 
 ######################################################################
 
 sub prepare {
-  my ( $self, $src_type, $src_data ) = @_;
-
-  return $self->NEXT('prepare', $src_type, $src_data ) 
-    unless $src_type eq 'file';
-
-  my $path = $self->resolve_path($src_data);
-  return $self->NEXT('prepare', 'file' => $path, source_file => $path );
+    my ( $self, $src_type, $src_data ) = @_;
+    
+    return $self->NEXT('prepare', $src_type, $src_data ) 
+        unless $src_type eq 'file';
+    
+    my $path = $self->resolve_path($src_data);
+    return $self->NEXT('prepare', 'file' => $path, source_file => $path );
 }
 
 sub resolve_path {
-  my ($self, $src_data) = @_;
+    my ($self, $src_data) = @_;
 
-  my $current = $self->{source_file};
-  my $rootdir = $self->template_root();
+    my $current = $self->{source_file};
+    my $rootdir = $self->template_root();
+    
+    my $base = File::Spec->file_name_is_absolute($src_data) || 
+        ! $current ? $rootdir : ( File::Spec->splitpath( $current ) )[1];
 
-  my $base = File::Spec->file_name_is_absolute($src_data) || ! $current 
-			      ? $rootdir 
-			      : ( File::Spec->splitpath( $current ) )[1];
-
-  return File::Spec->catfile( $base, $src_data );
+    return File::Spec->catfile( $base, $src_data );
 }
 
 sub template_root {
@@ -45,18 +45,19 @@ sub cache_key {
 
 # $contents = $mason->read_file( $filename );
 sub read_file {
-  my ( $self, $file ) = @_;
-  
-  if ( my $root = $self->{strict_root} ) {
-
-    $root = $self->template_root if $root eq '1';
-    my $path = File::Spec->canonpath( $file );
-    # warn "Checking for '$root' in '$path'\n";
-    ( $path =~ /\A\Q$root\E(\/|(?<=\/))(?!\.\.)/ )
-      or $self->croak_msg("Text::MicroMason::TemplateDir: Template not in required base path '$root'");
-  }
-  
-  return $self->NEXT('read_file', $file );
+    my ( $self, $file ) = @_;
+    
+    if ( my $root = $self->{strict_root} ) {
+        $root = $self->template_root if $root eq '1';
+        my $path = Cwd::abs_path($file);
+        my $root_path = Cwd::abs_path($root)
+            or $self->croak_msg("Text::MicroMason::TemplateDir: Strict root '$root' doesn't seem to exist"); 
+        # warn "Checking for '$root_path' in '$path' (file $file)\n";
+        ( $path =~ /\A\Q$root_path\E/)
+            or $self->croak_msg("Text::MicroMason::TemplateDir: Template '$path' not in required base path '$root_path'");
+    }
+    
+    return $self->NEXT('read_file', $file );
 }
 
 ######################################################################
@@ -137,7 +138,16 @@ Text::MicroMason::TemplateDir when appropriate:
 
 =item *
 
-Text::MicroMason::TemplatePath: Template not in required base path '%s'
+Text::MicroMason::TemplateDir: Strict root '%s' doesn't seem to exist
+
+The strict_root directory (or template_root if strict_root is '1')
+doesn't seem to exist. Strict root checking uses Cwd's abs_path(), and
+requires the strict_root directory to exist at the time the check is
+performed.
+
+=item *
+
+Text::MicroMason::TemplatePath: Template '%s' not in required base path '%s'
 
 The template found in the configured template path was not within the
 configured strict_root directory. This may be caused by requesting an

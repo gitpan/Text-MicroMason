@@ -5,6 +5,29 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =head1 VERSION 2 HISTORY
 
+=head2 Version 2.05
+
+=over 4 
+
+=item 2009-11-10
+
+Modify compilation error reporting: provide line numbers when dumping
+the compiled template into $@, and change the #line to match the line
+numbering correctly.
+
+=item 2009-11-11
+
+Fix bug reported by CPAN testers on some Windows boxes: use
+Cwd::abs_path for strict_root checking to avoid literal path separators
+in TemplateDir.pm.
+
+=item 2009-11-11
+
+Add a hint about -LineNumbers in the numbered template dump when a
+compilation error occurs.
+
+=back
+ 
 =head2 Version 2.04
 
 =over 4

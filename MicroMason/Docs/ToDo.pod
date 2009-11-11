@@ -39,10 +39,8 @@ distributions.
 
 =item *
 
-AutoLoad mixin. Using this mixin adds
-an AUTOLOADER to the mason object, which interprets all unknown
-method calls as template names, which will be interpreted as the
-object is compiled.
+AutoLoad mixin. Using this mixin adds an AUTOLOADER to the mason object,
+which interprets all unknown method calls as template names.
 
 =back
 

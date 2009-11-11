@@ -50,7 +50,7 @@ Text::QuickTemplate.
 
 =head1 DISTRIBUTION STATUS
 
-This is version 2.04 of Text::MicroMason. 
+This is version 2.05 of Text::MicroMason. 
 
 This module has been available on CPAN for over six years. 
 

@@ -63,15 +63,26 @@ sub defaults {
 # $code_ref = $mason->compile( file => $filename, %options );
 # $code_ref = $mason->compile( handle => $filehandle, %options );
 sub compile {
-  my ( $self, $src_type, $src_data, %options ) = @_;
+    my ( $self, $src_type, $src_data, %options ) = @_;
 
-  ($self, $src_type, $src_data) = $self->prepare($src_type, $src_data,%options);
-  
-  my $code = $self->interpret( $src_type, $src_data );
-  
-  $self->eval_sub( $code ) 
-    or $self->croak_msg( "MicroMason compilation failed: $@\n$code\n" )
+    ($self, $src_type, $src_data) = $self->prepare($src_type, $src_data,%options);
+    
+    my $code = $self->interpret( $src_type, $src_data );
+    
+    $self->eval_sub( $code ) 
+        or $self->croak_msg( "MicroMason compilation failed: $@\n". _number_lines($code)."\n" );
+
 }
+
+# Internal helper to number the lines in the compiled template when compilation croaks
+sub _number_lines {
+    my $code = shift;
+
+    my $n = 0;
+    return join("\n", map { sprintf("%4d  %s", $n++, $_) } split(/\n/, $code)).
+        "\n** Please use Text::MicroMason->new\(-LineNumbers\) for better diagnostics!";
+}
+
 
 ######################################################################
 
@@ -114,19 +125,20 @@ sub interpret {
 
 # $line_number_comment = $mason->source_file_line_label( $src_type, $src_data );
 sub source_file_line_label {
-  my ( $self, $src_type, $src_data ) = @_;
+    my ( $self, $src_type, $src_data ) = @_;
 
-  if ( $src_type eq 'file' ) {
-    return '# line 0 "' . $src_data . '"' 
-  }
-  
-  my @caller; 
-  my $call_level ;
-  do { @caller = caller( ++ $call_level ) }
-      while ( $caller[0] =~ /^Text::MicroMason/ or $self->isa($caller[0]) );
-  my $package = ( $caller[1] || $0 );
-  qq{# line 0 "text template (compiled at $package line $caller[2])"}
+    if ( $src_type eq 'file' ) {
+        return qq(# line 1 "$src_data");
+    }
+    
+    my @caller; 
+    my $call_level;
+    do { @caller = caller( ++ $call_level ) }
+        while ( $caller[0] =~ /^Text::MicroMason/ or $self->isa($caller[0]) );
+    my $package = ( $caller[1] || $0 );
+    qq{# line 1 "text template (compiled at $package line $caller[2])"}
 }
+
 
 ######################################################################
 

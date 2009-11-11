@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test::More tests => 6;
+use Test::More tests => 29;
 
 use Text::MicroMason;
 my $m = Text::MicroMason->new( );
@@ -24,3 +24,36 @@ my $m = Text::MicroMason->new( );
 }
 
 ######################################################################
+
+{
+    my $scr_mobj = <<EOT;
+Hello world!
+This <% thing( %> is a test.
+End.
+EOT
+
+    is eval { $m->compile( text => $scr_mobj ); 1 }, undef, "template with error dies";
+    ok my @lines = split(/\n/, $@), 'multiline output in $@';
+    like shift @lines, qr{MicroMason compilation failed: syntax error at text template \(compiled at t/08-errors.t line \d+\) line 8},
+        'first line of $@ describes the error location'
+            or diag $@;
+    like shift @lines, qr/^$/, 'second line of $@ is blank'
+        or diag $@;
+
+    like $lines[0], qr{   0  # line 1 "text template \(compiled at t/08-errors.t line }, 'third line of $@ has a #line'
+        or diag $@;
+
+    like pop @lines, qr{\s+eval \{\.\.\.\} called at t/08-errors.t line \d+}, 'last line of $@ has line number too'
+        or diag $@;
+
+    like pop @lines, qr{\s+at t/08-errors.t line \d+}, 'second to last line of $@ has line number too'
+        or diag $@;
+    like pop @lines, qr{\Q** Please use Text::MicroMason->new(-LineNumbers) for better diagnostics!}
+        or diag $@;
+
+    my $n = 0;
+    foreach my $line (@lines) {
+        like $line, qr/^\s*$n\s+/ or diag $@;
+        $n++;
+    }
+}
