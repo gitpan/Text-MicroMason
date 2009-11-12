@@ -1,4 +1,5 @@
 package Text::MicroMason::LineNumbers;
+use strict;
 
 ######################################################################
 
@@ -58,31 +59,31 @@ sub _get_external_caller {
 ######################################################################
 
 sub lex {
-  my $self = shift;
-  local $_ = "$_[0]";
-
-  my $lexer = $self->can('lex_token') 
-    or $self->croak_msg('Unable to lex_token(); must select a syntax mixin');
-
-  my $filename = $self->{ last_read_file } || 'unknown source';
-  my $linenum = $self->{ last_read_line } || 1;
-	my $last_pos = 0;
-
-  my @tokens;
-  until ( /\G\z/gc ) {
-    my @parsed = &$lexer( $self )
-      or /\G ( .{0,20} ) /gcxs && die "MicroMason parsing halted at '$1'\n";
-    push @tokens, 'line_num' => ( $linenum - 1 ) . qq{ "$filename"};
-    push @tokens, @parsed;
-
-		# Update the current line number by counting newlines in the text 
-		# we've parsed since the last time through the loop.
-		my $new_pos = pos($_);
-    $linenum += ( substr($_, $last_pos, $new_pos) =~ tr[\n][] ); 
-		$last_pos = $new_pos;
-  }
-
-  return @tokens;
+    my $self = shift;
+    local $_ = "$_[0]";
+    
+    my $lexer = $self->can('lex_token') 
+        or $self->croak_msg('Unable to lex_token(); must select a syntax mixin');
+    
+    my $filename = $self->{ last_read_file } || 'unknown source';
+    my $linenum = $self->{ last_read_line } || 1;
+    my $last_pos = 0;
+    
+    my @tokens;
+    until ( /\G\z/gc ) {
+        my @parsed = &$lexer( $self )
+            or /\G ( .{0,20} ) /gcxs && die "MicroMason parsing halted at '$1'\n";
+        push @tokens, 'line_num' => ( $linenum - 1 ) . qq{ "$filename"};
+        push @tokens, @parsed;
+        
+        # Update the current line number by counting newlines in the text 
+        # we've parsed since the last time through the loop.
+        my $new_pos = pos($_) || 0;
+        $linenum += ( substr($_, $last_pos, $new_pos - $last_pos) =~ tr[\n][] ); 
+        $last_pos = $new_pos;
+    }
+    
+    return @tokens;
 }
 
 sub assembler_rules {

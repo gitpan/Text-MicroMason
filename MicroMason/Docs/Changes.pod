@@ -5,6 +5,22 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =head1 VERSION 2 HISTORY
 
+=head2 Version 2.06
+
+=over 4
+
+=item 2009-11-11
+
+Fix bug reported in CPAN forum: substr() in LineNumbers.pm was being
+used incorrectly, resulting in incorrect line numbering in some cases.
+
+=item 2009-11-12
+
+#51460: Clean up the tarball and resubmit a version that doesn't
+contain a stray .tgz file.
+
+=back
+
 =head2 Version 2.05
 
 =over 4 

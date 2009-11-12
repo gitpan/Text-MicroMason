@@ -1,5 +1,5 @@
 package Text::MicroMason;
-$VERSION = '2.05';
+$VERSION = '2.06';
 
 # The #line directive requires Perl 5.6 to work correctly the way we use
 # it in Base.
