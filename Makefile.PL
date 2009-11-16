@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.6 2009/11/11 16:23:36 alan Exp $
+# $Id: Makefile.PL,v 1.7 2009/11/16 21:36:24 alan Exp $
 
 use ExtUtils::MakeMaker;
 
@@ -11,6 +11,7 @@ WriteMakefile(
                                'Class::MixinFactory' => 0.9,
                                'File::Spec' => 0.9,
                                'Cwd' => 2.21,
+			       'Test::More' => 0.48,
                               },
 
               ABSTRACT_FROM     => 'MicroMason.pm', 

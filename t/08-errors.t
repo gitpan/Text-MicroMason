@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test::More tests => 29;
+use Test::More tests => 28;
 
 use Text::MicroMason;
 my $m = Text::MicroMason->new( );
@@ -46,10 +46,10 @@ EOT
     like pop @lines, qr{\s+eval \{\.\.\.\} called at t/08-errors.t line \d+}, 'last line of $@ has line number too'
         or diag $@;
 
-    like pop @lines, qr{\s+at t/08-errors.t line \d+}, 'second to last line of $@ has line number too'
-        or diag $@;
-    like pop @lines, qr{\Q** Please use Text::MicroMason->new(-LineNumbers) for better diagnostics!}
-        or diag $@;
+    # Perl 5.6 has one line of "at line number" junk, but perl 5.8 has
+    # two lines. The next line is our diagnostics message.
+    ok ((pop @lines) =~ m{\Q** Please use Text::MicroMason->new(-LineNumbers) for better diagnostics!}
+        or (pop @lines) =~ m{\Q** Please use Text::MicroMason->new(-LineNumbers) for better diagnostics!});
 
     my $n = 0;
     foreach my $line (@lines) {

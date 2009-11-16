@@ -59,7 +59,6 @@ sub defaults {
 ######################################################################
 
 # $code_ref = $mason->compile( text => $template, %options );
-# $code_ref = $mason->compile( lines => \@template, %options );
 # $code_ref = $mason->compile( file => $filename, %options );
 # $code_ref = $mason->compile( handle => $filehandle, %options );
 sub compile {
@@ -263,7 +262,6 @@ sub assemble {
   my ( $order, $fragments, $token_map ) = $self->assembler_vars();
   
   my %token_streams = map { $_ => [] } map { ( /^\W?\@(\w+)$/ ) } @$order;
-  my ($output) = $fragments->{add_output};
 
   while ( scalar @tokens ) {
     my ( $type, $token ) = splice( @tokens, 0, 2 );
@@ -274,11 +272,18 @@ sub assemble {
 	or $self->croak_msg( "Unexpected token type '$type': '$token'" );
       ($type, $token) = &$sub( $self, $token );
     }
-
+    
     if ( my $typedef = $token_map->{ $type } ) {
-      $typedef =~ s{\bTOKEN\b}{$token}g;
-      $typedef =~ s{\bQUOTED\b}{qq(\Q$token\E)}g;
-      $typedef =~ s{\bOUT\b}{$output}g;
+      # Perform token map substitution in a single pass so that uses of
+      # OUT in the token text are not improperly converted to output calls.
+      #   -- Simon, 2009-11-14
+      my %substitution_map = (
+        'OUT'    => $fragments->{add_output},
+        'TOKEN'  => $token,
+        'QUOTED' => "qq(\Q$token\E)",
+      );
+      $typedef =~ s/\b(OUT|TOKEN|QUOTED)\b/$substitution_map{$1}/g;
+      
       ( $type, $token ) = split ' ', $typedef, 2;
     }
     

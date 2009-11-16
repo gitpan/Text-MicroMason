@@ -44,6 +44,18 @@ which interprets all unknown method calls as template names.
 
 =back
 
+=head2 New Features
+
+=over 4
+
+=item *
+
+Support the previously supported but now unsupported 
+compile(lines => ...) source type. This was documented but non-
+functional, and so the pod was removed.
+
+=back
+
 =head1 WISH LIST
 
 =head2 Distribution

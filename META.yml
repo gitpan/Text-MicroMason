@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Text-MicroMason
-version:            2.06
+version:            2.07
 abstract:           Simple and Extensible Templating
 author:
     - Alan Ferrency <ferrency@cpan.org>
@@ -14,6 +14,7 @@ requires:
     Class::MixinFactory:  0.9
     Cwd:                  2.21
     File::Spec:           0.9
+    Test::More:           0.48
 no_index:
     directory:
         - t

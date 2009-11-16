@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test::More tests => 24;
+use Test::More tests => 25;
 
 use_ok 'Text::MicroMason';
 
@@ -174,6 +174,14 @@ FILE_BLOCK_MULTILINE: {
     my $res_hello = "Test greeting:\n" . 'Good afternoon, Dave!' . "\n";
 
     is $m->execute( text => $scr_hello), $res_hello;
+}
+
+######################################################################
+
+TEXT_CONTAINS_OUT: {
+    my $scr_inout = 'IN <% "and" %> OUT burger';
+    my $res_inout = 'IN and OUT burger';
+    is $m->execute( text => $scr_inout), $res_inout;
 }
 
 ######################################################################

@@ -1,5 +1,5 @@
 package Text::MicroMason;
-$VERSION = '2.06';
+$VERSION = '2.07';
 
 # The #line directive requires Perl 5.6 to work correctly the way we use
 # it in Base.
@@ -122,12 +122,11 @@ new Perl subroutine to be returned as a code reference:
 Any attributes provided to compile() will temporarily override the
 persistant options defined by new(), for that template only.
 
-You can provide the template as a text string, as an array of text
-lines, or as a file name or handle:
+You can provide the template as a text string, a file name, or an open
+file handle:
 
   $code_ref = $mason->compile( text => $template );
   $code_ref = $mason->compile( text => \$template );
-  $code_ref = $mason->compile( lines => \@template );
   $code_ref = $mason->compile( file => $filename );
   $code_ref = $mason->compile( handle => $fh );
   $code_ref = $mason->compile( handle => \*FILE );

@@ -5,6 +5,29 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =head1 VERSION 2 HISTORY
 
+=head2 Version 2.07
+
+=over 4
+
+=item 2009-11-16
+
+Merge patch from Simon Cavalletto: fix bug reported in CPAN forum with
+"OUT" appearing in the input template stream.  Thanks!
+
+Update requirement for Test::More 0.48 or later in Makefile.PL. Tests
+using unlike() failed with Test::More version 0.47.
+
+Fix problem in t/08_errors.t which caused test failures in Perl 5.6. The
+error message isn't as important as the test made it out to be, but the
+code didn't have a problem.
+
+=item 2009-11-12
+
+Remove documentation for unsupported compile(lines => ...) mode. Put it
+on ToDo instead.
+
+=back
+
 =head2 Version 2.06
 
 =over 4
