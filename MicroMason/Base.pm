@@ -235,7 +235,10 @@ sub assembler_rules {
 
   # Mapping between token types
   text_token => 'perl OUT( QUOTED );',
-  expr_token => "perl OUT( do{\nTOKEN\n} );", 
+  expr_token => "perl OUT( \"\".do{\nTOKEN\n} );", 
+    # the "". here forces string context, and should hopefully make
+    # 'uninitialized' warnings appear closer to their source, rather
+    # than at the big join "", @OUT; at the end
   file_token => "perl OUT( \$m->execute( file => do {\nTOKEN\n} ) );",
     # Note that we need newline after TOKEN here in case it ends with a comment.
 }
@@ -577,7 +580,7 @@ The assembler data structure is used to construct the Perl subroutine for a pars
 
 You can support a new token type be creating a method with a corresponding name prefixed by "assemble_". It is passed the token value or contents, and should return a new token pair that is supported by the assembler template.
 
-For example, if a subclass defined a method named assemble_sqlquery, callers could compile templates that contained a C<E<lt>%sqlqueryE<gt> ... E<lt>/%sqlqueryE<gt>> block. The assemble_sqlquery method could return a C<perl => $statements> pair with Perl code that performed some appropriate action.
+For example, if a subclass defined a method named assemble_sqlquery, callers could compile templates that contained a C<E<lt>%sqlqueryE<gt> ... E<lt>/%sqlqueryE<gt>> block. The assemble_sqlquery method could return a C<< perl => $statements >> pair with Perl code that performed some appropriate action.
 
 =item compile
 

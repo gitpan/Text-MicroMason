@@ -5,6 +5,22 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =head1 VERSION 2 HISTORY
 
+=over 4
+
+=head2 Version 2.08
+
+=item 2010-03-08
+
+Fixed PassVariables bug: <%init> failed with -PassVariables plugin.
+Thanks to William Kern for reporting this.
+
+=item 2009-11-19
+
+Fixed [rt.cpan.org #51727] [Patch] POD nit; thanks to Frank Wiegand for
+reporting this.
+
+=back
+
 =head2 Version 2.07
 
 =over 4

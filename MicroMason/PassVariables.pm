@@ -16,14 +16,17 @@ sub prepare {
 
 # Text elements used for subroutine assembly
 sub assembler_rules {
-  (shift)->NEXT('assembler_rules', @_), 
-  template => [ qw( $eval_start $no_strict $sub_start $init_errs $init_output 
-			      $init_args @perl $return_output $sub_end ) ],
-  eval_start => 'package __PACKAGE__;',
-  no_strict => 'no strict;',
-  init_args => 'local %__PACKAGE__:: = %__PACKAGE__::;' . "\n" .
-			  'my %ARGS = @_;' . "\n" .
+    my %rules =  ((shift)->NEXT('assembler_rules', @_),
+                  eval_start => 'package __PACKAGE__;',
+                  no_strict => 'no strict;',
+                  init_args => 'local %__PACKAGE__:: = %__PACKAGE__::;' . "\n" .
+                      'my %ARGS = @_;' . "\n" .
 			  '$m->install_args_hash( "__PACKAGE__", \%ARGS );',
+                  );
+
+    $rules{template} = ['$eval_start', '$no_strict', @{$rules{template}}];
+
+    return %rules;
 }
 
 sub assemble {
