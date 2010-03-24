@@ -7,6 +7,15 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =over 4
 
+=head2 Version 2.09
+
+=item 2010-03-24
+
+Fix test that was broken by changes in URI::Escape 1.30.  Double
+quotes aren't reserved characters in URIs but they were previously
+encoded anyway.  Test modified to use reserved single quotes instead,
+for URI::Escape testing.
+
 =head2 Version 2.08
 
 =item 2010-03-08
