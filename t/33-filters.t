@@ -48,12 +48,12 @@ SKIP: {
     skip "URI::Escape is not installed", 8
         unless URI::Escape->can('uri_escape');
 
-    my $res_u = 'Hello %3C%27world%27%3E!';
+    my $res_u = 'Hello %3C%3Fworld%3F%3E!';
 
-    is $m->execute(text => qq(Hello <% "<'world'>" |u %>!)), $res_u,
+    is $m->execute(text => qq(Hello <% "<?world?>" |u %>!)), $res_u,
         "Execute text with URI::Escape filter";
 
-    ok my $res = eval {$m->execute(text => qq(Hello <% "<'world'>"|u %>!))},
+    ok my $res = eval {$m->execute(text => qq(Hello <% "<?world?>"|u %>!))},
         "Execute text with URI::Escape filter and no space";
     is $res, $res_u;
 
@@ -65,18 +65,18 @@ SKIP: {
     # Test u as a default filter
     {
         local $m->{default_filters} = 'u';
-        my $src_u2 = qq(Hello <% "<'world'>" %>!);
+        my $src_u2 = qq(Hello <% "<?world?>" %>!);
         is $m->execute( text => $src_u2), $res_u, "Execute text with URI::Escape default filter";
 
         # Explicitly disable the default filters
-        my $src_u3 = qq(Hello <% "<'world'>" | n %>!);
-        my $res_u3 = q(Hello <'world'>!);
-        is $m->execute( text => $src_u3), "Hello <'world'>!", "Execute text with URI::Escape default turned off";
+        my $src_u3 = qq(Hello <% "<?world?>" | n %>!);
+        my $res_u3 = q(Hello <?world?>!);
+        is $m->execute( text => $src_u3), "Hello <?world?>!", "Execute text with URI::Escape default turned off";
     }
 
     # Test stacking and canceling with n
-    my $res_hnu = 'Hello %3C%27world%27%3E!';  
-    my $src_hnu = qq(Hello <% "<'world'>" |hnu %>!);
+    my $res_hnu = 'Hello %3C%3Fworld%3F%3E!';  
+    my $src_hnu = qq(Hello <% "<?world?>" |hnu %>!);
     is $m->execute( text => $src_hnu), $res_hnu, "Execute text with stacking u filter";
 }
 

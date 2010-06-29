@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test::More tests => 33;
+use Test::More tests => 37;
 
 use_ok 'Text::MicroMason';
 
@@ -76,3 +76,19 @@ use_ok 'Text::MicroMason';
 }
 
 ######################################################################
+
+SKIP: {
+    skip "Test::Warn is not installed", 4
+        unless eval { require Test::Warn; };
+    use warnings;
+
+    ok my $m = Text::MicroMason->new( -LineNumbers );
+    Test::Warn::warnings_like(sub {
+        ok my $output = eval { $m->execute( file => 'samples/uninitialized.msn' ) };
+        is $@, '';
+    }, [
+        qr/^Use of uninitialized value.*at samples\/uninitialized\.msn line 1/,
+        qr/^Use of uninitialized value.*at samples\/uninitialized\.msn line 8/,
+    ]);
+}
+

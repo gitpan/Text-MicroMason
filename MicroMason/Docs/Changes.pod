@@ -7,6 +7,31 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =over 4
 
+=head2 Version 2.10
+
+=item 2010-06-29
+
+[rt.cpan.org #57797] Deprecate safe_methods parameter.  Unfortunately,
+Safe.pm version 2.27 patches a bug we were inadvertantly taking
+advantage of to implement the safe_methods parameter.  Unless we can
+find a working implementation of safe_methods that is smaller than
+"make everything unsafe" then we can't continue to support
+safe_methods.
+
+Using safe_methods now issues a deprecation warning, but it should
+work with older versions of Safe.  I'm in no hurry to remove the
+feature, but I don't want anyone to use it who isn't already using it,
+until we know it can be supported in the future.
+
+=item 2010-04-05
+
+"uninitialized" warnings in templates were being taggedgenerated at a
+line number within MicroMason instead of a line number within the
+template itself.  Thanks to Mike Kelly for a patch: by concatenating
+an empty string to each TOKEN within the template, the warning's line
+number is shifted to inside the template where the interpolation took
+place.
+
 =head2 Version 2.09
 
 =item 2010-03-24

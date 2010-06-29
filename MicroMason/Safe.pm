@@ -33,6 +33,12 @@ sub safe_compartment {
 
 sub safe_facade {
   my $self = shift;
+
+  our @CARP_NOT = qw(Text::MicroMason::Base);
+
+  carp("* WARNING: safe_methods is deprecated; please see the pod")
+      if $self->{safe_methods};
+
   Text::MicroMason::Safe::Facade->new(
     map { 
       my $method = $_; 
@@ -139,6 +145,31 @@ the value of the "safe" attribute:
 
 =item safe_methods
 
+B<IMPORTANT NOTE:> The C<safe_methods> parameter is deprecated and will
+be removed in future versions of Text::MicroMason (unless a Safe and
+future-proof implementation can be found).  If you use this parameter,
+you will receive a warning via carp:
+
+"* WARNING: safe_methods is deprecated; please see the pod"
+
+This parameter works correctly with sufficiently old versions of the
+Safe module (prior to the release of perl 5.12.1), but modern versions
+of Safe make it impossible for a Safe compartment to run any code
+outside the compartment.  Even with the object shared within the Safe
+compartment, there is currently no known way to call methods on it
+without defining the whole class within the compartment (which isn't
+safe).
+
+If anyone has an appropriately safe solution that will allow
+C<safe_methods> to work, please submit a patch to the module maintainer.
+Also see t/32-safe.t for tests related to C<safe_methods> that are
+currently being skipped.
+
+The following pod is provided for legacy purposes only.  It is
+strongly recommended that you do not use this method.  It is no longer
+allowed to call methods from within a "Safe" template, because it
+isn't actually safe.
+
 A space-separated string of methods names to be supported by the Safe::Facade.
 
 To control which Mason methods are available within the template, pass a
@@ -150,6 +181,7 @@ or the "<& file &>" include syntax, you would need to allow the execute
 method. We'll also load the TemplateDir mixin with strict_root on to prevent
 inclusion of templates from outside the current directory.
 
+  # safe_methods is DEPRECATED, please see above
   $mason = Text::MicroMason->new( -Safe, safe_methods => 'execute', 
 				  -TemplateDir, strict_root => 1 );
 
@@ -157,6 +189,7 @@ If you're combining this with the Filters mixin, you'll also need to allow
 calls to the filter method; to allow multiple methods, join their names
 with spaces:
 
+  # safe_methods is DEPRECATED, please see above
   $mason = Text::MicroMason->new( -Safe, safe_methods => 'execute filter', 
 				  -TemplateDir, strict_root => 1,
 				  -Filters );

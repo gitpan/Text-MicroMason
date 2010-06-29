@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test::More tests => 23;
+use Test::More tests => 24;
 
 use_ok 'Text::MicroMason', qw( safe_compile safe_execute try_safe_compile try_safe_execute );
 
@@ -39,7 +39,10 @@ use_ok 'Text::MicroMason', qw( safe_compile safe_execute try_safe_compile try_sa
     local $^W; # no warnings uninitialized
     my $variable = 'secret';
     my $scr_hidden = '<% $variable %>';
-    unlike try_safe_execute( $scr_hidden ), qr/secret/;
+    
+    my ($output, $err) = try_safe_execute( $scr_hidden );
+    is $output, undef;
+    like $err, qr/requires explicit package name/;
 }
 
 {
@@ -83,7 +86,9 @@ use_ok 'Text::MicroMason', qw( safe_compile safe_execute try_safe_compile try_sa
     like $@, qr/Can't call .*?execute/;
 }
 
+SKIP:
 {
+    skip "safe_methods is deprecated because it can't work with modern Safe", 2;
     my $m = Text::MicroMason->new( '-Safe', safe_methods => 'execute' );
     my $script = qq| <& 'samples/test.msn', %ARGS &> |;
 
@@ -93,13 +98,14 @@ use_ok 'Text::MicroMason', qw( safe_compile safe_execute try_safe_compile try_sa
 }
 
 my $safe_dir_mason = Text::MicroMason->class( 'Safe', 'TemplateDir' );
+SKIP:
 {
-#  my $m = Text::MicroMason->new( '-Safe', safe_methods => 'execute',
-#                                 -TemplateDir, template_root => 'samples', strict_root => 1 );
+    skip "safe_methods is deprecated because it can't work with modern Safe", 2;
+
     my $m = Text::MicroMason->new(
-                                  -TemplateDir, template_root => 'samples', strict_root => 1,
-                                  '-Safe', safe_methods => 'execute',
-                                 );
+	-TemplateDir, template_root => 'samples', strict_root => 1,
+	'-Safe', safe_methods => 'execute',
+	);
     my $script = qq| <& 'test.msn', %ARGS &> |;
 
     my $output = eval{ $m->execute( text => $script, name => 'Sam', hour => 9)};
@@ -107,9 +113,12 @@ my $safe_dir_mason = Text::MicroMason->class( 'Safe', 'TemplateDir' );
     ok !$@, "Execute produced error: $@";
 }
 
+SKIP:
 {
-    my $m = Text::MicroMason->new( '-Safe', safe_methods => 'execute',
-                                   -TemplateDir, template_root => 'samples', strict_root => 1 );
+    skip "safe_methods is deprecated because it can't work with modern Safe", 2;
+    my $m = Text::MicroMason->new(
+	'-Safe', safe_methods => 'execute',
+	-TemplateDir, template_root => 'samples', strict_root => 1 );
     my $script = qq| <& '../MicroMason.pm', %ARGS &> |;
 
     my $output = eval{ $m->execute( text => $script, name => 'Sam', hour => 9)};

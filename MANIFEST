@@ -48,6 +48,7 @@ samples/test-filter.msn
 samples/test-recur.msn
 samples/test-relative.msn
 samples/test.msn
+samples/uninitialized.msn
 t/00-startup.t
 t/01-syntax.t
 t/02-perl.t
