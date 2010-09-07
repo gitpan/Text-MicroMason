@@ -7,6 +7,26 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =over 4
 
+=head2 Version 2.11
+
+=item 2010-09-07
+
+[rt.cpan.org #61010] Fix spelling errors and pod example bugs. Thanks to
+vshih at yahoo.com for reporting these problems.
+
+=item 2010-09-07
+
+Under Perl 5.13.1 and later with Safe version 2.27, skip failing tests
+in t/32-safe.t. The regression tests for Safe 2.27 fail in Perl 5.13.1
+as well, in a similar way. This bug is not fixable in any reasonable way
+until Safe.pm is also stable.
+
+=item 2010-07-26
+
+[rt.cpan.org #59081] Fix spelling and pod errors. Thanks to Ansgar
+Burchardt and the Debian project for submitting this bug report along
+with patches.
+
 =head2 Version 2.10
 
 =item 2010-06-29
@@ -23,14 +43,15 @@ work with older versions of Safe.  I'm in no hurry to remove the
 feature, but I don't want anyone to use it who isn't already using it,
 until we know it can be supported in the future.
 
+Thanks to Niko Tyni and the Debian Perl Group for submitting this bug report.
+
 =item 2010-04-05
 
-"uninitialized" warnings in templates were being taggedgenerated at a
-line number within MicroMason instead of a line number within the
-template itself.  Thanks to Mike Kelly for a patch: by concatenating
-an empty string to each TOKEN within the template, the warning's line
-number is shifted to inside the template where the interpolation took
-place.
+"uninitialized" warnings in templates were being generated at a line
+number within MicroMason instead of a line number within the template
+itself. Thanks to Mike Kelly for a patch: by concatenating an empty
+string to each TOKEN within the template, the warning's line number is
+shifted to inside the template where the interpolation took place.
 
 =head2 Version 2.09
 
@@ -186,6 +207,8 @@ character of the filtered token, which made it fail if there was no
 space before the |.
 
 Bump version to 2.0
+
+=back
 
 =head2 Version 1.993_01
 
@@ -427,7 +450,9 @@ Moved syntax documentation to Mason subclass.
 
 =item 2004-10-19
 
-Fixed problem with extra semicolons breaking code statements broken onto multiple % code lines; thanks to Alan Ferrency for test code to isolate the problem, now added to regression tests.
+Fixed problem with extra semicolons breaking code statements broken onto
+multiple % code lines; thanks to Alan Ferrency for test code to isolate
+the problem, now added to regression tests.
 
 =item 2004-10-17
 

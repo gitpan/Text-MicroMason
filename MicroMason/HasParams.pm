@@ -72,6 +72,10 @@ __END__
 
 ######################################################################
 
+=head1 NAME
+
+Text::MicroMason::HasParams - mixin class intended for use with Text::MicroMason::Base
+
 =head1 DESCRIPTION
 
 This mixin class ...
@@ -94,7 +98,7 @@ Gets and sets parameter arguments. Similar to the param() method provied by HTML
 
 =item assembler_rules()
 
-Adds initialization for param() at the begining of each subroutine to be compiled.
+Adds initialization for param() at the beginning of each subroutine to be compiled.
 
 =back
 

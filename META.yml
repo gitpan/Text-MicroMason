@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Text-MicroMason
-version:            2.10
+version:            2.11
 abstract:           Simple and Extensible Templating
 author:
     - Alan Ferrency <ferrency@cpan.org>
@@ -19,7 +19,7 @@ no_index:
     directory:
         - t
         - inc
-generated_by:       ExtUtils::MakeMaker version 6.56
+generated_by:       ExtUtils::MakeMaker version 6.5601
 meta-spec:
     url:      http://module-build.sourceforge.net/META-spec-v1.4.html
     version:  1.4

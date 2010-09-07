@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test::More tests => 12;
+use Test::More tests => 16;
 
 use_ok 'Text::MicroMason', qw( compile execute try_compile try_execute );
 
@@ -21,3 +21,9 @@ like $@, qr/MicroMason execution failed/;
 like $@, qr/FooBar/;
 isa_ok try_compile($scr_die), 'CODE';
 is try_execute($scr_die), undef;
+
+# try_execute can return the $@
+ok my ($r, $ok) = try_execute($scr_die);
+is $r, undef;
+like $ok, qr/MicroMason execution failed/;
+like $ok, qr/FooBar/;

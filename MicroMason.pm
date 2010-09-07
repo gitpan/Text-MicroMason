@@ -1,5 +1,5 @@
 package Text::MicroMason;
-$VERSION = '2.10';
+$VERSION = '2.11';
 
 # The #line directive requires Perl 5.6 to work correctly the way we use
 # it in Base.
@@ -120,7 +120,7 @@ new Perl subroutine to be returned as a code reference:
   $code_ref = $mason->compile( $type => $source, %attribs );
 
 Any attributes provided to compile() will temporarily override the
-persistant options defined by new(), for that template only.
+persistent options defined by new(), for that template only.
 
 You can provide the template as a text string, a file name, or an open
 file handle:
@@ -164,9 +164,9 @@ accessible in an C<%ARGS> hash within the template subroutine:
 
   $mason->compile( text=>'Hello <% $ARGS{name} %>.' )->( name=>'Dave' );
 
-Additionally, you can use named arugments with the %args block syntax:
+Additionally, you can use named arguments with the %args block syntax:
 
-  $mason->compile( text=>'%args>$label</%args>Hello <% $label %>.' )->( name=>'Dave' );
+  $mason->compile( text=>'<%args>$name</%args>Hello <% $name %>.' )->( name=>'Dave' );
 
 =head2 Mixin Selection
 
@@ -515,7 +515,7 @@ and I'll attempt to correct it in a future release.)
 
 MicroMason compilation failed: %s
 
-The template was parsed succesfully, but the Perl subroutine declaration
+The template was parsed successfully, but the Perl subroutine declaration
 it was converted to failed to compile. This is generally a result of a
 syntax error in one of the Perl expressions used within the template.
 
@@ -537,7 +537,7 @@ the filename and the text of the subroutine which failed to compile.
 
 MicroMason execution failed: %s
 
-After parsing and compiling the template succesfully, the subroutine was
+After parsing and compiling the template successfully, the subroutine was
 run and caused a fatal exception, generally because that some Perl code
 used within the template caused die() to be called (or an equivalent
 function like croak or confess).

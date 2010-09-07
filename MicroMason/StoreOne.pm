@@ -36,6 +36,10 @@ __END__
 
 ######################################################################
 
+=head1 NAME
+
+Text::MicroMason::StoreOne - mixin class intended for use with Text::MicroMason::Base
+
 =head1 DESCRIPTION
 
 This mixin class ...
