@@ -2,6 +2,7 @@
 
 use strict;
 use Test::More tests => 9;
+use Safe;
 
 use_ok 'Text::MicroMason', qw( safe_compile safe_execute try_safe_compile try_safe_execute );
 
@@ -34,7 +35,9 @@ TEXT_END
     like $output, qr/\Qsorry Dave\E/;
 }
 
-FILE_IS_NOT_SAFE: {
+SKIP: {
+    skip "Safe 2.27 fails tests in Perl >= 5.13.1", 2 
+        if $] >= 5.013001 and $Safe::VERSION == 2.27;
     my $script = qq| <& 'samples/test.msn', %ARGS &> |;
 
     my ($output, $err) = try_safe_execute($script, name => 'Sam', hour => 9);

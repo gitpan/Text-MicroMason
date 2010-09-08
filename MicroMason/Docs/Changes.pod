@@ -7,6 +7,13 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =over 4
 
+=head2 Version 2.12
+
+=item 2010-09-07
+
+Skip more tests that fail due to a bug in Safe.pm. Add a prereq for
+Safe.pm so CPAN testers will provide more debug info on failure.
+
 =head2 Version 2.11
 
 =item 2010-09-07

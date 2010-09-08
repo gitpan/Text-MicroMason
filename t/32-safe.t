@@ -2,6 +2,7 @@
 
 use strict;
 use Test::More tests => 24;
+use Safe;
 
 use_ok 'Text::MicroMason', qw( safe_compile safe_execute try_safe_compile try_safe_execute );
 

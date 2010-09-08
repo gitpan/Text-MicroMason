@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.7 2009/11/16 21:36:24 alan Exp $
+# $Id: Makefile.PL,v 1.8 2010/09/07 20:25:48 alan Exp $
 
 use ExtUtils::MakeMaker;
 
@@ -12,7 +12,9 @@ WriteMakefile(
                                'File::Spec' => 0.9,
                                'Cwd' => 2.21,
 			       'Test::More' => 0.48,
+                               'Safe' => 0,
                               },
+              MIN_PERL_VERSION => 5.006,
 
               ABSTRACT_FROM     => 'MicroMason.pm', 
               AUTHOR            => 'Alan Ferrency <ferrency@cpan.org>',
