@@ -72,8 +72,8 @@ use_ok 'Text::MicroMason', qw( safe_compile safe_execute try_safe_compile try_sa
 
 SKIP:
 {
-    skip "Safe 2.27 fails tests in Perl >= 5.13.1", 2 
-        if $] >= 5.013001 and $Safe::VERSION == 2.27;
+    skip "Safe doesn't die in Perl >= 5.13.1", 2 
+        if $] >= 5.013001;
     my $script = qq| <& 'samples/test.msn', %ARGS &> |;
 
     my ($output, $err) = try_safe_execute($script, name => 'Sam', hour => 9);
@@ -83,8 +83,8 @@ SKIP:
 
 SKIP:
 {
-    skip "Safe 2.27 fails tests in Perl >= 5.13.1", 2 
-        if $] >= 5.013001 and $Safe::VERSION == 2.27;
+    skip "Safe doesn't die in Perl >= 5.13.1", 2 
+        if $] >= 5.013001;
     my $m = Text::MicroMason->new( '-Safe' );
     my $script = qq| <& 'samples/test.msn', %ARGS &> |;
 

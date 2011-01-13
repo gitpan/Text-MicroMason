@@ -7,6 +7,14 @@ Text::MicroMason::Docs::Changes - Change History for the MicroMason Distribution
 
 =over 4
 
+=head2 Version 2.13
+
+=item 2011-01-13
+
+[rt.cpan.org #64192] Skip the Safe-related tests more often, since newer
+versions of Safe.pm mark their own failing tests as TODO instead of
+changing the module's behavior.
+
 =head2 Version 2.12
 
 =item 2010-09-07

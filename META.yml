@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Text-MicroMason
-version:            2.12
+version:            2.13
 abstract:           Simple and Extensible Templating
 author:
     - Alan Ferrency <ferrency@cpan.org>
